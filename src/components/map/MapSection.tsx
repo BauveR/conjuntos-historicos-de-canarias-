@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { CONJUNTOS } from '../../data/conjuntos'
 import { ConjuntosMap } from './ConjuntosMap'
 import { ConjuntoPanel } from './ConjuntoPanel'
+import { ConjuntoDrawer } from './ConjuntoDrawer'
 
 export function MapSection() {
   const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   const selected = CONJUNTOS.find(c => c.id === selectedId) ?? null
 
@@ -23,9 +25,19 @@ export function MapSection() {
 
         {/* Panel info — 40% desktop, scroll independiente */}
         <div className="flex-1 h-[50%] sm:h-full overflow-y-auto border-l border-stone-100 bg-white">
-          <ConjuntoPanel conjunto={selected} />
+          <ConjuntoPanel
+            conjunto={selected}
+            onVerMas={() => setDrawerOpen(true)}
+          />
         </div>
       </div>
+
+      {/* Drawer — renderiza fuera del overflow del bloque */}
+      <ConjuntoDrawer
+        conjunto={selected}
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+      />
     </section>
   )
 }

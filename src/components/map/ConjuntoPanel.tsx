@@ -3,9 +3,10 @@ import { HandTap } from '../HandTap'
 
 type Props = {
   conjunto: Conjunto | null
+  onVerMas: () => void
 }
 
-export function ConjuntoPanel({ conjunto }: Props) {
+export function ConjuntoPanel({ conjunto, onVerMas }: Props) {
   if (!conjunto) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center px-10 gap-4">
@@ -80,7 +81,8 @@ export function ConjuntoPanel({ conjunto }: Props) {
 
         {/* CTA */}
         <button
-          className="mt-2 w-fit px-8 py-3 border border-stone-900 text-stone-900 text-xs uppercase tracking-widest hover:bg-stone-900 hover:text-white transition-colors duration-300"
+          onClick={onVerMas}
+          className="mt-2 w-fit px-8 py-3 border border-stone-900 text-stone-900 text-xs uppercase tracking-widest hover:bg-stone-900 hover:text-white transition-colors duration-300 cursor-pointer"
           style={{ fontFamily: "'Open Sans', sans-serif" }}
         >
           Ver más
