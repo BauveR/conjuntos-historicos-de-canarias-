@@ -2,7 +2,7 @@ import { HeroSplit } from '../components/hero/HeroSplit'
 
 export function Home() {
   return (
-    <main>
+    <main className="pt-16">
       <HeroSplit
         imageSrc="https://upload.wikimedia.org/wikipedia/commons/4/40/Convento_de_San_Buenaventura_-_Betancuria_-_Fuerteventura.jpg"
         imageAlt="Convento de San Buenaventura, Betancuria, Fuerteventura"

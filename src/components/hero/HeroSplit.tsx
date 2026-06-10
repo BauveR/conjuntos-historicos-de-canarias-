@@ -20,8 +20,8 @@ export function HeroSplit({
   const parallaxRef = useParallax<HTMLDivElement>(0.2)
 
   return (
-    <section className="h-auto sm:h-svh bg-stone-50 px-4 sm:px-10 lg:px-16 py-4 sm:py-8">
-      <div className="flex flex-col sm:flex-row h-full overflow-hidden">
+    <section className="h-auto sm:h-svh bg-stone-50 px-4 sm:px-10 lg:px-16 pt-4 sm:pt-8 mb-[-1px]">
+      <div className="flex flex-col sm:flex-row h-full overflow-hidden rounded-none">
 
       {/* Columna izquierda — imagen */}
       <div className="relative h-[55svh] sm:h-auto sm:w-[58%] shrink-0 overflow-hidden">
