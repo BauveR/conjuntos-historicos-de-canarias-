@@ -1,12 +1,12 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { Conjunto } from '../../data/conjuntos'
 
 // Centro aproximado del archipiélago canario
-const CANARIAS_CENTER: [number, number] = [28.3, -15.6]
-const CANARIAS_ZOOM = 7
+const CANARIAS_CENTER: [number, number] = [28.2, -15.8]
+const CANARIAS_ZOOM = 8
 
 const createMarkerIcon = (selected: boolean) =>
   L.divIcon({
@@ -25,7 +25,13 @@ const createMarkerIcon = (selected: boolean) =>
 
 function FlyTo({ conjunto }: { conjunto: Conjunto | null }) {
   const map = useMap()
+  const isFirstRender = useRef(true)
+
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
     if (conjunto) {
       map.flyTo([conjunto.lat, conjunto.lng], 11, { duration: 1.2 })
     }

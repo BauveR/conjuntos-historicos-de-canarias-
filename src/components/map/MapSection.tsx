@@ -4,7 +4,7 @@ import { ConjuntosMap } from './ConjuntosMap'
 import { ConjuntoPanel } from './ConjuntoPanel'
 
 export function MapSection() {
-  const [selectedId, setSelectedId] = useState<number | null>(CONJUNTOS[0].id)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
 
   const selected = CONJUNTOS.find(c => c.id === selectedId) ?? null
 

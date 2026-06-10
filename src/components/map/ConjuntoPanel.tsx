@@ -1,4 +1,5 @@
 import type { Conjunto } from '../../data/conjuntos'
+import { HandTap } from '../HandTap'
 
 type Props = {
   conjunto: Conjunto | null
@@ -7,7 +8,8 @@ type Props = {
 export function ConjuntoPanel({ conjunto }: Props) {
   if (!conjunto) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-center px-10">
+      <div className="flex flex-col items-center justify-center h-full text-center px-10 gap-4">
+        <HandTap className="w-40 h-40" />
         <p
           className="text-xs tracking-widest uppercase text-stone-400"
           style={{ fontFamily: "'Open Sans', sans-serif" }}
