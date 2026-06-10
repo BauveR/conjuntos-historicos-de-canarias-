@@ -1,4 +1,5 @@
 import { HeroSplit } from '../components/hero/HeroSplit'
+import { MapSection } from '../components/map/MapSection'
 
 export function Home() {
   return (
@@ -12,12 +13,7 @@ export function Home() {
         onCtaClick={() => {}}
       />
 
-      {/* Placeholder — próximas secciones fase 1 */}
-      <section className="min-h-screen bg-stone-50 flex items-center justify-center">
-        <p className="text-stone-300 text-sm tracking-widest uppercase">
-          Próximamente
-        </p>
-      </section>
+      <MapSection />
     </main>
   )
 }
