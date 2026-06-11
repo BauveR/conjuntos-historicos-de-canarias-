@@ -1,8 +1,9 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import type { Actividad } from '../../data/actividades'
 import { CONJUNTOS } from '../../data/conjuntos'
 import { TEMATICA_COLORS } from '../../data/tematicas'
 import { DifficultyDots } from './DifficultyDots'
+import { useIsDesktop } from '../../hooks/useIsDesktop'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
@@ -18,6 +19,8 @@ function plazasBadge(disponibles: number, total: number) {
 type Props = { actividad: Actividad; inactiva?: boolean }
 
 export function ActividadCard({ actividad, inactiva = false }: Props) {
+  const location = useLocation()
+  const isDesktop = useIsDesktop()
   const conjunto = CONJUNTOS.find(c => c.id === actividad.conjuntoId)
   const fecha = new Date(actividad.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
     day: 'numeric',
@@ -26,7 +29,11 @@ export function ActividadCard({ actividad, inactiva = false }: Props) {
   const badge = plazasBadge(actividad.plazasDisponibles, actividad.plazas)
 
   return (
-    <Link to={`/actividades/${actividad.id}`} state={{ from: 'actividades' }} className={`group flex flex-col gap-3 ${inactiva ? 'opacity-50' : ''}`}>
+    <Link
+      to={`/actividades/${actividad.id}`}
+      state={isDesktop ? { from: 'actividades', background: location } : { from: 'actividades' }}
+      className={`group flex flex-col gap-3 ${inactiva ? 'opacity-50' : ''}`}
+    >
       {/* Imagen */}
       <div className="relative overflow-hidden rounded-2xl aspect-[4/3]">
         <img

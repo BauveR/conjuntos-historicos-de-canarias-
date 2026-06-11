@@ -33,6 +33,7 @@ export function MapSection() {
   }, [])
 
   const handleSelect = (id: number) => {
+    setMapActive(true)
     setSelectedId(id)
     if (!window.matchMedia(SM_BREAKPOINT).matches) {
       setDrawerOpen(true)
@@ -62,22 +63,16 @@ export function MapSection() {
 
         <div ref={mapContainerRef} className="h-full flex-1 min-w-0 touch-none isolate relative">
 
-          {/* Click-to-activate overlay — invisible, solo captura el primer click */}
-          {!mapActive && (
-            <div
-              className="absolute inset-0 z-[800] cursor-pointer"
-              onClick={() => setMapActive(true)}
-            />
-          )}
-
           <MapHint visible={mapVisible} active={mapActive} />
 
-          <div className={`h-full${!mapActive ? ' pointer-events-none' : ''}`}>
+          <div className="h-full">
             <ConjuntosMap
               conjuntos={CONJUNTOS}
               selectedId={selectedId}
               selectedIsla={selectedIsla}
+              active={mapActive}
               onSelect={handleSelect}
+              onActivate={() => setMapActive(true)}
             />
           </div>
         </div>

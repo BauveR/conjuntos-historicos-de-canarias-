@@ -12,6 +12,7 @@ export function ActividadPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const fromApp = location.key !== 'default'
+  const isModal = !!location.state?.background
   const actividad = ACTIVIDADES.find(a => a.id === Number(id))
 
   if (!actividad) return <Navigate to="/" replace />
@@ -28,21 +29,23 @@ export function ActividadPage() {
   const pct = Math.round((plazasOcupadas / actividad.plazas) * 100)
 
   return (
-    <main className="pt-16 min-h-screen bg-white">
+    <main className={`${isModal ? 'pt-6' : 'pt-16'} min-h-screen bg-white`}>
 
       {/* ── Contenedor centrado ── */}
       <div className="max-w-5xl mx-auto px-6 sm:px-10 lg:px-8">
 
-        {/* Back link */}
-        <div className="py-5">
-          <button
-            onClick={() => fromApp ? navigate(-1) : navigate('/')}
-            className="inline-flex items-center gap-1.5 text-[11px] tracking-widest uppercase text-stone-400 hover:text-stone-700 transition-colors"
-            style={labelStyle}
-          >
-            ← Volver
-          </button>
-        </div>
+        {/* Back link — hidden inside modal (close button handles it) */}
+        {!isModal && (
+          <div className="py-5">
+            <button
+              onClick={() => fromApp ? navigate(-1) : navigate('/')}
+              className="inline-flex items-center gap-1.5 text-[11px] tracking-widest uppercase text-stone-400 hover:text-stone-700 transition-colors"
+              style={labelStyle}
+            >
+              ← Volver
+            </button>
+          </div>
+        )}
 
         {/* Title block */}
         <div className="mb-5">

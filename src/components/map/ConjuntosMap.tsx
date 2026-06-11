@@ -6,16 +6,56 @@ import type { Conjunto } from '../../data/conjuntos'
 
 const CANARIAS_CENTER: [number, number] = [28.2, -15.8]
 
+let savedMapView: { center: [number, number]; zoom: number } | null = null
+
+function SaveMapView() {
+  const map = useMap()
+  useEffect(() => {
+    const save = () => {
+      savedMapView = { center: [map.getCenter().lat, map.getCenter().lng], zoom: map.getZoom() }
+    }
+    map.on('moveend', save)
+    map.on('zoomend', save)
+    return () => { map.off('moveend', save); map.off('zoomend', save) }
+  }, [map])
+  return null
+}
+
+// Manages scroll-wheel zoom gating and first-click activation
+function MapActivation({ active, onActivate }: { active: boolean; onActivate: () => void }) {
+  const map = useMap()
+  const onActivateRef = useRef(onActivate)
+  onActivateRef.current = onActivate
+
+  useEffect(() => {
+    if (active) {
+      map.scrollWheelZoom.enable()
+      return
+    }
+    map.scrollWheelZoom.disable()
+    const handle = () => onActivateRef.current()
+    map.on('click', handle)
+    return () => { map.off('click', handle) }
+  }, [active, map])
+
+  return null
+}
+
 const createDotIcon = (faded: boolean) =>
   L.divIcon({
     className: '',
     html: `<div style="
-      width:8px;height:8px;border-radius:50%;
-      background:${faded ? '#e7e5e4' : '#ffffff'};
-      border:1.5px solid ${faded ? '#d6d3d1' : '#78716c'};
-      box-shadow:0 1px 4px rgba(0,0,0,${faded ? '0.06' : '0.15'});
-      transform:translateX(-50%) translateY(-50%);
-    "></div>`,
+      width:20px;height:20px;
+      display:flex;align-items:center;justify-content:center;
+      transform:translate(-50%,-50%);
+    ">
+      <div style="
+        width:8px;height:8px;border-radius:50%;
+        background:${faded ? '#e7e5e4' : '#ffffff'};
+        border:1.5px solid ${faded ? '#d6d3d1' : '#78716c'};
+        box-shadow:0 1px 4px rgba(0,0,0,${faded ? '0.06' : '0.15'});
+      "></div>
+    </div>`,
     iconSize: [0, 0],
     iconAnchor: [0, 0],
   })
@@ -44,24 +84,18 @@ function getIcon(c: Conjunto, selectedId: number | null, selectedIsla: string | 
   const isSelected = c.id === selectedId
   const label = c.nombre.replace('Conjunto Histórico de ', '')
 
-  // Selected marker always shows its label regardless of island filter
   if (isSelected) return createLabelIcon(true, label)
-
-  if (selectedIsla === null) {
-    // Overview: plain dots for all
-    return createDotIcon(false)
-  }
-
-  // Island filter active: label for matching island, faded dot for others
+  if (selectedIsla === null) return createDotIcon(false)
   return c.isla === selectedIsla ? createLabelIcon(false, label) : createDotIcon(true)
 }
 
 function FlyTo({ conjunto }: { conjunto: Conjunto | null }) {
   const map = useMap()
-  const isFirstRender = useRef(true)
+  const prev = useRef(conjunto)
 
   useEffect(() => {
-    if (isFirstRender.current) { isFirstRender.current = false; return }
+    if (conjunto === prev.current) return
+    prev.current = conjunto
     if (conjunto) map.flyTo([conjunto.lat, conjunto.lng], 11, { duration: 1.2 })
   }, [conjunto, map])
   return null
@@ -69,10 +103,11 @@ function FlyTo({ conjunto }: { conjunto: Conjunto | null }) {
 
 function FlyToIsla({ isla, conjuntos }: { isla: string | null; conjuntos: Conjunto[] }) {
   const map = useMap()
-  const isFirstRender = useRef(true)
+  const prev = useRef(isla)
 
   useEffect(() => {
-    if (isFirstRender.current) { isFirstRender.current = false; return }
+    if (isla === prev.current) return
+    prev.current = isla
 
     if (!isla) {
       const zoom = window.matchMedia('(min-width: 640px)').matches ? 8 : 6
@@ -102,20 +137,24 @@ type Props = {
   conjuntos: Conjunto[]
   selectedId: number | null
   selectedIsla: string | null
+  active: boolean
   onSelect: (id: number) => void
+  onActivate: () => void
 }
 
-export function ConjuntosMap({ conjuntos, selectedId, selectedIsla, onSelect }: Props) {
+export function ConjuntosMap({ conjuntos, selectedId, selectedIsla, active, onSelect, onActivate }: Props) {
+  const [initialCenter] = useState(() => savedMapView?.center ?? CANARIAS_CENTER)
   const [initialZoom] = useState(() =>
-    window.matchMedia('(min-width: 640px)').matches ? 8 : 6
+    savedMapView?.zoom ?? (window.matchMedia('(min-width: 640px)').matches ? 8 : 6)
   )
 
   return (
     <MapContainer
-      center={CANARIAS_CENTER}
+      center={initialCenter}
       zoom={initialZoom}
       style={{ width: '100%', height: '100%' }}
       zoomControl={false}
+      scrollWheelZoom={false}
     >
       <TileLayer
         url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
@@ -132,6 +171,8 @@ export function ConjuntosMap({ conjuntos, selectedId, selectedIsla, onSelect }: 
         />
       ))}
 
+      <MapActivation active={active} onActivate={onActivate} />
+      <SaveMapView />
       <FlyTo conjunto={conjuntos.find(c => c.id === selectedId) ?? null} />
       <FlyToIsla isla={selectedIsla} conjuntos={conjuntos} />
     </MapContainer>

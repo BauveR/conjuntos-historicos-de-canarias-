@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import type { Conjunto } from '../../data/conjuntos'
 import { ACTIVIDADES } from '../../data/actividades'
 import { TEMATICA_COLORS } from '../../data/tematicas'
@@ -13,6 +13,7 @@ type Props = {
 }
 
 export function ConjuntoPanel({ conjunto, onClose }: Props) {
+  const location = useLocation()
   const actividades = conjunto
     ? conjunto.actividadIds.map(id => ACTIVIDADES.find(a => a.id === id)).filter(Boolean)
     : []
@@ -99,7 +100,7 @@ export function ConjuntoPanel({ conjunto, onClose }: Props) {
             <Link
               key={act!.id}
               to={`/actividades/${act!.id}`}
-              state={{ from: 'conjuntos' }}
+              state={{ from: 'conjuntos', background: location }}
               className="flex-none w-36 flex flex-col gap-1.5 group"
             >
               <div className="aspect-4/3 rounded-xl overflow-hidden">
