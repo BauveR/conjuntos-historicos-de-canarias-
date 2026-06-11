@@ -1,21 +1,24 @@
 import { useMemo, useState } from 'react'
 import { ACTIVIDADES } from '../../data/actividades'
 import { CONJUNTOS } from '../../data/conjuntos'
-import type { Tematica } from '../../data/tematicas'
-import type { Dificultad } from '../../data/actividades'
 import { FilterBar } from './FilterBar'
 import { FilterSheet, type FilterState } from './FilterSheet'
 import { ActividadesSlider } from './ActividadesSlider'
 import { ActividadesInactivas } from './ActividadesInactivas'
+import { useAppContext } from '../../contexts/AppContext'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
 export function ActividadesSection() {
-  const [tematica, setTematica]     = useState<Tematica | null>(null)
-  const [isla, setIsla]             = useState<string | null>(null)
-  const [conjuntoId, setConjuntoId] = useState<number | null>(null)
-  const [mes, setMes]               = useState<string | null>(null)
-  const [dificultad, setDificultad] = useState<Dificultad | null>(null)
+  const {
+    tematica, setTematica,
+    isla, setIsla,
+    conjuntoId, setConjuntoId,
+    mes, setMes,
+    dificultad, setDificultad,
+    applyFilters,
+  } = useAppContext()
+
   const [sheetOpen, setSheetOpen] = useState(false)
 
   const mesesDisponibles = useMemo(() => {
@@ -44,17 +47,8 @@ export function ActividadesSection() {
 
   const currentFilters: FilterState = { tematica, isla, conjuntoId, mes, dificultad }
 
-  const handleApply = (f: FilterState) => {
-    setTematica(f.tematica)
-    setIsla(f.isla)
-    setConjuntoId(f.conjuntoId)
-    setMes(f.mes)
-    setDificultad(f.dificultad)
-  }
-
   return (
     <section className="px-4 sm:px-10 lg:px-16 py-12 sm:py-16 bg-white">
-      {/* Header */}
       <div className="mb-8">
         <p className="text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-2" style={labelStyle}>
           Rutas y actividades
@@ -64,7 +58,6 @@ export function ActividadesSection() {
         </h2>
       </div>
 
-      {/* Filters */}
       <div className="mb-8">
         <FilterBar
           tematica={tematica}
@@ -82,14 +75,13 @@ export function ActividadesSection() {
         />
       </div>
 
-      {/* Contenido */}
       {actividadesFiltradas.length === 0 ? (
         <div className="py-20 text-center flex flex-col items-center gap-4">
           <p className="text-sm text-stone-400" style={labelStyle}>
             No hay actividades para los filtros seleccionados.
           </p>
           <button
-            onClick={() => handleApply({ tematica: null, isla: null, conjuntoId: null, mes: null, dificultad: null })}
+            onClick={() => applyFilters({ tematica: null, isla: null, conjuntoId: null, mes: null, dificultad: null })}
             className="px-4 py-2 rounded-full border border-stone-200 text-[11px] text-stone-500 tracking-wide hover:border-stone-400 transition-colors"
             style={labelStyle}
           >
@@ -103,13 +95,12 @@ export function ActividadesSection() {
         </>
       )}
 
-      {/* Mobile filter sheet */}
       <FilterSheet
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
         filters={currentFilters}
         mesesDisponibles={mesesDisponibles}
-        onApply={handleApply}
+        onApply={applyFilters}
       />
     </section>
   )

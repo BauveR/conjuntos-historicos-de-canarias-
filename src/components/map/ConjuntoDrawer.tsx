@@ -23,12 +23,13 @@ type Props = {
   conjunto: Conjunto | null
   open: boolean
   onClose: () => void
+  onNavigate?: () => void
 }
 
 const desktopTransition: Transition = { duration: 0.18, ease: 'easeOut' }
 const mobileTransition: Transition = { type: 'spring', damping: 30, stiffness: 300 }
 
-export function ConjuntoDrawer({ conjunto, open, onClose }: Props) {
+export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
   const isDesktop = useIsDesktop()
 
   if (!conjunto) return null
@@ -138,7 +139,7 @@ export function ConjuntoDrawer({ conjunto, open, onClose }: Props) {
                     <Link
                       key={act!.id}
                       to={`/actividades/${act!.id}`}
-                      onClick={onClose}
+                      onClick={onNavigate ?? onClose}
                       className="flex-none w-40 flex flex-col gap-2 group"
                     >
                       <div className="aspect-4/3 rounded-xl overflow-hidden">
@@ -239,7 +240,7 @@ export function ConjuntoDrawer({ conjunto, open, onClose }: Props) {
                     <Link
                       key={act!.id}
                       to={`/actividades/${act!.id}`}
-                      onClick={onClose}
+                      onClick={onNavigate ?? onClose}
                       className="flex-none w-36 flex flex-col gap-1.5 group"
                     >
                       <div className="aspect-4/3 rounded-xl overflow-hidden">

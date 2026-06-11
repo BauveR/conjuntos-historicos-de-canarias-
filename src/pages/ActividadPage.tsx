@@ -1,4 +1,4 @@
-import { Link, useParams, Navigate } from 'react-router-dom'
+import { useParams, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { ACTIVIDADES } from '../data/actividades'
 import { CONJUNTOS } from '../data/conjuntos'
 import { TEMATICA_COLORS } from '../data/tematicas'
@@ -9,6 +9,9 @@ const serifStyle = { fontFamily: "'Playfair Display', serif" }
 
 export function ActividadPage() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const fromApp = location.key !== 'default'
   const actividad = ACTIVIDADES.find(a => a.id === Number(id))
 
   if (!actividad) return <Navigate to="/" replace />
@@ -32,13 +35,13 @@ export function ActividadPage() {
 
         {/* Back link */}
         <div className="py-5">
-          <Link
-            to="/"
+          <button
+            onClick={() => fromApp ? navigate(-1) : navigate('/')}
             className="inline-flex items-center gap-1.5 text-[11px] tracking-widest uppercase text-stone-400 hover:text-stone-700 transition-colors"
             style={labelStyle}
           >
             ← Volver
-          </Link>
+          </button>
         </div>
 
         {/* Title block */}
