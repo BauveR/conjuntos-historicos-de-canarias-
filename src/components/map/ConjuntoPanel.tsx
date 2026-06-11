@@ -1,4 +1,5 @@
 import type { Conjunto } from '../../data/conjuntos'
+import { ACTIVIDADES } from '../../data/actividades'
 import { HandTap } from '../HandTap'
 
 type Props = {
@@ -7,6 +8,10 @@ type Props = {
 }
 
 export function ConjuntoPanel({ conjunto, onVerMas }: Props) {
+  const actividades = conjunto
+    ? conjunto.actividadIds.map(id => ACTIVIDADES.find(a => a.id === id)).filter(Boolean)
+    : []
+
   if (!conjunto) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center px-10 gap-4">
@@ -67,13 +72,13 @@ export function ConjuntoPanel({ conjunto, onVerMas }: Props) {
             Actividades disponibles
           </p>
           <div className="flex flex-wrap gap-2">
-            {conjunto.actividades.map(act => (
+            {actividades.map(act => (
               <span
-                key={act}
+                key={act!.id}
                 className="px-3 py-1 border border-stone-200 text-stone-600 text-[10px] tracking-widest uppercase"
                 style={{ fontFamily: "'Open Sans', sans-serif" }}
               >
-                {act}
+                {act!.tematica}
               </span>
             ))}
           </div>

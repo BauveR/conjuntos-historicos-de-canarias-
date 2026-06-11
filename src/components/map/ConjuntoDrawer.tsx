@@ -1,7 +1,8 @@
 import { createPortal } from 'react-dom'
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, type Transition } from 'framer-motion'
 import type { Conjunto } from '../../data/conjuntos'
+import { ACTIVIDADES } from '../../data/actividades'
 
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(
@@ -22,24 +23,27 @@ type Props = {
   onClose: () => void
 }
 
+const desktopTransition: Transition = { duration: 0.18, ease: 'easeOut' }
+const mobileTransition: Transition = { type: 'spring', damping: 30, stiffness: 300 }
+
 export function ConjuntoDrawer({ conjunto, open, onClose }: Props) {
   const isDesktop = useIsDesktop()
 
   if (!conjunto) return null
 
+  const actividades = conjunto.actividadIds
+    .map(id => ACTIVIDADES.find(a => a.id === id))
+    .filter(Boolean)
+
   const cardVariants = isDesktop
     ? { initial: { opacity: 0, scale: 0.96 }, animate: { opacity: 1, scale: 1 }, exit: { opacity: 0, scale: 0.96 } }
     : { initial: { y: '100%' }, animate: { y: 0 }, exit: { y: '100%' } }
-
-  const cardTransition = isDesktop
-    ? { duration: 0.18, ease: 'easeOut' }
-    : { type: 'spring' as const, damping: 30, stiffness: 300 }
 
   return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[9998] bg-black/40 sm:flex sm:items-center sm:justify-center"
+          className="fixed inset-0 z-9998 bg-black/40 sm:flex sm:items-center sm:justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -56,7 +60,7 @@ export function ConjuntoDrawer({ conjunto, open, onClose }: Props) {
             initial="initial"
             animate="animate"
             exit="exit"
-            transition={cardTransition}
+            transition={isDesktop ? desktopTransition : mobileTransition}
             drag={isDesktop ? false : 'y'}
             dragConstraints={isDesktop ? undefined : { top: 0 }}
             dragElastic={isDesktop ? undefined : { top: 0 }}
@@ -109,13 +113,13 @@ export function ConjuntoDrawer({ conjunto, open, onClose }: Props) {
                     Actividades disponibles
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {conjunto.actividades.map(act => (
+                    {actividades.map(act => (
                       <span
-                        key={act}
+                        key={act!.id}
                         className="px-4 py-1.5 border border-stone-200 text-stone-500 text-[10px] tracking-widest uppercase"
                         style={{ fontFamily: "'Open Sans', sans-serif" }}
                       >
-                        {act}
+                        {act!.tematica}
                       </span>
                     ))}
                   </div>
@@ -164,10 +168,10 @@ export function ConjuntoDrawer({ conjunto, open, onClose }: Props) {
                     Actividades disponibles
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {conjunto.actividades.map(act => (
-                      <span key={act} className="px-3 py-1 border border-stone-200 text-stone-600 text-[10px] tracking-widest uppercase"
+                    {actividades.map(act => (
+                      <span key={act!.id} className="px-3 py-1 border border-stone-200 text-stone-600 text-[10px] tracking-widest uppercase"
                             style={{ fontFamily: "'Open Sans', sans-serif" }}>
-                        {act}
+                        {act!.tematica}
                       </span>
                     ))}
                   </div>

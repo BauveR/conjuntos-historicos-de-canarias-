@@ -1,5 +1,6 @@
 import { HeroSplit } from '../components/hero/HeroSplit'
 import { MapSection } from '../components/map/MapSection'
+import { ActividadesSection } from '../components/actividades/ActividadesSection'
 
 export function Home() {
   return (
@@ -14,6 +15,8 @@ export function Home() {
       />
 
       <MapSection />
+
+      <ActividadesSection />
     </main>
   )
 }
