@@ -1,10 +1,15 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useScrollDirection } from '../hooks/useScrollDirection'
 
-const NAV_LINKS = [
-  { label: 'Inicio',                href: '#' },
-  { label: 'Conjuntos',             href: '#' },
-  { label: 'Rutas y Eventos',       href: '#' },
+const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+
+type NavEntry = { label: string; to?: string; href?: string }
+
+const NAV_LINKS: NavEntry[] = [
+  { label: 'Inicio',                to: '/' },
+  { label: 'Conjuntos',             to: '/#conjuntos' },
+  { label: 'Rutas y Eventos',       to: '/#actividades' },
   { label: 'Pasaporte Patrimonial', href: '#' },
   { label: 'Contacto',              href: '#' },
 ]
@@ -16,7 +21,13 @@ const linkClass =
 const mobileLinkClass =
   'block text-xs tracking-widest uppercase text-stone-500 hover:text-stone-900 transition-colors duration-200 py-4 border-b border-stone-100'
 
-const linkStyle = { fontFamily: "'Open Sans', sans-serif" }
+function NavLink({ entry, mobile, onClick }: { entry: NavEntry; mobile?: boolean; onClick?: () => void }) {
+  const cls = mobile ? mobileLinkClass : linkClass
+  if (entry.to) {
+    return <Link to={entry.to} className={cls} style={labelStyle} onClick={onClick}>{entry.label}</Link>
+  }
+  return <a href={entry.href ?? '#'} className={cls} style={labelStyle} onClick={onClick}>{entry.label}</a>
+}
 
 export function Navbar() {
   const hidden = useScrollDirection()
@@ -31,36 +42,35 @@ export function Navbar() {
       {/* Barra principal */}
       <div className="flex items-center px-6 sm:px-8 h-16 border-b border-stone-100">
         {/* Logo */}
-        <span
+        <Link
+          to="/"
           className="text-[11px] sm:text-sm tracking-widest uppercase text-stone-900 whitespace-nowrap"
           style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}
         >
           Conjuntos Históricos de Canarias
-        </span>
+        </Link>
 
         {/* Links — solo desktop */}
         <nav className="hidden lg:flex items-center gap-8 flex-1 ml-10">
-          {NAV_LINKS.map(({ label, href }) => (
-            <a key={label} href={href} className={linkClass} style={linkStyle}>
-              {label}
-            </a>
+          {NAV_LINKS.map(entry => (
+            <NavLink key={entry.label} entry={entry} />
           ))}
         </nav>
 
         {/* Login — solo desktop */}
-        <a href="#" className={`hidden lg:block ${linkClass}`} style={linkStyle}>
+        <a href="#" className={`hidden lg:block ${linkClass}`} style={labelStyle}>
           Login / Mi Cuenta
         </a>
 
         {/* Burger — tablet y mobile */}
         <button
-          className="lg:hidden flex flex-col justify-center items-center gap-[5px] w-8 h-8 ml-auto"
+          className="lg:hidden flex flex-col justify-center items-center gap-1.25 w-8 h-8 ml-auto"
           onClick={() => setOpen(prev => !prev)}
           aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
         >
           <span
             className={`block h-px w-6 bg-stone-800 transition-all duration-300 origin-center ${
-              open ? 'translate-y-[6px] rotate-45' : ''
+              open ? 'translate-y-1.5 rotate-45' : ''
             }`}
           />
           <span
@@ -70,7 +80,7 @@ export function Navbar() {
           />
           <span
             className={`block h-px w-6 bg-stone-800 transition-all duration-300 origin-center ${
-              open ? '-translate-y-[6px] -rotate-45' : ''
+              open ? '-translate-y-1.5 -rotate-45' : ''
             }`}
           />
         </button>
@@ -83,21 +93,13 @@ export function Navbar() {
         }`}
       >
         <nav className="flex flex-col px-6 sm:px-8 pb-2">
-          {NAV_LINKS.map(({ label, href }) => (
-            <a
-              key={label}
-              href={href}
-              className={mobileLinkClass}
-              style={linkStyle}
-              onClick={() => setOpen(false)}
-            >
-              {label}
-            </a>
+          {NAV_LINKS.map(entry => (
+            <NavLink key={entry.label} entry={entry} mobile onClick={() => setOpen(false)} />
           ))}
           <a
             href="#"
             className={mobileLinkClass}
-            style={linkStyle}
+            style={labelStyle}
             onClick={() => setOpen(false)}
           >
             Login / Mi Cuenta

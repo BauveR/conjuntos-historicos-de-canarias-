@@ -1,8 +1,22 @@
+import { useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { HeroSplit } from '../components/hero/HeroSplit'
 import { MapSection } from '../components/map/MapSection'
 import { ActividadesSection } from '../components/actividades/ActividadesSection'
 
+function scrollTo(id: string) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+}
+
 export function Home() {
+  const { hash } = useLocation()
+
+  useEffect(() => {
+    if (!hash) return
+    const el = document.getElementById(hash.slice(1))
+    if (el) el.scrollIntoView({ behavior: 'smooth' })
+  }, [hash])
+
   return (
     <main className="pt-16">
       <HeroSplit
@@ -11,12 +25,16 @@ export function Home() {
         title="Conjuntos Históricos de Canarias"
         subtitle="Descubre el patrimonio histórico protegido de las siete islas"
         ctaLabel="Explorar"
-        onCtaClick={() => {}}
+        onCtaClick={() => scrollTo('conjuntos')}
       />
 
-      <MapSection />
+      <section id="conjuntos" className="scroll-mt-16">
+        <MapSection />
+      </section>
 
-      <ActividadesSection />
+      <section id="actividades" className="scroll-mt-16">
+        <ActividadesSection />
+      </section>
     </main>
   )
 }
