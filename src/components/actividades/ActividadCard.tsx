@@ -15,9 +15,9 @@ function plazasBadge(disponibles: number, total: number) {
   return null
 }
 
-type Props = { actividad: Actividad }
+type Props = { actividad: Actividad; inactiva?: boolean }
 
-export function ActividadCard({ actividad }: Props) {
+export function ActividadCard({ actividad, inactiva = false }: Props) {
   const conjunto = CONJUNTOS.find(c => c.id === actividad.conjuntoId)
   const fecha = new Date(actividad.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
     day: 'numeric',
@@ -26,14 +26,22 @@ export function ActividadCard({ actividad }: Props) {
   const badge = plazasBadge(actividad.plazasDisponibles, actividad.plazas)
 
   return (
-    <Link to={`/actividades/${actividad.id}`} className="group flex flex-col gap-3">
+    <Link to={`/actividades/${actividad.id}`} className={`group flex flex-col gap-3 ${inactiva ? 'opacity-50' : ''}`}>
       {/* Imagen */}
       <div className="relative overflow-hidden rounded-2xl aspect-[4/3]">
         <img
           src={actividad.imagen}
           alt={actividad.titulo}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className={`w-full h-full object-cover transition-transform duration-500 ${inactiva ? 'grayscale' : 'group-hover:scale-105'}`}
         />
+        {/* Overlay inactiva */}
+        {inactiva && (
+          <div className="absolute inset-0 bg-white/10 flex items-center justify-center">
+            <span className="px-3 py-1 bg-white/90 text-stone-500 text-[10px] tracking-widest uppercase rounded-full" style={labelStyle}>
+              {actividad.plazasDisponibles === 0 ? 'Agotada' : 'Finalizada'}
+            </span>
+          </div>
+        )}
         {/* Badge temática */}
         <span
           className="absolute top-3 left-3 px-3 py-1 text-white font-bold text-[10px] tracking-widest uppercase rounded-full"

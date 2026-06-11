@@ -3,9 +3,10 @@ import { ACTIVIDADES } from '../../data/actividades'
 import { CONJUNTOS } from '../../data/conjuntos'
 import type { Tematica } from '../../data/tematicas'
 import type { Dificultad } from '../../data/actividades'
-import { ActividadCard } from './ActividadCard'
 import { FilterBar } from './FilterBar'
 import { FilterSheet, type FilterState } from './FilterSheet'
+import { ActividadesSlider } from './ActividadesSlider'
+import { ActividadesInactivas } from './ActividadesInactivas'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
@@ -22,7 +23,9 @@ export function ActividadesSection() {
     return Array.from(set).sort()
   }, [])
 
-  const actividades = useMemo(() => {
+  const today = new Date().toISOString().slice(0, 10)
+
+  const actividadesFiltradas = useMemo(() => {
     return ACTIVIDADES.filter(a => {
       if (tematica && a.tematica !== tematica) return false
       if (conjuntoId && a.conjuntoId !== conjuntoId) return false
@@ -35,6 +38,9 @@ export function ActividadesSection() {
       return true
     })
   }, [tematica, isla, conjuntoId, mes, dificultad])
+
+  const disponibles = actividadesFiltradas.filter(a => a.plazasDisponibles > 0 && a.fecha >= today)
+  const inactivas   = actividadesFiltradas.filter(a => a.plazasDisponibles === 0 || a.fecha < today)
 
   const currentFilters: FilterState = { tematica, isla, conjuntoId, mes, dificultad }
 
@@ -76,12 +82,8 @@ export function ActividadesSection() {
         />
       </div>
 
-      {/* Grid */}
-      {actividades.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {actividades.map(a => <ActividadCard key={a.id} actividad={a} />)}
-        </div>
-      ) : (
+      {/* Contenido */}
+      {actividadesFiltradas.length === 0 ? (
         <div className="py-20 text-center flex flex-col items-center gap-4">
           <p className="text-sm text-stone-400" style={labelStyle}>
             No hay actividades para los filtros seleccionados.
@@ -94,6 +96,11 @@ export function ActividadesSection() {
             Limpiar filtros
           </button>
         </div>
+      ) : (
+        <>
+          <ActividadesSlider actividades={disponibles} />
+          <ActividadesInactivas actividades={inactivas} />
+        </>
       )}
 
       {/* Mobile filter sheet */}
