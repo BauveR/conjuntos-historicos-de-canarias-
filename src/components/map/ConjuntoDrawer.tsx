@@ -38,7 +38,6 @@ export function ConjuntoDrawer({ conjunto, open, onClose }: Props) {
   return createPortal(
     <AnimatePresence>
       {open && (
-        /* Overlay — flex center en desktop */
         <motion.div
           className="fixed inset-0 z-[9998] bg-black/40 sm:flex sm:items-center sm:justify-center"
           initial={{ opacity: 0 }}
@@ -46,7 +45,6 @@ export function ConjuntoDrawer({ conjunto, open, onClose }: Props) {
           exit={{ opacity: 0 }}
           onClick={onClose}
         >
-          {/* Card */}
           <motion.div
             className="
               bg-white flex flex-col overflow-hidden
@@ -72,44 +70,95 @@ export function ConjuntoDrawer({ conjunto, open, onClose }: Props) {
               </div>
             )}
 
-            {/* Botón cerrar — solo desktop */}
-            {isDesktop && (
-              <button
-                onClick={onClose}
-                className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full hover:bg-stone-100 transition-colors cursor-pointer"
-                aria-label="Cerrar"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                  <path d="M18 6 6 18M6 6l12 12" />
-                </svg>
-              </button>
-            )}
+            {/* ── DESKTOP: izquierda textos ── */}
+            <div className="hidden sm:flex flex-col justify-between h-full w-[42%] shrink-0 px-16 py-14 overflow-y-auto">
 
-            {/* Imagen — top en mobile, left en desktop */}
-            <div className="w-full aspect-video shrink-0 sm:w-[55%] sm:aspect-auto sm:h-full">
-              <img src={conjunto.imagen} alt={conjunto.nombre} className="w-full h-full object-cover" />
-            </div>
-
-            {/* Contenido scrollable */}
-            <div className="overflow-y-auto flex-1">
-              <div className="flex flex-col gap-5 px-6 py-6">
-                {/* Isla · Municipio */}
-                <p className="text-[10px] tracking-widest uppercase text-stone-400" style={{ fontFamily: "'Open Sans', sans-serif" }}>
+              {/* Cabecera */}
+              <div className="flex flex-col gap-6">
+                <p
+                  className="text-[10px] tracking-[0.25em] uppercase text-stone-400"
+                  style={{ fontFamily: "'Open Sans', sans-serif" }}
+                >
                   {conjunto.isla} — {conjunto.municipio}
                 </p>
 
-                {/* Nombre */}
+                <h2
+                  className="text-4xl font-thin text-stone-900 uppercase tracking-tight leading-tight"
+                  style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}
+                >
+                  {conjunto.nombre}
+                </h2>
+
+                <div className="w-8 h-px bg-stone-300" />
+
+                <p
+                  className="text-sm text-stone-500 leading-loose max-w-sm"
+                  style={{ fontFamily: "'Open Sans', sans-serif" }}
+                >
+                  {conjunto.descripcion}
+                </p>
+              </div>
+
+              {/* Actividades + CTA */}
+              <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-3">
+                  <p
+                    className="text-[10px] tracking-[0.25em] uppercase text-stone-400"
+                    style={{ fontFamily: "'Open Sans', sans-serif" }}
+                  >
+                    Actividades disponibles
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {conjunto.actividades.map(act => (
+                      <span
+                        key={act}
+                        className="px-4 py-1.5 border border-stone-200 text-stone-500 text-[10px] tracking-widest uppercase"
+                        style={{ fontFamily: "'Open Sans', sans-serif" }}
+                      >
+                        {act}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── DESKTOP: derecha imagen slide ── */}
+            <div className="hidden sm:block flex-1 h-full relative overflow-hidden">
+              <img
+                src={conjunto.imagen}
+                alt={conjunto.nombre}
+                className="w-full h-full object-cover"
+              />
+              {/* Botón cerrar sobre la imagen */}
+              <button
+                onClick={onClose}
+                className="absolute top-4 right-4 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-white/80 hover:bg-white transition-colors cursor-pointer shadow-sm"
+                aria-label="Cerrar"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* ── MOBILE: layout vertical ── */}
+            <div className="sm:hidden w-full aspect-video shrink-0">
+              <img src={conjunto.imagen} alt={conjunto.nombre} className="w-full h-full object-cover" />
+            </div>
+
+            <div className="sm:hidden overflow-y-auto flex-1">
+              <div className="flex flex-col gap-5 px-6 py-6">
+                <p className="text-[10px] tracking-widest uppercase text-stone-400" style={{ fontFamily: "'Open Sans', sans-serif" }}>
+                  {conjunto.isla} — {conjunto.municipio}
+                </p>
                 <h2 className="text-2xl font-thin text-stone-900 uppercase tracking-tight leading-snug"
                     style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}>
                   {conjunto.nombre}
                 </h2>
-
-                {/* Descripción */}
                 <p className="text-sm text-stone-500 leading-relaxed" style={{ fontFamily: "'Open Sans', sans-serif" }}>
                   {conjunto.descripcion}
                 </p>
-
-                {/* Actividades */}
                 <div className="flex flex-col gap-3">
                   <p className="text-[10px] tracking-widest uppercase text-stone-400" style={{ fontFamily: "'Open Sans', sans-serif" }}>
                     Actividades disponibles
@@ -123,12 +172,9 @@ export function ConjuntoDrawer({ conjunto, open, onClose }: Props) {
                     ))}
                   </div>
                 </div>
-
-                <p className="text-[10px] text-stone-300 italic" style={{ fontFamily: "'Open Sans', sans-serif" }}>
-                  * Las actividades disponibles se actualizarán próximamente.
-                </p>
               </div>
             </div>
+
           </motion.div>
         </motion.div>
       )}
