@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import type { Actividad } from '../../data/actividades'
 import { CONJUNTOS } from '../../data/conjuntos'
 import { TEMATICA_COLORS } from '../../data/tematicas'
+import { DifficultyDots } from './DifficultyDots'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
@@ -70,9 +71,8 @@ export function ActividadCard({ actividad }: Props) {
           <span>{fecha} · {actividad.hora}</span>
           <span className="text-stone-300">·</span>
           <span>{actividad.duracion}</span>
-          <span className="text-stone-300">·</span>
-          <span>{actividad.dificultad}</span>
         </div>
+        <DifficultyDots dificultad={actividad.dificultad} />
 
         <p className="text-[11px] text-stone-400" style={labelStyle}>
           {actividad.plazasDisponibles} de {actividad.plazas} plazas disponibles
