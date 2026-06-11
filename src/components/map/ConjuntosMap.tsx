@@ -51,8 +51,8 @@ const createDotIcon = (faded: boolean) =>
     ">
       <div style="
         width:8px;height:8px;border-radius:50%;
-        background:${faded ? '#e7e5e4' : '#ffffff'};
-        border:1.5px solid ${faded ? '#d6d3d1' : '#78716c'};
+        background:${faded ? '#e7e5e4' : '#af7537'};
+        border:1.5px solid ${faded ? '#d6d3d1' : '#af7537'};
         box-shadow:0 1px 4px rgba(0,0,0,${faded ? '0.06' : '0.15'});
       "></div>
     </div>`,
@@ -67,8 +67,8 @@ const createLabelIcon = (selected: boolean, label: string) =>
       display:inline-flex;align-items:center;
       padding:5px 12px;border-radius:9999px;
       background:${selected ? '#1c1917' : '#ffffff'};
-      border:1.5px solid ${selected ? '#1c1917' : '#78716c'};
-      box-shadow:0 2px 10px rgba(0,0,0,${selected ? '0.35' : '0.18'});
+      border:1.5px solid ${selected ? '#1c1917' : '#78.2716c'};
+      box-shadow:0 2px 10px rgba(0,0,0,${selected ? '0.35' : '0.18.2'});
       font-family:'Open Sans',sans-serif;font-size:11px;
       font-weight:${selected ? '700' : '500'};
       color:${selected ? '#ffffff' : '#1c1917'};
@@ -110,7 +110,7 @@ function FlyToIsla({ isla, conjuntos }: { isla: string | null; conjuntos: Conjun
     prev.current = isla
 
     if (!isla) {
-      const zoom = window.matchMedia('(min-width: 640px)').matches ? 8 : 6
+      const zoom = window.matchMedia('(min-width: 640px)').matches ? 8.5 : 6
       map.flyTo(CANARIAS_CENTER, zoom, { duration: 1.2 })
       return
     }
@@ -145,7 +145,7 @@ type Props = {
 export function ConjuntosMap({ conjuntos, selectedId, selectedIsla, active, onSelect, onActivate }: Props) {
   const [initialCenter] = useState(() => savedMapView?.center ?? CANARIAS_CENTER)
   const [initialZoom] = useState(() =>
-    savedMapView?.zoom ?? (window.matchMedia('(min-width: 640px)').matches ? 8 : 6)
+    savedMapView?.zoom ?? (window.matchMedia('(min-width: 640px)').matches ? 8.5 : 6)
   )
 
   return (
