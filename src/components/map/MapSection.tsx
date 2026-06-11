@@ -1,15 +1,36 @@
+import { useState, useEffect, useRef } from 'react'
 import { CONJUNTOS } from '../../data/conjuntos'
 import { ConjuntosMap } from './ConjuntosMap'
 import { ConjuntoPanel } from './ConjuntoPanel'
 import { ConjuntoDrawer } from './ConjuntoDrawer'
 import { IslaFilter } from './IslaFilter'
+import { MapHint } from './MapHint'
 import { useAppContext } from '../../contexts/AppContext'
 import { SM_BREAKPOINT } from '../../hooks/useIsDesktop'
 
 export function MapSection() {
   const { selectedId, setSelectedId, selectedIsla, setSelectedIsla, drawerOpen, setDrawerOpen } = useAppContext()
+  const [mapVisible, setMapVisible] = useState(false)
+  const [mapActive, setMapActive] = useState(false)
+  const mapContainerRef = useRef<HTMLDivElement>(null)
 
   const selected = CONJUNTOS.find(c => c.id === selectedId) ?? null
+
+  useEffect(() => {
+    const el = mapContainerRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setMapVisible(true)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.3 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
 
   const handleSelect = (id: number) => {
     setSelectedId(id)
@@ -31,21 +52,34 @@ export function MapSection() {
   const handleDrawerNavigate = () => setDrawerOpen(false)
 
   return (
-    <section className="w-full bg-stone-50 px-4 sm:px-10 lg:px-16 py-8 sm:py-12 overscroll-contain">
+    <section className="w-full bg-white px-4 sm:px-10 lg:px-32 py-6 sm:py-8 overscroll-contain">
 
       <div className="mb-3">
         <IslaFilter selectedIsla={selectedIsla} onSelect={handleIslaSelect} />
       </div>
 
-      <div className="flex flex-row w-full h-[68svh] sm:h-[85svh] overflow-hidden rounded-3xl border border-stone-100 shadow-sm">
+      <div className="flex flex-row w-full h-[68svh] sm:h-[78svh] overflow-hidden rounded-3xl border border-stone-100 shadow-sm">
 
-        <div className="h-full flex-1 min-w-0 touch-none isolate">
-          <ConjuntosMap
-            conjuntos={CONJUNTOS}
-            selectedId={selectedId}
-            selectedIsla={selectedIsla}
-            onSelect={handleSelect}
-          />
+        <div ref={mapContainerRef} className="h-full flex-1 min-w-0 touch-none isolate relative">
+
+          {/* Click-to-activate overlay — invisible, solo captura el primer click */}
+          {!mapActive && (
+            <div
+              className="absolute inset-0 z-[800] cursor-pointer"
+              onClick={() => setMapActive(true)}
+            />
+          )}
+
+          <MapHint visible={mapVisible} active={mapActive} />
+
+          <div className={`h-full${!mapActive ? ' pointer-events-none' : ''}`}>
+            <ConjuntosMap
+              conjuntos={CONJUNTOS}
+              selectedId={selectedId}
+              selectedIsla={selectedIsla}
+              onSelect={handleSelect}
+            />
+          </div>
         </div>
 
         <div

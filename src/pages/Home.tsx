@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useEffect, useLayoutEffect } from 'react'
+import { useLocation, useNavigationType } from 'react-router-dom'
 import { HeroSplit } from '../components/hero/HeroSplit'
 import { MapSection } from '../components/map/MapSection'
 import { ActividadesSection } from '../components/actividades/ActividadesSection'
@@ -9,14 +9,36 @@ function scrollTo(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 }
 
+// Cleared on reload (module re-executes), survives SPA navigation
+const scrollPositions: Record<string, number> = {}
+
 export function Home() {
-  const { hash } = useLocation()
+  const location = useLocation()
+  const navType = useNavigationType()
+
+  // Restore scroll on back navigation — must run before useMapRestoration's
+  // useLayoutEffect so that useMapRestoration can override when selectedId is set
+  useLayoutEffect(() => {
+    if (navType !== 'POP') return
+    const saved = scrollPositions[location.key]
+    if (saved !== undefined) window.scrollTo({ top: saved, behavior: 'instant' })
+  }, [])
+
   useMapRestoration()
 
+  // Hash scroll only on explicit PUSH navigation (navbar links)
   useEffect(() => {
-    if (!hash) return
-    document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth' })
-  }, [hash])
+    if (!location.hash || navType !== 'PUSH') return
+    document.getElementById(location.hash.slice(1))?.scrollIntoView({ behavior: 'smooth' })
+  }, [location.hash, navType])
+
+  // Continuously save scroll position keyed by history entry
+  useEffect(() => {
+    const key = location.key
+    const save = () => { scrollPositions[key] = window.scrollY }
+    window.addEventListener('scroll', save, { passive: true })
+    return () => window.removeEventListener('scroll', save)
+  }, [location.key])
 
   return (
     <main className="pt-16">

@@ -26,7 +26,7 @@ export function ActividadCard({ actividad, inactiva = false }: Props) {
   const badge = plazasBadge(actividad.plazasDisponibles, actividad.plazas)
 
   return (
-    <Link to={`/actividades/${actividad.id}`} className={`group flex flex-col gap-3 ${inactiva ? 'opacity-50' : ''}`}>
+    <Link to={`/actividades/${actividad.id}`} state={{ from: 'actividades' }} className={`group flex flex-col gap-3 ${inactiva ? 'opacity-50' : ''}`}>
       {/* Imagen */}
       <div className="relative overflow-hidden rounded-2xl aspect-[4/3]">
         <img

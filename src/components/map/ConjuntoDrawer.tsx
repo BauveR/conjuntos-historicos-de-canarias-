@@ -126,6 +126,7 @@ export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
                     <Link
                       key={act!.id}
                       to={`/actividades/${act!.id}`}
+                      state={{ from: 'conjuntos' }}
                       onClick={onNavigate ?? onClose}
                       className="flex-none w-40 flex flex-col gap-2 group"
                     >
@@ -227,6 +228,7 @@ export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
                     <Link
                       key={act!.id}
                       to={`/actividades/${act!.id}`}
+                      state={{ from: 'conjuntos' }}
                       onClick={onNavigate ?? onClose}
                       className="flex-none w-36 flex flex-col gap-1.5 group"
                     >

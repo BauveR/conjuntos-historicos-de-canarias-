@@ -99,6 +99,7 @@ export function ConjuntoPanel({ conjunto, onClose }: Props) {
             <Link
               key={act!.id}
               to={`/actividades/${act!.id}`}
+              state={{ from: 'conjuntos' }}
               className="flex-none w-36 flex flex-col gap-1.5 group"
             >
               <div className="aspect-4/3 rounded-xl overflow-hidden">
