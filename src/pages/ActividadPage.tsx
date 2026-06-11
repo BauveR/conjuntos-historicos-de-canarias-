@@ -2,6 +2,7 @@ import { Link, useParams, Navigate } from 'react-router-dom'
 import { ACTIVIDADES } from '../data/actividades'
 import { CONJUNTOS } from '../data/conjuntos'
 import { TEMATICA_COLORS } from '../data/tematicas'
+import { DifficultyDots } from '../components/actividades/DifficultyDots'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 const serifStyle = { fontFamily: "'Playfair Display', serif" }
@@ -93,7 +94,6 @@ export function ActividadPage() {
                   { label: 'Fecha', value: fecha },
                   { label: 'Hora', value: actividad.hora },
                   { label: 'Duración', value: actividad.duracion },
-                  { label: 'Dificultad', value: actividad.dificultad },
                 ].map(({ label, value }) => (
                   <div key={label} className="flex flex-col gap-1">
                     <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>
@@ -104,6 +104,12 @@ export function ActividadPage() {
                     </span>
                   </div>
                 ))}
+                <div className="flex flex-col gap-2">
+                  <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>
+                    Dificultad
+                  </span>
+                  <DifficultyDots dificultad={actividad.dificultad} />
+                </div>
               </div>
             </div>
 

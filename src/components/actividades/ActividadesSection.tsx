@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { ACTIVIDADES } from '../../data/actividades'
 import { CONJUNTOS } from '../../data/conjuntos'
 import type { Tematica } from '../../data/tematicas'
+import type { Dificultad } from '../../data/actividades'
 import { ActividadCard } from './ActividadCard'
 import { FilterBar } from './FilterBar'
 
@@ -11,18 +12,27 @@ export function ActividadesSection() {
   const [tematica, setTematica] = useState<Tematica | null>(null)
   const [isla, setIsla] = useState<string | null>(null)
   const [conjuntoId, setConjuntoId] = useState<number | null>(null)
+  const [mes, setMes] = useState<string | null>(null)
+  const [dificultad, setDificultad] = useState<Dificultad | null>(null)
+
+  const mesesDisponibles = useMemo(() => {
+    const set = new Set(ACTIVIDADES.map(a => a.fecha.slice(0, 7)))
+    return Array.from(set).sort()
+  }, [])
 
   const actividades = useMemo(() => {
     return ACTIVIDADES.filter(a => {
       if (tematica && a.tematica !== tematica) return false
       if (conjuntoId && a.conjuntoId !== conjuntoId) return false
+      if (mes && !a.fecha.startsWith(mes)) return false
+      if (dificultad && a.dificultad !== dificultad) return false
       if (isla) {
         const conjunto = CONJUNTOS.find(c => c.id === a.conjuntoId)
         if (!conjunto || conjunto.isla !== isla) return false
       }
       return true
     })
-  }, [tematica, isla, conjuntoId])
+  }, [tematica, isla, conjuntoId, mes, dificultad])
 
   return (
     <section className="px-4 sm:px-10 lg:px-16 py-12 sm:py-16 bg-white">
@@ -48,9 +58,14 @@ export function ActividadesSection() {
           tematica={tematica}
           isla={isla}
           conjuntoId={conjuntoId}
+          mes={mes}
+          dificultad={dificultad}
+          mesesDisponibles={mesesDisponibles}
           onTematica={setTematica}
           onIsla={setIsla}
           onConjunto={setConjuntoId}
+          onMes={setMes}
+          onDificultad={setDificultad}
         />
       </div>
 
