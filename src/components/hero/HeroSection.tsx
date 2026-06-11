@@ -1,4 +1,5 @@
 import { useParallax } from '../../hooks/useParallax'
+import { labelStyle, titleStyle } from '../../styles/typography'
 
 type HeroSectionProps = {
   imageSrc: string
@@ -41,7 +42,7 @@ export function HeroSection({
       <div className="relative h-full flex flex-col justify-end px-8 pb-14 sm:px-16 sm:pb-20">
         <h1
           className="text-[4vw] sm:text-[3.5vw] md:text-[3vw] font-thin text-white uppercase tracking-tight leading-none mb-4 whitespace-nowrap"
-          style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}
+          style={titleStyle}
         >
           {title}
         </h1>
@@ -49,7 +50,7 @@ export function HeroSection({
         {subtitle && (
           <p
             className="text-white/75 text-sm sm:text-base mb-10 max-w-md"
-            style={{ fontFamily: "'Open Sans', sans-serif" }}
+            style={labelStyle}
           >
             {subtitle}
           </p>
@@ -59,7 +60,7 @@ export function HeroSection({
           <button
             onClick={onCtaClick}
             className="w-fit px-8 py-3 border border-white/80 text-white text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-colors duration-300 cursor-pointer"
-            style={{ fontFamily: "'Open Sans', sans-serif" }}
+            style={labelStyle}
           >
             {ctaLabel}
           </button>

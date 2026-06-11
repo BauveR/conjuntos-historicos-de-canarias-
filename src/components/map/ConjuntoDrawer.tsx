@@ -1,23 +1,12 @@
 import { createPortal } from 'react-dom'
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { motion, AnimatePresence, type Transition } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import type { Conjunto } from '../../data/conjuntos'
 import { ACTIVIDADES } from '../../data/actividades'
-import { TEMATICA_COLORS } from '../../data/tematicas'
-
-function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(
-    () => window.matchMedia('(min-width: 640px)').matches
-  )
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 640px)')
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
-  return isDesktop
-}
+import { useIsDesktop } from '../../hooks/useIsDesktop'
+import { desktopTransition, mobileTransition, sheetVariants } from '../../utils/motion'
+import { labelStyle, titleStyle } from '../../styles/typography'
+import { ActivityMiniCard } from './ActivityMiniCard'
+import { ConjuntoStatBar } from './ConjuntoStatBar'
 
 type Props = {
   conjunto: Conjunto | null
@@ -25,21 +14,12 @@ type Props = {
   onClose: () => void
 }
 
-const desktopTransition: Transition = { duration: 0.18, ease: 'easeOut' }
-const mobileTransition: Transition = { type: 'spring', damping: 30, stiffness: 300 }
-
 export function ConjuntoDrawer({ conjunto, open, onClose }: Props) {
   const isDesktop = useIsDesktop()
 
   if (!conjunto) return null
 
-  const actividades = conjunto.actividadIds
-    .map(id => ACTIVIDADES.find(a => a.id === id))
-    .filter(Boolean)
-
-  const cardVariants = isDesktop
-    ? { initial: { opacity: 0, scale: 0.96 }, animate: { opacity: 1, scale: 1 }, exit: { opacity: 0, scale: 0.96 } }
-    : { initial: { y: '100%' }, animate: { y: 0 }, exit: { y: '100%' } }
+  const actividades = ACTIVIDADES.filter(a => a.conjuntoId === conjunto.id)
 
   return createPortal(
     <AnimatePresence>
@@ -58,7 +38,7 @@ export function ConjuntoDrawer({ conjunto, open, onClose }: Props) {
               sm:relative sm:bottom-auto sm:left-auto sm:right-auto
               sm:w-[92vw] sm:max-w-none sm:rounded-2xl sm:h-[90vh] sm:flex-row
             "
-            variants={cardVariants}
+            variants={sheetVariants(isDesktop)}
             initial="initial"
             animate="animate"
             exit="exit"
@@ -79,101 +59,35 @@ export function ConjuntoDrawer({ conjunto, open, onClose }: Props) {
             {/* ── DESKTOP: izquierda textos ── */}
             <div className="hidden sm:flex flex-col justify-between h-full w-[42%] shrink-0 px-16 py-14 overflow-y-auto">
 
-              {/* Cabecera */}
               <div className="flex flex-col gap-6">
-                <p
-                  className="text-[10px] tracking-[0.25em] uppercase text-stone-400"
-                  style={{ fontFamily: "'Open Sans', sans-serif" }}
-                >
+                <p className="text-[10px] tracking-[0.25em] uppercase text-stone-400" style={labelStyle}>
                   {conjunto.isla} — {conjunto.municipio}
                 </p>
-
-                <h2
-                  className="text-4xl font-thin text-stone-900 uppercase tracking-tight leading-tight"
-                  style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}
-                >
+                <h2 className="text-4xl font-thin text-stone-900 uppercase tracking-tight leading-tight" style={titleStyle}>
                   {conjunto.nombre}
                 </h2>
-
                 <div className="w-8 h-px bg-stone-300" />
-
-                <p
-                  className="text-sm text-stone-500 leading-loose max-w-sm"
-                  style={{ fontFamily: "'Open Sans', sans-serif" }}
-                >
+                <p className="text-sm text-stone-500 leading-loose max-w-sm" style={labelStyle}>
                   {conjunto.descripcion}
                 </p>
-
-                {/* Stat bar */}
-                <div
-                  className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-stone-400"
-                  style={{ fontFamily: "'Open Sans', sans-serif" }}
-                >
-                  {[
-                    `${actividades.length} actividad${actividades.length !== 1 ? 'es' : ''}`,
-                    ...(conjunto.declaraciones ?? []),
-                    ...(conjunto.fundacion ? [`Fundada en ${conjunto.fundacion}`] : []),
-                  ].map((stat, i) => (
-                    <span key={stat} className="flex items-center gap-3">
-                      {i > 0 && <span aria-hidden className="text-stone-200">·</span>}
-                      {stat}
-                    </span>
-                  ))}
-                </div>
+                <ConjuntoStatBar conjunto={conjunto} count={actividades.length} />
               </div>
 
-              {/* Actividades mini-cards */}
               <div className="flex flex-col gap-4">
-                <p
-                  className="text-[10px] tracking-[0.25em] uppercase text-stone-400"
-                  style={{ fontFamily: "'Open Sans', sans-serif" }}
-                >
+                <p className="text-[10px] tracking-[0.25em] uppercase text-stone-400" style={labelStyle}>
                   Actividades disponibles
                 </p>
-                <div
-                  className="flex gap-4 overflow-x-auto pb-1"
-                  style={{ scrollbarWidth: 'none' }}
-                >
+                <div className="flex gap-4 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
                   {actividades.map(act => (
-                    <Link
-                      key={act!.id}
-                      to={`/actividades/${act!.id}`}
-                      onClick={onClose}
-                      className="flex-none w-40 flex flex-col gap-2 group"
-                    >
-                      <div className="aspect-4/3 rounded-xl overflow-hidden">
-                        <img
-                          src={act!.imagen}
-                          alt={act!.titulo}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                      <span
-                        className="px-2 py-0.5 rounded-full text-[9px] tracking-widest uppercase text-white font-bold w-fit"
-                        style={{ backgroundColor: TEMATICA_COLORS[act!.tematica] }}
-                      >
-                        {act!.tematica}
-                      </span>
-                      <p
-                        className="text-xs text-stone-800 leading-snug line-clamp-2"
-                        style={{ fontFamily: "'Open Sans', sans-serif" }}
-                      >
-                        {act!.titulo}
-                      </p>
-                    </Link>
+                    <ActivityMiniCard key={act.id} actividad={act} onNavigate={onClose} size="md" />
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* ── DESKTOP: derecha imagen slide ── */}
+            {/* ── DESKTOP: derecha imagen ── */}
             <div className="hidden sm:block flex-1 h-full relative overflow-hidden">
-              <img
-                src={conjunto.imagen}
-                alt={conjunto.nombre}
-                className="w-full h-full object-cover"
-              />
-              {/* Botón cerrar sobre la imagen */}
+              <img src={conjunto.imagen} alt={conjunto.nombre} className="w-full h-full object-cover" />
               <button
                 onClick={onClose}
                 className="absolute top-4 right-4 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-white/80 hover:bg-white transition-colors cursor-pointer shadow-sm"
@@ -188,77 +102,29 @@ export function ConjuntoDrawer({ conjunto, open, onClose }: Props) {
             {/* ── MOBILE: scroll único — imagen + contenido ── */}
             <div className="sm:hidden overflow-y-auto flex-1 overscroll-contain">
 
-              {/* Imagen — scrollea con el contenido */}
               <div className="w-full aspect-video">
                 <img src={conjunto.imagen} alt={conjunto.nombre} className="w-full h-full object-cover" />
               </div>
 
               <div className="flex flex-col gap-5 px-6 py-6">
-                <p className="text-[10px] tracking-widest uppercase text-stone-400" style={{ fontFamily: "'Open Sans', sans-serif" }}>
+                <p className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>
                   {conjunto.isla} — {conjunto.municipio}
                 </p>
-                <h2
-                  className="text-2xl font-thin text-stone-900 uppercase tracking-tight leading-snug"
-                  style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}
-                >
+                <h2 className="text-2xl font-thin text-stone-900 uppercase tracking-tight leading-snug" style={titleStyle}>
                   {conjunto.nombre}
                 </h2>
-
                 <div className="w-8 h-px bg-stone-200" />
-
-                <p className="text-sm text-stone-500 leading-relaxed" style={{ fontFamily: "'Open Sans', sans-serif" }}>
+                <p className="text-sm text-stone-500 leading-relaxed" style={labelStyle}>
                   {conjunto.descripcion}
                 </p>
-
-                {/* Stat bar */}
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-stone-400" style={{ fontFamily: "'Open Sans', sans-serif" }}>
-                  {[
-                    `${actividades.length} actividad${actividades.length !== 1 ? 'es' : ''}`,
-                    ...(conjunto.declaraciones ?? []),
-                    ...(conjunto.fundacion ? [`Fundada en ${conjunto.fundacion}`] : []),
-                  ].map((stat, i) => (
-                    <span key={stat} className="flex items-center gap-2">
-                      {i > 0 && <span aria-hidden className="text-stone-200">·</span>}
-                      {stat}
-                    </span>
-                  ))}
-                </div>
-
+                <ConjuntoStatBar conjunto={conjunto} count={actividades.length} />
                 <div className="w-full h-px bg-stone-100" />
-
-                <p className="text-[10px] tracking-widest uppercase text-stone-400" style={{ fontFamily: "'Open Sans', sans-serif" }}>
+                <p className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>
                   Actividades
                 </p>
-
-                {/* Mini-cards horizontal */}
-                <div
-                  className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6"
-                  style={{ scrollbarWidth: 'none' }}
-                >
+                <div className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6" style={{ scrollbarWidth: 'none' }}>
                   {actividades.map(act => (
-                    <Link
-                      key={act!.id}
-                      to={`/actividades/${act!.id}`}
-                      onClick={onClose}
-                      className="flex-none w-36 flex flex-col gap-1.5 group"
-                    >
-                      <div className="aspect-4/3 rounded-xl overflow-hidden">
-                        <img
-                          src={act!.imagen}
-                          alt={act!.titulo}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <span
-                        className="px-2 py-0.5 rounded-full text-[9px] tracking-widest uppercase text-white font-bold w-fit"
-                        style={{ backgroundColor: TEMATICA_COLORS[act!.tematica] }}
-                      >
-                        {act!.tematica}
-                      </span>
-                      <p className="text-xs text-stone-800 leading-snug line-clamp-2" style={{ fontFamily: "'Open Sans', sans-serif" }}>
-                        {act!.titulo}
-                      </p>
-                    </Link>
+                    <ActivityMiniCard key={act.id} actividad={act} onNavigate={onClose} />
                   ))}
                 </div>
               </div>

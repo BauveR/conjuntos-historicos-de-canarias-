@@ -3,11 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { TEMATICAS, type Tematica } from '../../data/tematicas'
 import type { Dificultad } from '../../data/actividades'
 import { CONJUNTOS } from '../../data/conjuntos'
+import { ISLAS, DIFICULTADES } from '../../data/filters'
+import { labelStyle } from '../../styles/typography'
 import { formatMes } from './FilterSheet'
-
-const ISLAS = ['Gran Canaria', 'Tenerife', 'Lanzarote', 'Fuerteventura', 'La Palma', 'La Gomera', 'El Hierro']
-const DIFICULTADES: Dificultad[] = ['Fácil', 'Media', 'Difícil']
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
 type Props = {
   tematica: Tematica | null
@@ -200,7 +198,6 @@ function FilterColumn({ title, options, selected, onSelect }: {
   selected: string | null
   onSelect: (v: string | null) => void
 }) {
-  const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
   return (
     <div className="flex flex-col gap-1">
       <p className="text-[10px] tracking-widest uppercase text-stone-400 mb-2 font-semibold" style={labelStyle}>

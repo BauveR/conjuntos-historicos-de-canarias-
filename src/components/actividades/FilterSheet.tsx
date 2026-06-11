@@ -1,25 +1,14 @@
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence, type Transition } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import type { Tematica } from '../../data/tematicas'
 import { TEMATICAS } from '../../data/tematicas'
 import type { Dificultad } from '../../data/actividades'
 import { CONJUNTOS } from '../../data/conjuntos'
-
-const ISLAS = ['Gran Canaria', 'Tenerife', 'Lanzarote', 'Fuerteventura', 'La Palma', 'La Gomera', 'El Hierro']
-const DIFICULTADES: Dificultad[] = ['Fácil', 'Media', 'Difícil']
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
-
-function useIsDesktop() {
-  const [v, setV] = useState(() => window.matchMedia('(min-width: 640px)').matches)
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 640px)')
-    const h = (e: MediaQueryListEvent) => setV(e.matches)
-    mq.addEventListener('change', h)
-    return () => mq.removeEventListener('change', h)
-  }, [])
-  return v
-}
+import { ISLAS, DIFICULTADES } from '../../data/filters'
+import { useIsDesktop } from '../../hooks/useIsDesktop'
+import { desktopTransition, mobileTransition, sheetVariants } from '../../utils/motion'
+import { labelStyle } from '../../styles/typography'
 
 export function formatMes(yyyyMM: string) {
   const [year, month] = yyyyMM.split('-')
@@ -46,9 +35,6 @@ type Props = {
   mesesDisponibles: string[]
   onApply: (filters: FilterState) => void
 }
-
-const desktopTransition: Transition = { duration: 0.18, ease: 'easeOut' }
-const mobileTransition: Transition = { type: 'spring', damping: 30, stiffness: 300 }
 
 export function FilterSheet({ open, initialSection, onClose, filters, mesesDisponibles, onApply }: Props) {
   const isDesktop = useIsDesktop()
@@ -87,10 +73,6 @@ export function FilterSheet({ open, initialSection, onClose, filters, mesesDispo
   const activeCount = pills.length
   const handleApply = () => { onApply(temp); onClose() }
 
-  const cardVariants = isDesktop
-    ? { initial: { opacity: 0, scale: 0.96 }, animate: { opacity: 1, scale: 1 }, exit: { opacity: 0, scale: 0.96 } }
-    : { initial: { y: '100%' }, animate: { y: 0 }, exit: { y: '100%' } }
-
   return createPortal(
     <AnimatePresence>
       {open && (
@@ -106,7 +88,7 @@ export function FilterSheet({ open, initialSection, onClose, filters, mesesDispo
               ${isDesktop
                 ? 'w-full max-w-md rounded-2xl max-h-[80vh] shadow-2xl'
                 : 'w-full rounded-t-3xl max-h-[90svh]'}`}
-            variants={cardVariants}
+            variants={sheetVariants(isDesktop)}
             initial="initial"
             animate="animate"
             exit="exit"

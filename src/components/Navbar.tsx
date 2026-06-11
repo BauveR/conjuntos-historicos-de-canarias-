@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useScrollDirection } from '../hooks/useScrollDirection'
+import { labelStyle } from '../styles/typography'
 
 const NAV_LINKS = [
   { label: 'Inicio',                href: '#' },
@@ -15,8 +16,6 @@ const linkClass =
 
 const mobileLinkClass =
   'block text-xs tracking-widest uppercase text-stone-500 hover:text-stone-900 transition-colors duration-200 py-4 border-b border-stone-100'
-
-const linkStyle = { fontFamily: "'Open Sans', sans-serif" }
 
 export function Navbar() {
   const hidden = useScrollDirection()
@@ -41,14 +40,14 @@ export function Navbar() {
         {/* Links — solo desktop */}
         <nav className="hidden lg:flex items-center gap-8 flex-1 ml-10">
           {NAV_LINKS.map(({ label, href }) => (
-            <a key={label} href={href} className={linkClass} style={linkStyle}>
+            <a key={label} href={href} className={linkClass} style={labelStyle}>
               {label}
             </a>
           ))}
         </nav>
 
         {/* Login — solo desktop */}
-        <a href="#" className={`hidden lg:block ${linkClass}`} style={linkStyle}>
+        <a href="#" className={`hidden lg:block ${linkClass}`} style={labelStyle}>
           Login / Mi Cuenta
         </a>
 
@@ -88,7 +87,7 @@ export function Navbar() {
               key={label}
               href={href}
               className={mobileLinkClass}
-              style={linkStyle}
+              style={labelStyle}
               onClick={() => setOpen(false)}
             >
               {label}
@@ -97,7 +96,7 @@ export function Navbar() {
           <a
             href="#"
             className={mobileLinkClass}
-            style={linkStyle}
+            style={labelStyle}
             onClick={() => setOpen(false)}
           >
             Login / Mi Cuenta

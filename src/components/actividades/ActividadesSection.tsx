@@ -7,8 +7,7 @@ import { FilterBar } from './FilterBar'
 import { FilterSheet, type FilterState } from './FilterSheet'
 import { ActividadesSlider } from './ActividadesSlider'
 import { ActividadesInactivas } from './ActividadesInactivas'
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+import { labelStyle } from '../../styles/typography'
 
 export function ActividadesSection() {
   const [tematica, setTematica]     = useState<Tematica | null>(null)

@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import type { Dificultad } from '../../data/actividades'
+import { labelStyle } from '../../styles/typography'
 
 const TOTAL_DOTS = 6
 
@@ -44,7 +45,7 @@ export function DifficultyDots({ dificultad, showLabel = true }: Props) {
       {showLabel && (
         <span
           className="text-[11px] text-stone-500"
-          style={{ fontFamily: "'Open Sans', sans-serif" }}
+          style={labelStyle}
         >
           {label}
         </span>

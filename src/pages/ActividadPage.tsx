@@ -3,8 +3,7 @@ import { ACTIVIDADES } from '../data/actividades'
 import { CONJUNTOS } from '../data/conjuntos'
 import { TEMATICA_COLORS } from '../data/tematicas'
 import { DifficultyDots } from '../components/actividades/DifficultyDots'
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+import { labelStyle } from '../styles/typography'
 const serifStyle = { fontFamily: "'Playfair Display', serif" }
 
 export function ActividadPage() {

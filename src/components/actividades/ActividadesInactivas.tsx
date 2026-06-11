@@ -2,8 +2,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Actividad } from '../../data/actividades'
 import { ActividadCard } from './ActividadCard'
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+import { labelStyle } from '../../styles/typography'
 
 type Props = { actividades: Actividad[] }
 

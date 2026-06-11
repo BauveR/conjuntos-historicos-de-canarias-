@@ -1,9 +1,7 @@
-const ISLAS = [
-  'Todas', 'Tenerife', 'Gran Canaria', 'Lanzarote',
-  'Fuerteventura', 'La Palma', 'La Gomera', 'El Hierro',
-] as const
+import { ISLAS } from '../../data/filters'
+import { labelStyle } from '../../styles/typography'
 
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+const ALL_ISLAS = ['Todas', ...ISLAS] as const
 
 type Props = {
   selectedIsla: string | null
@@ -13,7 +11,7 @@ type Props = {
 export function IslaFilter({ selectedIsla, onSelect }: Props) {
   return (
     <div className="flex flex-wrap gap-1.5">
-      {ISLAS.map(isla => {
+      {ALL_ISLAS.map(isla => {
         const isActive = isla === 'Todas' ? selectedIsla === null : selectedIsla === isla
         return (
           <button

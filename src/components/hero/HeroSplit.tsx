@@ -1,4 +1,5 @@
 import { useParallax } from '../../hooks/useParallax'
+import { labelStyle, titleStyle } from '../../styles/typography'
 
 type HeroSplitProps = {
   imageSrc: string
@@ -41,7 +42,7 @@ export function HeroSplit({
       <div className="flex flex-1 flex-col justify-end px-8 py-12 sm:px-12 sm:pb-20 bg-stone-50">
         <h1
           className="text-[7vw] sm:text-[3.8vw] md:text-[3.2vw] font-thin text-stone-900 uppercase tracking-tight leading-tight mb-6"
-          style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}
+          style={titleStyle}
         >
           {title}
         </h1>
@@ -49,7 +50,7 @@ export function HeroSplit({
         {subtitle && (
           <p
             className="text-stone-500 text-sm sm:text-base mb-10 max-w-xs leading-relaxed"
-            style={{ fontFamily: "'Open Sans', sans-serif" }}
+            style={labelStyle}
           >
             {subtitle}
           </p>
@@ -59,7 +60,7 @@ export function HeroSplit({
           <button
             onClick={onCtaClick}
             className="w-fit px-8 py-3 border border-stone-900 text-stone-900 text-xs uppercase tracking-widest hover:bg-stone-900 hover:text-white transition-colors duration-300 cursor-pointer"
-            style={{ fontFamily: "'Open Sans', sans-serif" }}
+            style={labelStyle}
           >
             {ctaLabel}
           </button>

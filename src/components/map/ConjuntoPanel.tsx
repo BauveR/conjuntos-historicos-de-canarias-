@@ -1,11 +1,9 @@
-import { Link } from 'react-router-dom'
 import type { Conjunto } from '../../data/conjuntos'
 import { ACTIVIDADES } from '../../data/actividades'
-import { TEMATICA_COLORS } from '../../data/tematicas'
 import { HandTap } from '../HandTap'
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
-const titleStyle = { fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }
+import { labelStyle, titleStyle } from '../../styles/typography'
+import { ActivityMiniCard } from './ActivityMiniCard'
+import { ConjuntoStatBar } from './ConjuntoStatBar'
 
 type Props = {
   conjunto: Conjunto | null
@@ -14,7 +12,7 @@ type Props = {
 
 export function ConjuntoPanel({ conjunto, onClose }: Props) {
   const actividades = conjunto
-    ? conjunto.actividadIds.map(id => ACTIVIDADES.find(a => a.id === id)).filter(Boolean)
+    ? ACTIVIDADES.filter(a => a.conjuntoId === conjunto.id)
     : []
 
   if (!conjunto) {
@@ -28,22 +26,12 @@ export function ConjuntoPanel({ conjunto, onClose }: Props) {
     )
   }
 
-  const stats = [
-    `${actividades.length} actividad${actividades.length !== 1 ? 'es' : ''}`,
-    ...(conjunto.declaraciones ?? []),
-    ...(conjunto.fundacion ? [`Fundada en ${conjunto.fundacion}`] : []),
-  ]
-
   return (
     <div className="flex flex-col h-full overflow-y-auto">
 
       {/* Hero image */}
       <div className="relative w-full aspect-16/7 shrink-0 overflow-hidden">
-        <img
-          src={conjunto.imagen}
-          alt={conjunto.nombre}
-          className="w-full h-full object-cover"
-        />
+        <img src={conjunto.imagen} alt={conjunto.nombre} className="w-full h-full object-cover" />
         {onClose && (
           <button
             onClick={onClose}
@@ -59,7 +47,6 @@ export function ConjuntoPanel({ conjunto, onClose }: Props) {
 
       {/* Content */}
       <div className="flex flex-col gap-5 px-8 py-7">
-
         <p className="text-[10px] tracking-[0.25em] uppercase text-stone-400" style={labelStyle}>
           {conjunto.isla} — {conjunto.municipio}
         </p>
@@ -74,15 +61,7 @@ export function ConjuntoPanel({ conjunto, onClose }: Props) {
           {conjunto.descripcion}
         </p>
 
-        {/* Stat bar */}
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-stone-400" style={labelStyle}>
-          {stats.map((stat, i) => (
-            <span key={stat} className="flex items-center gap-2">
-              {i > 0 && <span aria-hidden className="text-stone-200">·</span>}
-              {stat}
-            </span>
-          ))}
-        </div>
+        <ConjuntoStatBar conjunto={conjunto} count={actividades.length} />
 
         <div className="w-full h-px bg-stone-100" />
 
@@ -90,37 +69,11 @@ export function ConjuntoPanel({ conjunto, onClose }: Props) {
           Actividades
         </p>
 
-        {/* Mini-cards horizontal scroll */}
-        <div
-          className="flex gap-3 overflow-x-auto pb-2 -mx-8 px-8"
-          style={{ scrollbarWidth: 'none' }}
-        >
+        <div className="flex gap-3 overflow-x-auto pb-2 -mx-8 px-8" style={{ scrollbarWidth: 'none' }}>
           {actividades.map(act => (
-            <Link
-              key={act!.id}
-              to={`/actividades/${act!.id}`}
-              className="flex-none w-36 flex flex-col gap-1.5 group"
-            >
-              <div className="aspect-4/3 rounded-xl overflow-hidden">
-                <img
-                  src={act!.imagen}
-                  alt={act!.titulo}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <span
-                className="px-2 py-0.5 rounded-full text-[9px] tracking-widest uppercase text-white font-bold w-fit"
-                style={{ backgroundColor: TEMATICA_COLORS[act!.tematica] }}
-              >
-                {act!.tematica}
-              </span>
-              <p className="text-xs text-stone-800 leading-snug line-clamp-2" style={labelStyle}>
-                {act!.titulo}
-              </p>
-            </Link>
+            <ActivityMiniCard key={act.id} actividad={act} />
           ))}
         </div>
-
       </div>
     </div>
   )

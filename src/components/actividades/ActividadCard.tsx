@@ -3,8 +3,7 @@ import type { Actividad } from '../../data/actividades'
 import { CONJUNTOS } from '../../data/conjuntos'
 import { TEMATICA_COLORS } from '../../data/tematicas'
 import { DifficultyDots } from './DifficultyDots'
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+import { labelStyle } from '../../styles/typography'
 
 function plazasBadge(disponibles: number, total: number) {
   if (total === 0) return null

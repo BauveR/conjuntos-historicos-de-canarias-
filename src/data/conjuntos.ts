@@ -5,7 +5,6 @@ export type Conjunto = {
   isla: string
   imagen: string
   descripcion: string
-  actividadIds: number[]
   lat: number
   lng: number
   fundacion?: string
@@ -20,7 +19,6 @@ export const CONJUNTOS: Conjunto[] = [
     isla: 'Tenerife',
     imagen: 'https://upload.wikimedia.org/wikipedia/commons/4/40/Convento_de_San_Buenaventura_-_Betancuria_-_Fuerteventura.jpg',
     descripcion: 'Ciudad fundada en 1496 y declarada Patrimonio de la Humanidad por la UNESCO en 1999. Su trazado urbano sirvió de modelo para las ciudades coloniales de América.',
-    actividadIds: [1, 2, 9, 19, 21],
     lat: 28.4853,
     lng: -16.3161,
     fundacion: '1496',
@@ -33,7 +31,6 @@ export const CONJUNTOS: Conjunto[] = [
     isla: 'Fuerteventura',
     imagen: 'https://upload.wikimedia.org/wikipedia/commons/4/40/Convento_de_San_Buenaventura_-_Betancuria_-_Fuerteventura.jpg',
     descripcion: 'Primera capital de Fuerteventura, fundada a principios del siglo XV. Conserva un extraordinario patrimonio arquitectónico y religioso en un entorno natural singular.',
-    actividadIds: [3, 20],
     lat: 28.4227,
     lng: -14.0583,
     fundacion: '1404',
@@ -45,7 +42,6 @@ export const CONJUNTOS: Conjunto[] = [
     isla: 'Gran Canaria',
     imagen: 'https://upload.wikimedia.org/wikipedia/commons/4/40/Convento_de_San_Buenaventura_-_Betancuria_-_Fuerteventura.jpg',
     descripcion: 'Núcleo fundacional de Las Palmas de Gran Canaria, con la Catedral de Santa Ana y la Casa de Colón como joyas de su patrimonio histórico y cultural.',
-    actividadIds: [4, 5, 22],
     lat: 28.1024,
     lng: -15.4148,
     fundacion: '1478',
@@ -58,7 +54,6 @@ export const CONJUNTOS: Conjunto[] = [
     isla: 'Tenerife',
     imagen: 'https://upload.wikimedia.org/wikipedia/commons/4/40/Convento_de_San_Buenaventura_-_Betancuria_-_Fuerteventura.jpg',
     descripcion: 'Antigua capital comercial de Tenerife, devastada por la erupción volcánica de 1706. Conserva un centro histórico de gran valor con piscinas naturales en la lava volcánica.',
-    actividadIds: [6, 8, 10, 23],
     lat: 28.3704,
     lng: -16.7614,
     fundacion: '1496',
@@ -70,7 +65,6 @@ export const CONJUNTOS: Conjunto[] = [
     isla: 'Gran Canaria',
     imagen: 'https://upload.wikimedia.org/wikipedia/commons/4/40/Convento_de_San_Buenaventura_-_Betancuria_-_Fuerteventura.jpg',
     descripcion: 'Villa de origen prehispánico con un casco histórico de arquitectura canaria bien conservado, centrado en la iglesia de San Sebastián y sus calles empedradas.',
-    actividadIds: [7, 24],
     lat: 27.9044,
     lng: -15.4477,
     declaraciones: ['Bien de Interés Cultural'],
@@ -82,7 +76,6 @@ export const CONJUNTOS: Conjunto[] = [
     isla: 'Lanzarote',
     imagen: 'https://upload.wikimedia.org/wikipedia/commons/4/40/Convento_de_San_Buenaventura_-_Betancuria_-_Fuerteventura.jpg',
     descripcion: 'Antigua capital de Lanzarote, fundada en el siglo XIV. Conserva un núcleo histórico de gran pureza con el castillo de Santa Bárbara y la iglesia de Nuestra Señora de Guadalupe.',
-    actividadIds: [11, 12, 25],
     lat: 29.0613,
     lng: -13.5603,
     fundacion: 'c. 1350',
@@ -94,7 +87,6 @@ export const CONJUNTOS: Conjunto[] = [
     isla: 'La Palma',
     imagen: 'https://upload.wikimedia.org/wikipedia/commons/4/40/Convento_de_San_Buenaventura_-_Betancuria_-_Fuerteventura.jpg',
     descripcion: 'Capital histórica de La Palma con uno de los centros históricos renacentistas mejor conservados de las islas. La Plaza de España y la calle Real son joyas del siglo XVI.',
-    actividadIds: [13, 14, 26],
     lat: 28.6835,
     lng: -17.7642,
     fundacion: '1493',
@@ -107,7 +99,6 @@ export const CONJUNTOS: Conjunto[] = [
     isla: 'La Gomera',
     imagen: 'https://upload.wikimedia.org/wikipedia/commons/4/40/Convento_de_San_Buenaventura_-_Betancuria_-_Fuerteventura.jpg',
     descripcion: 'Capital de La Gomera y punto de partida del último viaje de Colón. Conserva la Torre del Conde, construida en 1447, y un trazado histórico vinculado a la conquista americana.',
-    actividadIds: [15, 16],
     lat: 28.0916,
     lng: -17.1114,
     fundacion: '1440',
@@ -119,7 +110,6 @@ export const CONJUNTOS: Conjunto[] = [
     isla: 'El Hierro',
     imagen: 'https://upload.wikimedia.org/wikipedia/commons/4/40/Convento_de_San_Buenaventura_-_Betancuria_-_Fuerteventura.jpg',
     descripcion: 'Capital de El Hierro, la isla más occidental de Canarias. Pequeño núcleo histórico rodeado de naturaleza volcánica con la iglesia de la Concepción como elemento central.',
-    actividadIds: [17, 18],
     lat: 27.8085,
     lng: -17.9155,
     fundacion: 's. XVI',
