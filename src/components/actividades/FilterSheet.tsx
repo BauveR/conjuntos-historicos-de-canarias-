@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, type Transition } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import type { Tematica } from '../../data/tematicas'
 import { TEMATICAS } from '../../data/tematicas'
@@ -10,7 +10,18 @@ const ISLAS = ['Gran Canaria', 'Tenerife', 'Lanzarote', 'Fuerteventura', 'La Pal
 const DIFICULTADES: Dificultad[] = ['Fácil', 'Media', 'Difícil']
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
-function formatMes(yyyyMM: string) {
+function useIsDesktop() {
+  const [v, setV] = useState(() => window.matchMedia('(min-width: 640px)').matches)
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 640px)')
+    const h = (e: MediaQueryListEvent) => setV(e.matches)
+    mq.addEventListener('change', h)
+    return () => mq.removeEventListener('change', h)
+  }, [])
+  return v
+}
+
+export function formatMes(yyyyMM: string) {
   const [year, month] = yyyyMM.split('-')
   const s = new Date(Number(year), Number(month) - 1, 1)
     .toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
@@ -25,36 +36,39 @@ export type FilterState = {
   dificultad: Dificultad | null
 }
 
-type Section = 'tematica' | 'isla' | 'conjunto' | 'dificultad' | 'fecha'
+export type Section = 'tematica' | 'isla' | 'conjunto' | 'dificultad' | 'fecha'
 
 type Props = {
   open: boolean
+  initialSection?: Section | null
   onClose: () => void
   filters: FilterState
   mesesDisponibles: string[]
   onApply: (filters: FilterState) => void
 }
 
-export function FilterSheet({ open, onClose, filters, mesesDisponibles, onApply }: Props) {
+const desktopTransition: Transition = { duration: 0.18, ease: 'easeOut' }
+const mobileTransition: Transition = { type: 'spring', damping: 30, stiffness: 300 }
+
+export function FilterSheet({ open, initialSection, onClose, filters, mesesDisponibles, onApply }: Props) {
+  const isDesktop = useIsDesktop()
   const [temp, setTemp] = useState<FilterState>(filters)
   const [openSection, setOpenSection] = useState<Section | null>(null)
 
   useEffect(() => {
-    if (open) { setTemp(filters); setOpenSection(null) }
+    if (open) { setTemp(filters); setOpenSection(initialSection ?? null) }
   }, [open])
 
   const toggle = (s: Section) => setOpenSection(p => p === s ? null : s)
 
-  const conjuntosFiltrados = temp.isla
-    ? CONJUNTOS.filter(c => c.isla === temp.isla)
-    : CONJUNTOS
+  const conjuntosFiltrados = temp.isla ? CONJUNTOS.filter(c => c.isla === temp.isla) : CONJUNTOS
 
   const pick = {
-    tematica:   (v: Tematica | null) => { setTemp(t => ({ ...t, tematica: v }));                        setOpenSection(null) },
-    isla:       (v: string | null)   => { setTemp(t => ({ ...t, isla: v, conjuntoId: null }));           setOpenSection(null) },
-    conjuntoId: (v: number | null)   => { setTemp(t => ({ ...t, conjuntoId: v }));                       setOpenSection(null) },
+    tematica:   (v: Tematica | null)   => { setTemp(t => ({ ...t, tematica: v }));                      setOpenSection(null) },
+    isla:       (v: string | null)     => { setTemp(t => ({ ...t, isla: v, conjuntoId: null }));         setOpenSection(null) },
+    conjuntoId: (v: number | null)     => { setTemp(t => ({ ...t, conjuntoId: v }));                     setOpenSection(null) },
     dificultad: (v: Dificultad | null) => { setTemp(t => ({ ...t, dificultad: v }));                     setOpenSection(null) },
-    mes:        (v: string | null)   => { setTemp(t => ({ ...t, mes: v }));                              setOpenSection(null) },
+    mes:        (v: string | null)     => { setTemp(t => ({ ...t, mes: v }));                            setOpenSection(null) },
   }
 
   const removePill = (key: keyof FilterState) => {
@@ -71,35 +85,44 @@ export function FilterSheet({ open, onClose, filters, mesesDisponibles, onApply 
   ].filter(Boolean) as { key: keyof FilterState; label: string }[]
 
   const activeCount = pills.length
-
   const handleApply = () => { onApply(temp); onClose() }
+
+  const cardVariants = isDesktop
+    ? { initial: { opacity: 0, scale: 0.96 }, animate: { opacity: 1, scale: 1 }, exit: { opacity: 0, scale: 0.96 } }
+    : { initial: { y: '100%' }, animate: { y: 0 }, exit: { y: '100%' } }
 
   return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[9999] bg-black/40 flex items-end"
+          className={`fixed inset-0 z-[9999] bg-black/40 flex ${isDesktop ? 'items-center justify-center' : 'items-end'}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
         >
           <motion.div
-            className="w-full bg-white rounded-t-3xl max-h-[90svh] flex flex-col"
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            drag="y"
-            dragConstraints={{ top: 0 }}
-            dragElastic={{ top: 0 }}
-            onDragEnd={(_, info) => { if (info.offset.y > 80) onClose() }}
+            className={`bg-white flex flex-col overflow-hidden
+              ${isDesktop
+                ? 'w-full max-w-md rounded-2xl max-h-[80vh] shadow-2xl'
+                : 'w-full rounded-t-3xl max-h-[90svh]'}`}
+            variants={cardVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={isDesktop ? desktopTransition : mobileTransition}
+            drag={isDesktop ? false : 'y'}
+            dragConstraints={isDesktop ? undefined : { top: 0 }}
+            dragElastic={isDesktop ? undefined : { top: 0 }}
+            onDragEnd={isDesktop ? undefined : (_, info) => { if (info.offset.y > 80) onClose() }}
             onClick={e => e.stopPropagation()}
           >
-            {/* Handle */}
-            <div className="flex justify-center pt-3 pb-1 shrink-0">
-              <div className="w-10 h-1 rounded-full bg-stone-200" />
-            </div>
+            {/* Handle — solo mobile */}
+            {!isDesktop && (
+              <div className="flex justify-center pt-3 pb-1 shrink-0">
+                <div className="w-10 h-1 rounded-full bg-stone-200" />
+              </div>
+            )}
 
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100 shrink-0">
@@ -113,48 +136,36 @@ export function FilterSheet({ open, onClose, filters, mesesDisponibles, onApply 
 
             {/* Accordion — scrollable */}
             <div className="flex-1 overflow-y-auto px-6">
-
               <AccordionSection label="Temática" isOpen={openSection === 'tematica'} hasValue={!!temp.tematica} onToggle={() => toggle('tematica')}>
-                <OptionRow label="Todas" selected={temp.tematica === null} onSelect={() => pick.tematica(null)} />
-                {TEMATICAS.map(t => (
-                  <OptionRow key={t} label={t} selected={temp.tematica === t} onSelect={() => pick.tematica(t)} />
-                ))}
+                <OptionRow label="Todas" selected={!temp.tematica} onSelect={() => pick.tematica(null)} />
+                {TEMATICAS.map(t => <OptionRow key={t} label={t} selected={temp.tematica === t} onSelect={() => pick.tematica(t)} />)}
               </AccordionSection>
 
               <AccordionSection label="Isla" isOpen={openSection === 'isla'} hasValue={!!temp.isla} onToggle={() => toggle('isla')}>
-                <OptionRow label="Todas las islas" selected={temp.isla === null} onSelect={() => pick.isla(null)} />
-                {ISLAS.map(i => (
-                  <OptionRow key={i} label={i} selected={temp.isla === i} onSelect={() => pick.isla(i)} />
-                ))}
+                <OptionRow label="Todas las islas" selected={!temp.isla} onSelect={() => pick.isla(null)} />
+                {ISLAS.map(i => <OptionRow key={i} label={i} selected={temp.isla === i} onSelect={() => pick.isla(i)} />)}
               </AccordionSection>
 
               <AccordionSection label="Conjunto" isOpen={openSection === 'conjunto'} hasValue={!!temp.conjuntoId} onToggle={() => toggle('conjunto')}>
-                <OptionRow label="Todos los conjuntos" selected={temp.conjuntoId === null} onSelect={() => pick.conjuntoId(null)} />
-                {conjuntosFiltrados.map(c => (
-                  <OptionRow key={c.id} label={c.nombre.replace('Conjunto Histórico de ', '')} selected={temp.conjuntoId === c.id} onSelect={() => pick.conjuntoId(c.id)} />
-                ))}
+                <OptionRow label="Todos los conjuntos" selected={!temp.conjuntoId} onSelect={() => pick.conjuntoId(null)} />
+                {conjuntosFiltrados.map(c => <OptionRow key={c.id} label={c.nombre.replace('Conjunto Histórico de ', '')} selected={temp.conjuntoId === c.id} onSelect={() => pick.conjuntoId(c.id)} />)}
               </AccordionSection>
 
               <AccordionSection label="Dificultad" isOpen={openSection === 'dificultad'} hasValue={!!temp.dificultad} onToggle={() => toggle('dificultad')}>
-                <OptionRow label="Todas" selected={temp.dificultad === null} onSelect={() => pick.dificultad(null)} />
-                {DIFICULTADES.map(d => (
-                  <OptionRow key={d} label={d} selected={temp.dificultad === d} onSelect={() => pick.dificultad(d)} />
-                ))}
+                <OptionRow label="Todas" selected={!temp.dificultad} onSelect={() => pick.dificultad(null)} />
+                {DIFICULTADES.map(d => <OptionRow key={d} label={d} selected={temp.dificultad === d} onSelect={() => pick.dificultad(d)} />)}
               </AccordionSection>
 
               {mesesDisponibles.length > 0 && (
                 <AccordionSection label="Fecha" isOpen={openSection === 'fecha'} hasValue={!!temp.mes} onToggle={() => toggle('fecha')}>
-                  <OptionRow label="Todos los meses" selected={temp.mes === null} onSelect={() => pick.mes(null)} />
-                  {mesesDisponibles.map(m => (
-                    <OptionRow key={m} label={formatMes(m)} selected={temp.mes === m} onSelect={() => pick.mes(m)} />
-                  ))}
+                  <OptionRow label="Todos los meses" selected={!temp.mes} onSelect={() => pick.mes(null)} />
+                  {mesesDisponibles.map(m => <OptionRow key={m} label={formatMes(m)} selected={temp.mes === m} onSelect={() => pick.mes(m)} />)}
                 </AccordionSection>
               )}
             </div>
 
             {/* Footer sticky */}
-            <div className="shrink-0 border-t border-stone-100 px-6 pt-3 pb-8 flex flex-col gap-3">
-              {/* Pills activas */}
+            <div className="shrink-0 border-t border-stone-100 px-6 pt-3 pb-6 flex flex-col gap-3">
               {pills.length > 0 && (
                 <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
                   {pills.map(p => (
@@ -171,7 +182,6 @@ export function FilterSheet({ open, onClose, filters, mesesDisponibles, onApply 
                 </div>
               )}
 
-              {/* Botón aplicar */}
               <button
                 onClick={handleApply}
                 className="w-full py-3.5 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors duration-200"
@@ -188,17 +198,9 @@ export function FilterSheet({ open, onClose, filters, mesesDisponibles, onApply 
   )
 }
 
-// ── Sub-componentes ──────────────────────────────────────────
-
-type AccordionProps = {
-  label: string
-  isOpen: boolean
-  hasValue: boolean
-  onToggle: () => void
-  children: React.ReactNode
-}
-
-function AccordionSection({ label, isOpen, hasValue, onToggle, children }: AccordionProps) {
+function AccordionSection({ label, isOpen, hasValue, onToggle, children }: {
+  label: string; isOpen: boolean; hasValue: boolean; onToggle: () => void; children: React.ReactNode
+}) {
   return (
     <div className="border-b border-stone-100 last:border-0">
       <button onClick={onToggle} className="w-full flex items-center justify-between py-4" style={labelStyle}>
@@ -232,9 +234,7 @@ function OptionRow({ label, selected, onSelect }: { label: string; selected: boo
   return (
     <button
       onClick={onSelect}
-      className={`w-full flex items-center justify-between px-1 py-2.5 border-b border-stone-50 last:border-0 transition-colors text-sm ${
-        selected ? 'text-stone-900' : 'text-stone-500 hover:text-stone-800'
-      }`}
+      className={`w-full flex items-center justify-between px-1 py-2.5 border-b border-stone-50 last:border-0 transition-colors text-sm ${selected ? 'text-stone-900' : 'text-stone-500 hover:text-stone-800'}`}
       style={labelStyle}
     >
       {label}

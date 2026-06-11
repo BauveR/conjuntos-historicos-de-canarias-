@@ -1,54 +1,66 @@
+import { useState, useRef, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { TEMATICAS, type Tematica } from '../../data/tematicas'
-import { CONJUNTOS } from '../../data/conjuntos'
 import type { Dificultad } from '../../data/actividades'
+import { CONJUNTOS } from '../../data/conjuntos'
+import { formatMes } from './FilterSheet'
 
 const ISLAS = ['Gran Canaria', 'Tenerife', 'Lanzarote', 'Fuerteventura', 'La Palma', 'La Gomera', 'El Hierro']
 const DIFICULTADES: Dificultad[] = ['Fácil', 'Media', 'Difícil']
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
-function formatMes(yyyyMM: string) {
-  const [year, month] = yyyyMM.split('-')
-  const s = new Date(Number(year), Number(month) - 1, 1)
-    .toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
-  return s.charAt(0).toUpperCase() + s.slice(1)
-}
-
 type Props = {
-  // Desktop filter values
   tematica: Tematica | null
   isla: string | null
   conjuntoId: number | null
   mes: string | null
   dificultad: Dificultad | null
   mesesDisponibles: string[]
-  // Desktop setters
   onTematica: (t: Tematica | null) => void
   onIsla: (i: string | null) => void
   onConjunto: (id: number | null) => void
   onMes: (m: string | null) => void
   onDificultad: (d: Dificultad | null) => void
-  // Mobile sheet
-  activeCount: number
   onOpenSheet: () => void
 }
 
-const selectClass = "px-3 py-1.5 rounded-full border border-stone-200 text-[11px] text-stone-500 tracking-wide bg-white appearance-none cursor-pointer hover:border-stone-400 transition-colors duration-200 pr-7"
-
 export function FilterBar({
   tematica, isla, conjuntoId, mes, dificultad, mesesDisponibles,
-  onTematica, onIsla, onConjunto, onMes, onDificultad,
-  activeCount, onOpenSheet,
+  onTematica, onIsla, onConjunto, onMes, onDificultad, onOpenSheet,
 }: Props) {
+  const [panelOpen, setPanelOpen] = useState(false)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!panelOpen) return
+    const handler = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node))
+        setPanelOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [panelOpen])
+
   const conjuntosFiltrados = isla ? CONJUNTOS.filter(c => c.isla === isla) : CONJUNTOS
-  const hasActive = !!(tematica || isla || conjuntoId || mes || dificultad)
+
+  const activePills = [
+    tematica   && { key: 'tematica',   label: tematica,   onClear: () => onTematica(null) },
+    isla       && { key: 'isla',       label: isla,        onClear: () => { onIsla(null); onConjunto(null) } },
+    conjuntoId && { key: 'conjunto',   label: CONJUNTOS.find(c => c.id === conjuntoId)?.nombre.replace('Conjunto Histórico de ', '') ?? '', onClear: () => onConjunto(null) },
+    dificultad && { key: 'dificultad', label: dificultad,  onClear: () => onDificultad(null) },
+    mes        && { key: 'mes',        label: formatMes(mes), onClear: () => onMes(null) },
+  ].filter(Boolean) as { key: string; label: string; onClear: () => void }[]
+
+  const activeCount = activePills.length
 
   return (
-    <>
-      {/* ── Mobile: botón trigger ── */}
+    <div ref={wrapperRef}>
+
+      {/* ── Mobile: botón → FilterSheet ── */}
       <div className="flex items-center gap-2 sm:hidden">
         <button
           onClick={onOpenSheet}
-          className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-stone-200 text-[11px] text-stone-500 tracking-wide hover:border-stone-400 transition-colors duration-200"
+          className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-stone-200 text-[11px] text-stone-500 tracking-wide hover:border-stone-400 transition-colors"
           style={labelStyle}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -61,11 +73,10 @@ export function FilterBar({
             </span>
           )}
         </button>
-
-        {hasActive && (
+        {activeCount > 0 && (
           <button
             onClick={() => { onTematica(null); onIsla(null); onConjunto(null); onMes(null); onDificultad(null) }}
-            className="text-[11px] text-stone-400 hover:text-stone-700 transition-colors underline-offset-2"
+            className="text-[11px] text-stone-400 hover:text-stone-700 transition-colors"
             style={labelStyle}
           >
             Limpiar
@@ -73,47 +84,142 @@ export function FilterBar({
         )}
       </div>
 
-      {/* ── Desktop: dropdowns en línea ── */}
-      <div className="hidden sm:flex flex-wrap items-center gap-2">
-        <span className="text-[11px] tracking-widest uppercase text-stone-400 mr-1 whitespace-nowrap" style={labelStyle}>
-          Filtra por:
-        </span>
+      {/* ── Desktop: botón + pills + panel ── */}
+      <div className="hidden sm:block">
 
-        <select value={tematica ?? ''} onChange={e => onTematica((e.target.value as Tematica) || null)} className={selectClass} style={labelStyle}>
-          <option value="">Temáticas</option>
-          {TEMATICAS.map(t => <option key={t} value={t}>{t}</option>)}
-        </select>
-
-        <select value={isla ?? ''} onChange={e => { onIsla(e.target.value || null); onConjunto(null) }} className={selectClass} style={labelStyle}>
-          <option value="">Islas</option>
-          {ISLAS.map(i => <option key={i} value={i}>{i}</option>)}
-        </select>
-
-        <select value={conjuntoId ?? ''} onChange={e => onConjunto(e.target.value ? Number(e.target.value) : null)} className={selectClass} style={labelStyle}>
-          <option value="">Conjuntos</option>
-          {conjuntosFiltrados.map(c => <option key={c.id} value={c.id}>{c.nombre.replace('Conjunto Histórico de ', '')}</option>)}
-        </select>
-
-        <select value={dificultad ?? ''} onChange={e => onDificultad((e.target.value as Dificultad) || null)} className={selectClass} style={labelStyle}>
-          <option value="">Dificultad</option>
-          {DIFICULTADES.map(d => <option key={d} value={d}>{d}</option>)}
-        </select>
-
-        <select value={mes ?? ''} onChange={e => onMes(e.target.value || null)} className={selectClass} style={labelStyle}>
-          <option value="">Fecha</option>
-          {mesesDisponibles.map(m => <option key={m} value={m}>{formatMes(m)}</option>)}
-        </select>
-
-        {hasActive && (
+        {/* Fila de controles */}
+        <div className="flex flex-wrap items-center gap-2">
           <button
-            onClick={() => { onTematica(null); onIsla(null); onConjunto(null); onMes(null); onDificultad(null) }}
-            className="px-3 py-1.5 rounded-full border border-stone-200 text-[11px] text-stone-400 tracking-wide hover:text-stone-700 hover:border-stone-400 transition-colors duration-200"
+            onClick={() => setPanelOpen(p => !p)}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full border text-[11px] tracking-wide transition-all duration-200 ${
+              panelOpen
+                ? 'border-stone-900 bg-stone-900 text-white'
+                : 'border-stone-200 text-stone-500 hover:border-stone-400'
+            }`}
             style={labelStyle}
           >
-            Limpiar filtros
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+              <path d="M4 6h16M7 12h10M10 18h4" />
+            </svg>
+            Filtros
+            <motion.span animate={{ rotate: panelOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </motion.span>
           </button>
-        )}
+
+          {/* Pills activas */}
+          {activePills.map(pill => (
+            <button
+              key={pill.key}
+              onClick={pill.onClear}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-stone-300 bg-stone-100 text-[11px] text-stone-700 tracking-wide hover:bg-stone-200 transition-colors"
+              style={labelStyle}
+            >
+              {pill.label}
+              <span className="text-stone-400 text-xs leading-none">×</span>
+            </button>
+          ))}
+
+          {activeCount > 0 && (
+            <button
+              onClick={() => { onTematica(null); onIsla(null); onConjunto(null); onMes(null); onDificultad(null) }}
+              className="text-[11px] text-stone-400 hover:text-stone-700 transition-colors"
+              style={labelStyle}
+            >
+              Limpiar todo
+            </button>
+          )}
+        </div>
+
+        {/* Panel expandible */}
+        <AnimatePresence>
+          {panelOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: 'easeInOut' }}
+              className="overflow-hidden"
+            >
+              <div className="mt-3 border border-stone-100 rounded-2xl bg-white shadow-sm p-6 grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-6">
+
+                <FilterColumn
+                  title="Temática"
+                  options={[{ value: null, label: 'Todas' }, ...TEMATICAS.map(t => ({ value: t, label: t }))]}
+                  selected={tematica}
+                  onSelect={v => onTematica(v as Tematica | null)}
+                />
+
+                <FilterColumn
+                  title="Isla"
+                  options={[{ value: null, label: 'Todas' }, ...ISLAS.map(i => ({ value: i, label: i }))]}
+                  selected={isla}
+                  onSelect={v => { onIsla(v); if (!v) onConjunto(null) }}
+                />
+
+                <FilterColumn
+                  title="Conjunto"
+                  options={[{ value: null, label: 'Todos' }, ...conjuntosFiltrados.map(c => ({ value: String(c.id), label: c.nombre.replace('Conjunto Histórico de ', '') }))]}
+                  selected={conjuntoId ? String(conjuntoId) : null}
+                  onSelect={v => onConjunto(v ? Number(v) : null)}
+                />
+
+                <FilterColumn
+                  title="Dificultad"
+                  options={[{ value: null, label: 'Todas' }, ...DIFICULTADES.map(d => ({ value: d, label: d }))]}
+                  selected={dificultad}
+                  onSelect={v => onDificultad(v as Dificultad | null)}
+                />
+
+                {mesesDisponibles.length > 0 && (
+                  <FilterColumn
+                    title="Fecha"
+                    options={[{ value: null, label: 'Todos' }, ...mesesDisponibles.map(m => ({ value: m, label: formatMes(m) }))]}
+                    selected={mes}
+                    onSelect={v => onMes(v)}
+                  />
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </>
+    </div>
+  )
+}
+
+// ── Sub-componente ────────────────────────────────────────────
+
+type Option = { value: string | null; label: string }
+
+function FilterColumn({ title, options, selected, onSelect }: {
+  title: string
+  options: Option[]
+  selected: string | null
+  onSelect: (v: string | null) => void
+}) {
+  const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+  return (
+    <div className="flex flex-col gap-1">
+      <p className="text-[10px] tracking-widest uppercase text-stone-400 mb-2 font-semibold" style={labelStyle}>
+        {title}
+      </p>
+      {options.map(opt => (
+        <button
+          key={opt.value ?? '__all'}
+          onClick={() => onSelect(opt.value)}
+          className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm text-left transition-colors w-full ${
+            selected === opt.value
+              ? 'bg-stone-100 text-stone-900 font-medium'
+              : 'text-stone-500 hover:text-stone-800 hover:bg-stone-50'
+          }`}
+          style={labelStyle}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
   )
 }

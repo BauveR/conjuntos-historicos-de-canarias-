@@ -15,7 +15,7 @@ export function ActividadesSection() {
   const [conjuntoId, setConjuntoId] = useState<number | null>(null)
   const [mes, setMes]               = useState<string | null>(null)
   const [dificultad, setDificultad] = useState<Dificultad | null>(null)
-  const [sheetOpen, setSheetOpen]   = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(false)
 
   const mesesDisponibles = useMemo(() => {
     const set = new Set(ACTIVIDADES.map(a => a.fecha.slice(0, 7)))
@@ -35,8 +35,6 @@ export function ActividadesSection() {
       return true
     })
   }, [tematica, isla, conjuntoId, mes, dificultad])
-
-  const activeCount = [tematica, isla, conjuntoId, mes, dificultad].filter(Boolean).length
 
   const currentFilters: FilterState = { tematica, isla, conjuntoId, mes, dificultad }
 
@@ -74,7 +72,6 @@ export function ActividadesSection() {
           onConjunto={setConjuntoId}
           onMes={setMes}
           onDificultad={setDificultad}
-          activeCount={activeCount}
           onOpenSheet={() => setSheetOpen(true)}
         />
       </div>
