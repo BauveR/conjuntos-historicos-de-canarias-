@@ -1,23 +1,10 @@
 import { createPortal } from 'react-dom'
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence, type Transition } from 'framer-motion'
 import type { Conjunto } from '../../data/conjuntos'
 import { ACTIVIDADES } from '../../data/actividades'
 import { TEMATICA_COLORS } from '../../data/tematicas'
-
-function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(
-    () => window.matchMedia('(min-width: 640px)').matches
-  )
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 640px)')
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
-  return isDesktop
-}
+import { useIsDesktop } from '../../hooks/useIsDesktop'
 
 type Props = {
   conjunto: Conjunto | null

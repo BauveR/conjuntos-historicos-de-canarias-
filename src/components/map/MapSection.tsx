@@ -4,6 +4,7 @@ import { ConjuntoPanel } from './ConjuntoPanel'
 import { ConjuntoDrawer } from './ConjuntoDrawer'
 import { IslaFilter } from './IslaFilter'
 import { useAppContext } from '../../contexts/AppContext'
+import { SM_BREAKPOINT } from '../../hooks/useIsDesktop'
 
 export function MapSection() {
   const { selectedId, setSelectedId, selectedIsla, setSelectedIsla, drawerOpen, setDrawerOpen } = useAppContext()
@@ -12,7 +13,7 @@ export function MapSection() {
 
   const handleSelect = (id: number) => {
     setSelectedId(id)
-    if (!window.matchMedia('(min-width: 640px)').matches) {
+    if (!window.matchMedia(SM_BREAKPOINT).matches) {
       setDrawerOpen(true)
     }
   }
@@ -27,10 +28,7 @@ export function MapSection() {
     setSelectedId(null)
   }
 
-  const handleDrawerNavigate = () => {
-    setDrawerOpen(false)
-    // selectedId stays in context so it restores on back navigation
-  }
+  const handleDrawerNavigate = () => setDrawerOpen(false)
 
   return (
     <section className="w-full bg-stone-50 px-4 sm:px-10 lg:px-16 py-8 sm:py-12 overscroll-contain">
