@@ -8,6 +8,8 @@ export type Conjunto = {
   actividadIds: number[]
   lat: number
   lng: number
+  fundacion?: string
+  declaraciones?: string[]
 }
 
 export const CONJUNTOS: Conjunto[] = [
@@ -21,6 +23,8 @@ export const CONJUNTOS: Conjunto[] = [
     actividadIds: [1, 2, 9, 19, 21],
     lat: 28.4853,
     lng: -16.3161,
+    fundacion: '1496',
+    declaraciones: ['Patrimonio UNESCO'],
   },
   {
     id: 2,
@@ -32,6 +36,7 @@ export const CONJUNTOS: Conjunto[] = [
     actividadIds: [3, 20],
     lat: 28.4227,
     lng: -14.0583,
+    fundacion: '1404',
   },
   {
     id: 3,
@@ -43,6 +48,8 @@ export const CONJUNTOS: Conjunto[] = [
     actividadIds: [4, 5, 22],
     lat: 28.1024,
     lng: -15.4148,
+    fundacion: '1478',
+    declaraciones: ['Bien de Interés Cultural'],
   },
   {
     id: 4,
@@ -54,6 +61,7 @@ export const CONJUNTOS: Conjunto[] = [
     actividadIds: [6, 8, 10, 23],
     lat: 28.3704,
     lng: -16.7614,
+    fundacion: '1496',
   },
   {
     id: 5,
@@ -65,6 +73,7 @@ export const CONJUNTOS: Conjunto[] = [
     actividadIds: [7, 24],
     lat: 27.9044,
     lng: -15.4477,
+    declaraciones: ['Bien de Interés Cultural'],
   },
   {
     id: 6,
@@ -76,6 +85,7 @@ export const CONJUNTOS: Conjunto[] = [
     actividadIds: [11, 12, 25],
     lat: 29.0613,
     lng: -13.5603,
+    fundacion: 'c. 1350',
   },
   {
     id: 7,
@@ -87,6 +97,8 @@ export const CONJUNTOS: Conjunto[] = [
     actividadIds: [13, 14, 26],
     lat: 28.6835,
     lng: -17.7642,
+    fundacion: '1493',
+    declaraciones: ['Bien de Interés Cultural'],
   },
   {
     id: 8,
@@ -98,6 +110,7 @@ export const CONJUNTOS: Conjunto[] = [
     actividadIds: [15, 16],
     lat: 28.0916,
     lng: -17.1114,
+    fundacion: '1440',
   },
   {
     id: 9,
@@ -109,5 +122,6 @@ export const CONJUNTOS: Conjunto[] = [
     actividadIds: [17, 18],
     lat: 27.8085,
     lng: -17.9155,
+    fundacion: 's. XVI',
   },
 ]

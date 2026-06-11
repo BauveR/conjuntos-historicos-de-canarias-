@@ -1,8 +1,10 @@
 import { createPortal } from 'react-dom'
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { motion, AnimatePresence, type Transition } from 'framer-motion'
 import type { Conjunto } from '../../data/conjuntos'
 import { ACTIVIDADES } from '../../data/actividades'
+import { TEMATICA_COLORS } from '../../data/tematicas'
 
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(
@@ -101,28 +103,65 @@ export function ConjuntoDrawer({ conjunto, open, onClose }: Props) {
                 >
                   {conjunto.descripcion}
                 </p>
+
+                {/* Stat bar */}
+                <div
+                  className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-stone-400"
+                  style={{ fontFamily: "'Open Sans', sans-serif" }}
+                >
+                  {[
+                    `${actividades.length} actividad${actividades.length !== 1 ? 'es' : ''}`,
+                    ...(conjunto.declaraciones ?? []),
+                    ...(conjunto.fundacion ? [`Fundada en ${conjunto.fundacion}`] : []),
+                  ].map((stat, i) => (
+                    <span key={stat} className="flex items-center gap-3">
+                      {i > 0 && <span aria-hidden className="text-stone-200">·</span>}
+                      {stat}
+                    </span>
+                  ))}
+                </div>
               </div>
 
-              {/* Actividades + CTA */}
-              <div className="flex flex-col gap-6">
-                <div className="flex flex-col gap-3">
-                  <p
-                    className="text-[10px] tracking-[0.25em] uppercase text-stone-400"
-                    style={{ fontFamily: "'Open Sans', sans-serif" }}
-                  >
-                    Actividades disponibles
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {actividades.map(act => (
+              {/* Actividades mini-cards */}
+              <div className="flex flex-col gap-4">
+                <p
+                  className="text-[10px] tracking-[0.25em] uppercase text-stone-400"
+                  style={{ fontFamily: "'Open Sans', sans-serif" }}
+                >
+                  Actividades disponibles
+                </p>
+                <div
+                  className="flex gap-4 overflow-x-auto pb-1"
+                  style={{ scrollbarWidth: 'none' }}
+                >
+                  {actividades.map(act => (
+                    <Link
+                      key={act!.id}
+                      to={`/actividades/${act!.id}`}
+                      onClick={onClose}
+                      className="flex-none w-40 flex flex-col gap-2 group"
+                    >
+                      <div className="aspect-4/3 rounded-xl overflow-hidden">
+                        <img
+                          src={act!.imagen}
+                          alt={act!.titulo}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
                       <span
-                        key={act!.id}
-                        className="px-4 py-1.5 border border-stone-200 text-stone-500 text-[10px] tracking-widest uppercase"
-                        style={{ fontFamily: "'Open Sans', sans-serif" }}
+                        className="px-2 py-0.5 rounded-full text-[9px] tracking-widest uppercase text-white font-bold w-fit"
+                        style={{ backgroundColor: TEMATICA_COLORS[act!.tematica] }}
                       >
                         {act!.tematica}
                       </span>
-                    ))}
-                  </div>
+                      <p
+                        className="text-xs text-stone-800 leading-snug line-clamp-2"
+                        style={{ fontFamily: "'Open Sans', sans-serif" }}
+                      >
+                        {act!.titulo}
+                      </p>
+                    </Link>
+                  ))}
                 </div>
               </div>
             </div>
