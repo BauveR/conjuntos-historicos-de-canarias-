@@ -185,35 +185,81 @@ export function ConjuntoDrawer({ conjunto, open, onClose }: Props) {
               </button>
             </div>
 
-            {/* ── MOBILE: layout vertical ── */}
-            <div className="sm:hidden w-full aspect-video shrink-0">
-              <img src={conjunto.imagen} alt={conjunto.nombre} className="w-full h-full object-cover" />
-            </div>
+            {/* ── MOBILE: scroll único — imagen + contenido ── */}
+            <div className="sm:hidden overflow-y-auto flex-1 overscroll-contain">
 
-            <div className="sm:hidden overflow-y-auto flex-1">
+              {/* Imagen — scrollea con el contenido */}
+              <div className="w-full aspect-video">
+                <img src={conjunto.imagen} alt={conjunto.nombre} className="w-full h-full object-cover" />
+              </div>
+
               <div className="flex flex-col gap-5 px-6 py-6">
                 <p className="text-[10px] tracking-widest uppercase text-stone-400" style={{ fontFamily: "'Open Sans', sans-serif" }}>
                   {conjunto.isla} — {conjunto.municipio}
                 </p>
-                <h2 className="text-2xl font-thin text-stone-900 uppercase tracking-tight leading-snug"
-                    style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}>
+                <h2
+                  className="text-2xl font-thin text-stone-900 uppercase tracking-tight leading-snug"
+                  style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}
+                >
                   {conjunto.nombre}
                 </h2>
+
+                <div className="w-8 h-px bg-stone-200" />
+
                 <p className="text-sm text-stone-500 leading-relaxed" style={{ fontFamily: "'Open Sans', sans-serif" }}>
                   {conjunto.descripcion}
                 </p>
-                <div className="flex flex-col gap-3">
-                  <p className="text-[10px] tracking-widest uppercase text-stone-400" style={{ fontFamily: "'Open Sans', sans-serif" }}>
-                    Actividades disponibles
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {actividades.map(act => (
-                      <span key={act!.id} className="px-3 py-1 border border-stone-200 text-stone-600 text-[10px] tracking-widest uppercase"
-                            style={{ fontFamily: "'Open Sans', sans-serif" }}>
+
+                {/* Stat bar */}
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-stone-400" style={{ fontFamily: "'Open Sans', sans-serif" }}>
+                  {[
+                    `${actividades.length} actividad${actividades.length !== 1 ? 'es' : ''}`,
+                    ...(conjunto.declaraciones ?? []),
+                    ...(conjunto.fundacion ? [`Fundada en ${conjunto.fundacion}`] : []),
+                  ].map((stat, i) => (
+                    <span key={stat} className="flex items-center gap-2">
+                      {i > 0 && <span aria-hidden className="text-stone-200">·</span>}
+                      {stat}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="w-full h-px bg-stone-100" />
+
+                <p className="text-[10px] tracking-widest uppercase text-stone-400" style={{ fontFamily: "'Open Sans', sans-serif" }}>
+                  Actividades
+                </p>
+
+                {/* Mini-cards horizontal */}
+                <div
+                  className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6"
+                  style={{ scrollbarWidth: 'none' }}
+                >
+                  {actividades.map(act => (
+                    <Link
+                      key={act!.id}
+                      to={`/actividades/${act!.id}`}
+                      onClick={onClose}
+                      className="flex-none w-36 flex flex-col gap-1.5 group"
+                    >
+                      <div className="aspect-4/3 rounded-xl overflow-hidden">
+                        <img
+                          src={act!.imagen}
+                          alt={act!.titulo}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <span
+                        className="px-2 py-0.5 rounded-full text-[9px] tracking-widest uppercase text-white font-bold w-fit"
+                        style={{ backgroundColor: TEMATICA_COLORS[act!.tematica] }}
+                      >
                         {act!.tematica}
                       </span>
-                    ))}
-                  </div>
+                      <p className="text-xs text-stone-800 leading-snug line-clamp-2" style={{ fontFamily: "'Open Sans', sans-serif" }}>
+                        {act!.titulo}
+                      </p>
+                    </Link>
+                  ))}
                 </div>
               </div>
             </div>
