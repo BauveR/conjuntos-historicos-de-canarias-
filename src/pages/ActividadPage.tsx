@@ -3,6 +3,7 @@ import { ACTIVIDADES } from '../data/actividades'
 import { CONJUNTOS } from '../data/conjuntos'
 import { TEMATICA_COLORS } from '../data/tematicas'
 import { DifficultyDots } from '../components/actividades/DifficultyDots'
+import { useAuth } from '../contexts/AuthContext'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 const serifStyle = { fontFamily: "'Playfair Display', serif" }
@@ -13,6 +14,7 @@ export function ActividadPage() {
   const location = useLocation()
   const fromApp = location.key !== 'default'
   const isModal = !!location.state?.background
+  const { user } = useAuth()
   const actividad = ACTIVIDADES.find(a => a.id === Number(id))
 
   if (!actividad) return <Navigate to="/" replace />
@@ -176,7 +178,10 @@ export function ActividadPage() {
 
               <button
                 disabled={actividad.plazasDisponibles === 0}
-                className="w-full py-3.5 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                onClick={() => {
+                  if (!user) navigate('/login', { state: { background: location } })
+                }}
+                className="w-full py-3.5 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                 style={labelStyle}
               >
                 {actividad.plazasDisponibles === 0 ? 'Sin plazas disponibles' : 'Inscribirme'}

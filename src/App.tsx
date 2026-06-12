@@ -4,8 +4,14 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Navbar } from './components/Navbar'
 import { Home } from './pages/Home'
 import { ActividadPage } from './pages/ActividadPage'
+import { AuthPage } from './pages/AuthPage'
+import { ProfilePage } from './pages/ProfilePage'
+import { AdminPage } from './pages/AdminPage'
 import { ActividadModal } from './components/map/ActividadModal'
+import { AuthModal } from './components/auth/AuthModal'
+import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { AppProvider } from './contexts/AppContext'
+import { AuthProvider } from './contexts/AuthContext'
 import { pageVariants } from './utils/pageTransition'
 import './App.css'
 
@@ -16,34 +22,40 @@ export default function App() {
   const background = location.state?.background as Location | undefined
 
   return (
-    <AppProvider>
-      <Navbar />
+    <AuthProvider>
+      <AppProvider>
+        <Navbar />
 
-      {/* Main content — renders background location when modal is open */}
-      <AnimatePresence mode="wait" custom={isBack}>
-        <motion.div
-          key={(background ?? location).pathname}
-          custom={isBack}
-          variants={pageVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-        >
-          <Routes location={background ?? location}>
-            <Route path="/" element={<Home />} />
-            <Route path="/actividades/:id" element={<ActividadPage />} />
-          </Routes>
-        </motion.div>
-      </AnimatePresence>
+        {/* Main content — renders background location when modal is open */}
+        <AnimatePresence mode="wait" custom={isBack}>
+          <motion.div
+            key={(background ?? location).pathname}
+            custom={isBack}
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+          >
+            <Routes location={background ?? location}>
+              <Route path="/" element={<Home />} />
+              <Route path="/actividades/:id" element={<ActividadPage />} />
+              <Route path="/login" element={<AuthPage />} />
+              <Route path="/perfil" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
+            </Routes>
+          </motion.div>
+        </AnimatePresence>
 
-      {/* Modal overlay — desktop only, shown when navigated with background state */}
-      <AnimatePresence>
-        {background && (
-          <Routes key="modal">
-            <Route path="/actividades/:id" element={<ActividadModal />} />
-          </Routes>
-        )}
-      </AnimatePresence>
-    </AppProvider>
+        {/* Modal overlay — shown when navigated with background state */}
+        <AnimatePresence>
+          {background && (
+            <Routes key="modal">
+              <Route path="/actividades/:id" element={<ActividadModal />} />
+              <Route path="/login" element={<AuthModal />} />
+            </Routes>
+          )}
+        </AnimatePresence>
+      </AppProvider>
+    </AuthProvider>
   )
 }

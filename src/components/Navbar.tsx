@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useScrollDirection } from '../hooks/useScrollDirection'
+import { useAuth } from '../contexts/AuthContext'
+import { useIsDesktop } from '../hooks/useIsDesktop'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
@@ -32,6 +34,19 @@ function NavLink({ entry, mobile, onClick }: { entry: NavEntry; mobile?: boolean
 export function Navbar() {
   const hidden = useScrollDirection()
   const [open, setOpen] = useState(false)
+  const { user, signOut } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const isDesktop = useIsDesktop()
+
+  const openLogin = () => {
+    setOpen(false)
+    if (isDesktop) {
+      navigate('/login', { state: { background: location, redirectAfterLogin: true } })
+    } else {
+      navigate('/login', { state: { redirectAfterLogin: true } })
+    }
+  }
 
   return (
     <header
@@ -57,10 +72,23 @@ export function Navbar() {
           ))}
         </nav>
 
-        {/* Login — solo desktop */}
-        <a href="#" className={`hidden lg:block ${linkClass}`} style={labelStyle}>
-          Login / Mi Cuenta
-        </a>
+        {/* Auth — solo desktop */}
+        <div className="hidden lg:flex items-center gap-4">
+          {user ? (
+            <>
+              <Link to="/perfil" className={linkClass} style={labelStyle}>
+                {user.displayName ?? user.email?.split('@')[0]}
+              </Link>
+              <button onClick={signOut} className={`${linkClass} cursor-pointer`} style={labelStyle}>
+                Salir
+              </button>
+            </>
+          ) : (
+            <button onClick={openLogin} className={`${linkClass} cursor-pointer`} style={labelStyle}>
+              Login / Mi Cuenta
+            </button>
+          )}
+        </div>
 
         {/* Burger — tablet y mobile */}
         <button
@@ -68,42 +96,40 @@ export function Navbar() {
           onClick={() => setOpen(prev => !prev)}
           aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
         >
-          <span
-            className={`block h-px w-6 bg-stone-800 transition-all duration-300 origin-center ${
-              open ? 'translate-y-1.5 rotate-45' : ''
-            }`}
-          />
-          <span
-            className={`block h-px w-6 bg-stone-800 transition-all duration-300 ${
-              open ? 'opacity-0' : ''
-            }`}
-          />
-          <span
-            className={`block h-px w-6 bg-stone-800 transition-all duration-300 origin-center ${
-              open ? '-translate-y-1.5 -rotate-45' : ''
-            }`}
-          />
+          <span className={`block h-px w-6 bg-stone-800 transition-all duration-300 origin-center ${open ? 'translate-y-1.5 rotate-45' : ''}`} />
+          <span className={`block h-px w-6 bg-stone-800 transition-all duration-300 ${open ? 'opacity-0' : ''}`} />
+          <span className={`block h-px w-6 bg-stone-800 transition-all duration-300 origin-center ${open ? '-translate-y-1.5 -rotate-45' : ''}`} />
         </button>
       </div>
 
       {/* Menú móvil */}
-      <div
-        className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out bg-white ${
-          open ? 'max-h-96' : 'max-h-0'
-        }`}
-      >
+      <div className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out bg-white ${open ? 'max-h-96' : 'max-h-0'}`}>
         <nav className="flex flex-col px-6 sm:px-8 pb-2">
           {NAV_LINKS.map(entry => (
             <NavLink key={entry.label} entry={entry} mobile onClick={() => setOpen(false)} />
           ))}
-          <a
-            href="#"
-            className={mobileLinkClass}
-            style={labelStyle}
-            onClick={() => setOpen(false)}
-          >
-            Login / Mi Cuenta
-          </a>
+          {user ? (
+            <>
+              <Link to="/perfil" className={mobileLinkClass} style={labelStyle} onClick={() => setOpen(false)}>
+                {user.displayName ?? user.email?.split('@')[0]}
+              </Link>
+              <button
+                onClick={() => { setOpen(false); signOut() }}
+                className={`${mobileLinkClass} text-left cursor-pointer`}
+                style={labelStyle}
+              >
+                Cerrar sesión
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={openLogin}
+              className={`${mobileLinkClass} text-left cursor-pointer`}
+              style={labelStyle}
+            >
+              Login / Mi Cuenta
+            </button>
+          )}
         </nav>
       </div>
     </header>
