@@ -89,6 +89,17 @@ function getIcon(c: Conjunto, selectedId: number | null, selectedIsla: string | 
   return c.isla === selectedIsla ? createLabelIcon(false, label) : createDotIcon(true)
 }
 
+function MapResizer() {
+  const map = useMap()
+  useEffect(() => {
+    const container = map.getContainer()
+    const observer = new ResizeObserver(() => map.invalidateSize())
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [map])
+  return null
+}
+
 function FlyTo({ conjunto }: { conjunto: Conjunto | null }) {
   const map = useMap()
   const prev = useRef(conjunto)
@@ -172,6 +183,7 @@ export function ConjuntosMap({ conjuntos, selectedId, selectedIsla, active, onSe
       ))}
 
       <MapActivation active={active} onActivate={onActivate} />
+      <MapResizer />
       <SaveMapView />
       <FlyTo conjunto={conjuntos.find(c => c.id === selectedId) ?? null} />
       <FlyToIsla isla={selectedIsla} conjuntos={conjuntos} />

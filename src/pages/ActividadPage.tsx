@@ -42,6 +42,25 @@ export function ActividadPage() {
     }
   }
 
+  const handleInscribirse = async () => {
+    if (!user) {
+      navigate('/login', { state: { background: location } })
+      return
+    }
+    if (!actividad) return
+    setInscribiendo(true)
+    try {
+      await setDoc(doc(db, 'users', user.uid, 'inscripciones', String(actividad.id)), {
+        inscritoEn: serverTimestamp(),
+      })
+      setInscrito(true)
+    } catch {
+      // silently fail
+    } finally {
+      setInscribiendo(false)
+    }
+  }
+
   useEffect(() => {
     if (!user || !actividad) return
     getDoc(doc(db, 'users', user.uid, 'inscripciones', String(actividad.id)))
@@ -98,9 +117,9 @@ export function ActividadPage() {
               <div className="rounded-2xl overflow-hidden border border-stone-200">
 
                 {/* Header confirmado */}
-                <div className="bg-stone-900 px-5 py-3 flex items-center gap-2">
-                  <span className="text-green-400 text-sm leading-none">✓</span>
-                  <span className="text-[10px] tracking-widest uppercase text-stone-400">Inscripción confirmada</span>
+                <div className="px-5 py-3 flex items-center justify-center gap-2" style={{ backgroundColor: '#50664d' }}>
+                  <span className="text-white text-sm leading-none">✓</span>
+                  <span className="text-[10px] tracking-widest uppercase text-white/80">Inscripción confirmada</span>
                 </div>
 
                 {/* Plazas */}
@@ -114,13 +133,6 @@ export function ActividadPage() {
                   </div>
                 </div>
 
-                {/* Fecha */}
-                <div className="px-5 py-3 border-t border-stone-100 flex flex-col gap-0.5">
-                  <span className="text-[10px] tracking-widest uppercase text-stone-400">Próxima fecha</span>
-                  <span className="text-sm text-stone-800 capitalize">{fecha}</span>
-                  <span className="text-[11px] text-stone-400">{actividad.hora} · {actividad.duracion}</span>
-                </div>
-
                 {/* Botones */}
                 {confirmando ? (
                   <div className="px-5 py-4 border-t border-stone-100 flex flex-col gap-2">
@@ -129,7 +141,7 @@ export function ActividadPage() {
                       <button
                         onClick={handleLiberar}
                         disabled={liberando}
-                        className="flex-1 py-3 rounded-xl border border-red-200 text-red-500 text-[11px] tracking-widest uppercase hover:bg-red-50 transition-colors disabled:opacity-40 cursor-pointer"
+                        className="flex-1 py-3 rounded-xl bg-red-500 text-white text-[11px] tracking-widest uppercase hover:bg-red-600 transition-colors disabled:opacity-40 cursor-pointer"
                       >
                         {liberando ? '...' : 'Sí, liberar'}
                       </button>
@@ -146,13 +158,14 @@ export function ActividadPage() {
                   <div className="px-5 py-4 border-t border-stone-100 flex flex-col gap-2">
                     <button
                       disabled
-                      className="w-full py-3 rounded-xl bg-stone-100 text-stone-400 text-[11px] tracking-widest uppercase cursor-not-allowed"
+                      className="w-full py-3 rounded-xl text-white text-[11px] tracking-widest uppercase cursor-not-allowed opacity-90"
+                      style={{ backgroundColor: '#50664d' }}
                     >
                       Ya inscrito ✓
                     </button>
                     <button
                       onClick={() => setConfirmando(true)}
-                      className="w-full py-2 text-[10px] tracking-widest uppercase text-stone-300 hover:text-red-400 transition-colors cursor-pointer"
+                      className="w-full py-2.5 rounded-xl bg-red-50 text-red-500 text-[10px] tracking-widest uppercase border border-red-200 hover:bg-red-100 transition-colors cursor-pointer"
                     >
                       Liberar plaza
                     </button>
@@ -172,33 +185,12 @@ export function ActividadPage() {
                   <div className="h-full rounded-full bg-stone-400 transition-all duration-500" style={{ width: `${pct}%` }} />
                 </div>
               </div>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] tracking-widest uppercase text-stone-400">Próxima fecha</span>
-                <span className="text-sm text-stone-800 capitalize">{fecha}</span>
-                <span className="text-[11px] text-stone-400">{actividad.hora} · {actividad.duracion}</span>
-              </div>
               {actividad.plazasDisponibles <= 5 && actividad.plazasDisponibles > 0 && (
                 <p className="text-[11px] text-red-500">¡Solo quedan {actividad.plazasDisponibles} plazas!</p>
               )}
               <button
                 disabled={actividad.plazasDisponibles === 0 || inscribiendo || esPasada}
-                onClick={async () => {
-                  if (!user) {
-                    navigate('/login', { state: { background: location } })
-                    return
-                  }
-                  setInscribiendo(true)
-                  try {
-                    await setDoc(doc(db, 'users', user.uid, 'inscripciones', String(actividad.id)), {
-                      inscritoEn: serverTimestamp(),
-                    })
-                    setInscrito(true)
-                  } catch {
-                    // silently fail
-                  } finally {
-                    setInscribiendo(false)
-                  }
-                }}
+                onClick={handleInscribirse}
                 className="w-full py-3 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 {inscribiendo ? '...' : esPasada ? 'Actividad finalizada' : actividad.plazasDisponibles === 0 ? 'Sin plazas disponibles' : 'Inscribirme'}
@@ -207,7 +199,7 @@ export function ActividadPage() {
             </div>
           )}
 
-          {/* Detalles */}
+          {/* Detalles — fuente única para fecha, hora, duración, dificultad y punto de encuentro */}
           <div>
             <p className="text-[10px] tracking-widest uppercase text-stone-400 mb-4">Detalles de la actividad</p>
             <div className="grid grid-cols-2 gap-y-5">
@@ -228,6 +220,26 @@ export function ActividadPage() {
                 <DifficultyDots dificultad={actividad.dificultad} />
               </div>
             </div>
+            {actividad.puntoEncuentro && (
+              <div className="flex flex-col gap-0.5 mt-5">
+                <span className="text-[10px] tracking-widest uppercase text-stone-400">Punto de encuentro</span>
+                <span className="text-sm text-stone-800 leading-snug">{actividad.puntoEncuentro}</span>
+              </div>
+            )}
+            {actividad.organizador && (
+              <div className="flex flex-col gap-0.5 mt-5">
+                <span className="text-[10px] tracking-widest uppercase text-stone-400">Organizador</span>
+                <span className="text-sm text-stone-800">{actividad.organizador}</span>
+                {actividad.contacto && (
+                  <a
+                    href={`mailto:${actividad.contacto}`}
+                    className="text-[11px] text-stone-400 hover:text-stone-600 transition-colors"
+                  >
+                    {actividad.contacto}
+                  </a>
+                )}
+              </div>
+            )}
           </div>
 
         </div>
@@ -236,7 +248,7 @@ export function ActividadPage() {
   }
 
   return (
-    <main className={`${isModal ? 'pt-6' : 'pt-16'} min-h-screen bg-white`}>
+    <main className={`${isModal ? 'pt-6' : 'pt-16 min-h-screen'} bg-white`}>
 
       {/* ── Contenedor centrado ── */}
       <div className="max-w-5xl mx-auto px-6 sm:px-10 lg:px-8">
@@ -254,27 +266,6 @@ export function ActividadPage() {
           </div>
         )}
 
-        {/* Title block */}
-        <div className="mb-5">
-          <span
-            className="inline-block px-3 py-1 mb-3 text-white font-bold text-[10px] tracking-widest uppercase rounded-full"
-            style={{ ...labelStyle, backgroundColor: TEMATICA_COLORS[actividad.tematica] }}
-          >
-            {actividad.tematica}
-          </span>
-          <h1
-            className="text-3xl sm:text-4xl font-light text-stone-900 leading-snug"
-            style={serifStyle}
-          >
-            {actividad.titulo}
-          </h1>
-          {conjunto && (
-            <p className="mt-2 text-sm text-stone-400" style={labelStyle}>
-              {conjunto.nombre} · {conjunto.isla}
-            </p>
-          )}
-        </div>
-
         {/* Hero image */}
         <div className="relative overflow-hidden rounded-2xl aspect-[16/7] mb-10">
           <img
@@ -290,62 +281,31 @@ export function ActividadPage() {
           {/* Left */}
           <div className="flex flex-col gap-8">
 
+            {/* Título como cabecera de sección */}
+            <div className="flex flex-col gap-3">
+              <span
+                className="w-fit px-3 py-1 text-white font-bold text-[10px] tracking-widest uppercase rounded-full"
+                style={{ ...labelStyle, backgroundColor: TEMATICA_COLORS[actividad.tematica] }}
+              >
+                {actividad.tematica}
+              </span>
+              <h1
+                className="text-3xl sm:text-4xl font-light text-stone-900 leading-snug"
+                style={serifStyle}
+              >
+                {actividad.titulo}
+              </h1>
+            </div>
+
             {/* Descripción */}
             <p className="text-base text-stone-600 leading-relaxed" style={labelStyle}>
               {actividad.descripcion}
             </p>
 
-            <hr className="border-stone-100" />
-
-            {/* Meta grid */}
-            <div>
-              <p className="text-[10px] tracking-widest uppercase text-stone-400 mb-4" style={labelStyle}>
-                Detalles de la actividad
-              </p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-6 gap-x-4">
-                {[
-                  { label: 'Fecha', value: fecha },
-                  { label: 'Hora', value: actividad.hora },
-                  { label: 'Duración', value: actividad.duracion },
-                ].map(({ label, value }) => (
-                  <div key={label} className="flex flex-col gap-1">
-                    <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>
-                      {label}
-                    </span>
-                    <span className="text-sm text-stone-800" style={labelStyle}>
-                      {value}
-                    </span>
-                  </div>
-                ))}
-                <div className="flex flex-col gap-2">
-                  <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>
-                    Dificultad
-                  </span>
-                  <DifficultyDots dificultad={actividad.dificultad} />
-                </div>
-              </div>
-            </div>
-
-            <hr className="border-stone-100" />
-
-            {/* Ubicación */}
-            {conjunto && (
-              <div>
-                <p className="text-[10px] tracking-widest uppercase text-stone-400 mb-3" style={labelStyle}>
-                  Ubicación
-                </p>
-                <p className="text-sm text-stone-800" style={labelStyle}>
-                  {conjunto.nombre}
-                </p>
-                <p className="text-[11px] text-stone-400 mt-0.5" style={labelStyle}>
-                  {conjunto.municipio}, {conjunto.isla}
-                </p>
-              </div>
-            )}
           </div>
 
-          {/* Right: inscription card (sticky) */}
-          <div className="lg:sticky lg:top-24 self-start">
+          {/* Right: inscription card + ubicación (sticky) */}
+          <div className="lg:sticky lg:top-24 self-start flex flex-col gap-4">
 
             {inscrito && !esPasada ? (
 
@@ -402,8 +362,8 @@ export function ActividadPage() {
                 {/* Ver mis actividades */}
                 <Link
                   to="/perfil"
-                  className="w-full py-3 rounded-xl border border-stone-200 text-[11px] tracking-widest uppercase text-stone-500 hover:bg-stone-50 transition-colors text-center block"
-                  style={labelStyle}
+                  className="w-full py-3.5 rounded-xl text-[11px] tracking-widest uppercase text-white text-center block transition-opacity hover:opacity-90"
+                  style={{ ...labelStyle, backgroundColor: '#3f6395' }}
                 >
                   Ver mis actividades
                 </Link>
@@ -416,7 +376,7 @@ export function ActividadPage() {
                       <button
                         onClick={handleLiberar}
                         disabled={liberando}
-                        className="flex-1 py-3 rounded-xl border border-red-200 text-red-500 text-[11px] tracking-widest uppercase hover:bg-red-50 transition-colors disabled:opacity-40 cursor-pointer"
+                        className="flex-1 py-3 rounded-xl bg-red-500 text-white text-[11px] tracking-widest uppercase hover:bg-red-600 transition-colors disabled:opacity-40 cursor-pointer"
                         style={labelStyle}
                       >
                         {liberando ? '...' : 'Sí, liberar'}
@@ -434,7 +394,7 @@ export function ActividadPage() {
                 ) : (
                   <button
                     onClick={() => setConfirmando(true)}
-                    className="w-full py-2 text-[10px] tracking-widest uppercase text-stone-300 hover:text-red-400 transition-colors cursor-pointer"
+                    className="w-full py-2.5 rounded-xl bg-red-50 text-red-500 text-[10px] tracking-widest uppercase border border-red-200 hover:bg-red-100 transition-colors cursor-pointer"
                     style={labelStyle}
                   >
                     Liberar plaza
@@ -461,17 +421,29 @@ export function ActividadPage() {
                   </div>
                 </div>
 
-                {/* Fecha resumen */}
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>
-                    Próxima fecha
-                  </span>
-                  <span className="text-sm text-stone-800 capitalize" style={labelStyle}>
-                    {fecha}
-                  </span>
-                  <span className="text-[11px] text-stone-400" style={labelStyle}>
-                    {actividad.hora} · {actividad.duracion}
-                  </span>
+                {/* Detalles */}
+                <div>
+                  <p className="text-[10px] tracking-widest uppercase text-stone-400 mb-3" style={labelStyle}>
+                    Detalles de la actividad
+                  </p>
+                  <div className="grid grid-cols-2 gap-y-4 gap-x-4">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Fecha</span>
+                      <span className="text-sm text-stone-800 capitalize" style={labelStyle}>{fecha}</span>
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Hora</span>
+                      <span className="text-sm text-stone-800" style={labelStyle}>{actividad.hora}</span>
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Duración</span>
+                      <span className="text-sm text-stone-800" style={labelStyle}>{actividad.duracion}</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Dificultad</span>
+                      <DifficultyDots dificultad={actividad.dificultad} />
+                    </div>
+                  </div>
                 </div>
 
                 {actividad.plazasDisponibles <= 5 && actividad.plazasDisponibles > 0 && (
@@ -482,23 +454,7 @@ export function ActividadPage() {
 
                 <button
                   disabled={actividad.plazasDisponibles === 0 || inscribiendo || esPasada}
-                  onClick={async () => {
-                    if (!user) {
-                      navigate('/login', { state: { background: location } })
-                      return
-                    }
-                    setInscribiendo(true)
-                    try {
-                      await setDoc(doc(db, 'users', user.uid, 'inscripciones', String(actividad.id)), {
-                        inscritoEn: serverTimestamp(),
-                      })
-                      setInscrito(true)
-                    } catch {
-                      // silently fail
-                    } finally {
-                      setInscribiendo(false)
-                    }
-                  }}
+                  onClick={handleInscribirse}
                   className="w-full py-3.5 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                   style={labelStyle}
                 >
@@ -510,6 +466,21 @@ export function ActividadPage() {
                 </p>
               </div>
             )}
+
+            {/* Ubicación */}
+            {conjunto && (
+              <div className="rounded-2xl border border-stone-200 p-5 flex flex-col gap-2 shadow-sm" style={labelStyle}>
+                <div className="flex items-center gap-2 mb-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-stone-400 shrink-0">
+                    <path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
+                  </svg>
+                  <span className="text-[10px] tracking-widest uppercase text-stone-400">Ubicación</span>
+                </div>
+                <p className="text-sm text-stone-800">{conjunto.nombre}</p>
+                <p className="text-[11px] text-stone-400">{conjunto.municipio}, {conjunto.isla}</p>
+              </div>
+            )}
+
           </div>
 
         </div>

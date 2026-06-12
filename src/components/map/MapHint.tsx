@@ -66,8 +66,8 @@ export function MapHint({ visible, active }: Props) {
   const isDesktop = useIsDesktop()
 
   useEffect(() => {
-    if (active && hint === 'tap') setHint('zoom')
-  }, [active, hint])
+    if (active && hint === 'tap') setHint(isDesktop ? 'done' : 'zoom')
+  }, [active, hint, isDesktop])
 
   useEffect(() => {
     if (hint !== 'zoom') return
@@ -79,6 +79,12 @@ export function MapHint({ visible, active }: Props) {
 
   return (
     <div className="absolute inset-0 z-[1000] flex items-center justify-center pointer-events-none text-stone-600">
+      <motion.div
+        className="absolute inset-0 bg-white/30 backdrop-blur-[1.5px]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      />
       <AnimatePresence mode="wait">
         {hint === 'tap' && visible && (
           <motion.div
@@ -87,8 +93,15 @@ export function MapHint({ visible, active }: Props) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
+            className="flex flex-col items-center gap-2"
           >
             <HandTapIcon />
+            <span
+              className="text-[10px] tracking-widest uppercase text-stone-500"
+              style={{ fontFamily: "'Open Sans', sans-serif" }}
+            >
+              Click para activar
+            </span>
           </motion.div>
         )}
         {hint === 'zoom' && (
