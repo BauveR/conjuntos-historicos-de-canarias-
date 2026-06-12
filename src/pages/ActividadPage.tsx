@@ -1,9 +1,12 @@
+import { useEffect, useState } from 'react'
 import { useParams, Navigate, useNavigate, useLocation } from 'react-router-dom'
+import { doc, getDoc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
 import { ACTIVIDADES } from '../data/actividades'
 import { CONJUNTOS } from '../data/conjuntos'
 import { TEMATICA_COLORS } from '../data/tematicas'
 import { DifficultyDots } from '../components/actividades/DifficultyDots'
 import { useAuth } from '../contexts/AuthContext'
+import { db } from '../firebase'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 const serifStyle = { fontFamily: "'Playfair Display', serif" }
@@ -16,6 +19,34 @@ export function ActividadPage() {
   const isModal = !!location.state?.background
   const { user } = useAuth()
   const actividad = ACTIVIDADES.find(a => a.id === Number(id))
+
+  const [inscrito, setInscrito] = useState(false)
+  const [inscribiendo, setInscribiendo] = useState(false)
+  const [confirmando, setConfirmando] = useState(false)
+  const [liberando, setLiberando] = useState(false)
+
+  const esPasada = actividad ? actividad.fecha < new Date().toISOString().split('T')[0] : false
+
+  const handleLiberar = async () => {
+    if (!user || !actividad) return
+    setLiberando(true)
+    try {
+      await deleteDoc(doc(db, 'users', user.uid, 'inscripciones', String(actividad.id)))
+      setInscrito(false)
+      setConfirmando(false)
+    } catch {
+      // silently fail
+    } finally {
+      setLiberando(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!user || !actividad) return
+    getDoc(doc(db, 'users', user.uid, 'inscripciones', String(actividad.id)))
+      .then(snap => setInscrito(snap.exists()))
+      .catch(() => {})
+  }, [user, actividad])
 
   if (!actividad) return <Navigate to="/" replace />
 
@@ -176,16 +207,76 @@ export function ActividadPage() {
                 </p>
               )}
 
-              <button
-                disabled={actividad.plazasDisponibles === 0}
-                onClick={() => {
-                  if (!user) navigate('/login', { state: { background: location } })
-                }}
-                className="w-full py-3.5 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                style={labelStyle}
-              >
-                {actividad.plazasDisponibles === 0 ? 'Sin plazas disponibles' : 'Inscribirme'}
-              </button>
+              {/* Botón principal */}
+              {inscrito && !esPasada ? (
+                confirmando ? (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-[11px] text-stone-500 text-center" style={labelStyle}>
+                      ¿Liberar tu plaza?
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleLiberar}
+                        disabled={liberando}
+                        className="flex-1 py-3 rounded-xl border border-red-200 text-red-500 text-[11px] tracking-widest uppercase hover:bg-red-50 transition-colors disabled:opacity-40 cursor-pointer"
+                        style={labelStyle}
+                      >
+                        {liberando ? '...' : 'Sí, liberar'}
+                      </button>
+                      <button
+                        onClick={() => setConfirmando(false)}
+                        disabled={liberando}
+                        className="flex-1 py-3 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors disabled:opacity-40 cursor-pointer"
+                        style={labelStyle}
+                      >
+                        Mantener
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    <button
+                      disabled
+                      className="w-full py-3.5 rounded-xl bg-stone-100 text-stone-400 text-[11px] tracking-widest uppercase cursor-not-allowed"
+                      style={labelStyle}
+                    >
+                      Ya inscrito ✓
+                    </button>
+                    <button
+                      onClick={() => setConfirmando(true)}
+                      className="w-full py-2 text-[10px] tracking-widest uppercase text-stone-400 hover:text-red-400 transition-colors cursor-pointer"
+                      style={labelStyle}
+                    >
+                      Liberar plaza
+                    </button>
+                  </div>
+                )
+              ) : (
+                <button
+                  disabled={actividad.plazasDisponibles === 0 || inscribiendo || esPasada}
+                  onClick={async () => {
+                    if (!user) {
+                      navigate('/login', { state: { background: location } })
+                      return
+                    }
+                    setInscribiendo(true)
+                    try {
+                      await setDoc(doc(db, 'users', user.uid, 'inscripciones', String(actividad.id)), {
+                        inscritoEn: serverTimestamp(),
+                      })
+                      setInscrito(true)
+                    } catch {
+                      // silently fail
+                    } finally {
+                      setInscribiendo(false)
+                    }
+                  }}
+                  className="w-full py-3.5 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  style={labelStyle}
+                >
+                  {inscribiendo ? '...' : actividad.plazasDisponibles === 0 ? 'Sin plazas disponibles' : 'Inscribirme'}
+                </button>
+              )}
 
               <p className="text-[10px] text-stone-400 text-center" style={labelStyle}>
                 Inscripción gratuita · Se requiere confirmación
