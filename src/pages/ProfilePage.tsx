@@ -4,7 +4,7 @@ import type { User } from 'firebase/auth'
 import { useAuth } from '../contexts/AuthContext'
 import { useAppContext } from '../contexts/AppContext'
 import { useInscripciones } from '../hooks/useInscripciones'
-import { liberarPlaza } from '../lib/db'
+import { liberarPlaza, YaLiberadaError } from '../lib/db'
 import { ActividadCard } from '../components/actividades/ActividadCard'
 import { ProfileCardCompact } from '../components/profile/ProfileCardCompact'
 
@@ -42,7 +42,8 @@ function GridCardWrapper({ actividadId, uid, onLiberar, inactiva }: GridCardProp
     try {
       await liberarPlaza(actividadId, uid)
       onLiberar(actividadId)
-    } catch {
+    } catch (err) {
+      if (err instanceof YaLiberadaError) onLiberar(actividadId)
     } finally {
       setLiberando(false)
       setConfirmando(false)
@@ -105,7 +106,11 @@ export function ProfilePage() {
 
   const makeLiberar = (actividadId: number) => async () => {
     if (!user) return
-    await liberarPlaza(actividadId, user.uid)
+    try {
+      await liberarPlaza(actividadId, user.uid)
+    } catch (err) {
+      if (!(err instanceof YaLiberadaError)) return
+    }
     remove(actividadId)
   }
 

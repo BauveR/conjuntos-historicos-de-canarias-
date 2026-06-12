@@ -5,7 +5,7 @@ import { TEMATICA_COLORS } from '../data/tematicas'
 import { DifficultyDots } from '../components/actividades/DifficultyDots'
 import { useAuth } from '../contexts/AuthContext'
 import { useAppContext } from '../contexts/AppContext'
-import { inscribirse, liberarPlaza } from '../lib/db'
+import { inscribirse, liberarPlaza, SinPlazasError, YaLiberadaError } from '../lib/db'
 import { db } from '../firebase'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
@@ -24,6 +24,7 @@ export function ActividadPage() {
 
   const [inscrito, setInscrito] = useState(false)
   const [inscribiendo, setInscribiendo] = useState(false)
+  const [inscripcionError, setInscripcionError] = useState('')
   const [confirmando, setConfirmando] = useState(false)
   const [liberando, setLiberando] = useState(false)
 
@@ -36,7 +37,10 @@ export function ActividadPage() {
       await liberarPlaza(actividad.id, user.uid)
       setInscrito(false)
       setConfirmando(false)
-    } catch {
+    } catch (err) {
+      if (err instanceof YaLiberadaError) {
+        setInscrito(false)
+      }
     } finally {
       setLiberando(false)
     }
@@ -49,10 +53,16 @@ export function ActividadPage() {
     }
     if (!actividad) return
     setInscribiendo(true)
+    setInscripcionError('')
     try {
       await inscribirse(actividad.id, user.uid, user.email ?? '', user.displayName ?? '')
       setInscrito(true)
-    } catch {
+    } catch (err) {
+      if (err instanceof SinPlazasError) {
+        setInscripcionError('Ya no quedan plazas disponibles.')
+      } else {
+        setInscripcionError('Error al procesar la inscripción. Inténtalo de nuevo.')
+      }
     } finally {
       setInscribiendo(false)
     }
@@ -185,6 +195,9 @@ export function ActividadPage() {
               </div>
               {actividad.plazasDisponibles <= 5 && actividad.plazasDisponibles > 0 && (
                 <p className="text-[11px] text-red-500">¡Solo quedan {actividad.plazasDisponibles} plazas!</p>
+              )}
+              {inscripcionError && (
+                <p className="text-[11px] text-red-500">{inscripcionError}</p>
               )}
               <button
                 disabled={actividad.plazasDisponibles === 0 || inscribiendo || esPasada}
@@ -448,6 +461,10 @@ export function ActividadPage() {
                   <p className="text-[11px] text-red-500" style={labelStyle}>
                     ¡Solo quedan {actividad.plazasDisponibles} plazas!
                   </p>
+                )}
+
+                {inscripcionError && (
+                  <p className="text-[11px] text-red-500" style={labelStyle}>{inscripcionError}</p>
                 )}
 
                 <button
