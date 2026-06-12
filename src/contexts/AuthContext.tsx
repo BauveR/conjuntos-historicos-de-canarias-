@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import {
   onAuthStateChanged,
@@ -60,13 +60,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [userRole, setUserRole] = useState<UserRole | null>(null)
   const [loading, setLoading] = useState(true)
+  const pendingRole = useRef<Promise<UserRole> | null>(null)
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser)
       setLoading(false)
       if (firebaseUser) {
-        const role = await fetchRole(firebaseUser.uid)
+        const role = await (pendingRole.current ?? fetchRole(firebaseUser.uid))
+        pendingRole.current = null
         setUserRole(role)
       } else {
         setUserRole(null)
@@ -77,7 +79,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string): Promise<UserRole> => {
     const { user: u } = await signInWithEmailAndPassword(auth, email, password)
-    const role = await fetchRole(u.uid)
+    pendingRole.current = fetchRole(u.uid)
+    const role = await pendingRole.current
     setUserRole(role)
     return role
   }
@@ -85,14 +88,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (name: string, email: string, password: string): Promise<UserRole> => {
     const { user: newUser } = await createUserWithEmailAndPassword(auth, email, password)
     await updateProfile(newUser, { displayName: name })
-    const role = await ensureUserDoc(newUser, name)
+    pendingRole.current = ensureUserDoc(newUser, name)
+    const role = await pendingRole.current
     setUserRole(role)
     return role
   }
 
   const signInWithGoogle = async (): Promise<UserRole> => {
     const { user: googleUser } = await signInWithPopup(auth, googleProvider)
-    const role = await ensureUserDoc(googleUser)
+    pendingRole.current = ensureUserDoc(googleUser)
+    const role = await pendingRole.current
     setUserRole(role)
     return role
   }

@@ -214,19 +214,19 @@ export function ActividadPage() {
           <div>
             <p className="text-[10px] tracking-widest uppercase text-stone-400 mb-4">Detalles de la actividad</p>
             <div className="grid grid-cols-2 gap-y-5">
-              <div className="flex flex-col gap-0.5">
+              <div className="flex flex-col gap-0.5 min-w-0">
                 <span className="text-[10px] tracking-widest uppercase text-stone-400">Fecha</span>
-                <span className="text-sm text-stone-800 capitalize">{fecha}</span>
+                <span className="text-sm text-stone-800 capitalize wrap-break-word">{fecha}</span>
               </div>
-              <div className="flex flex-col gap-0.5">
+              <div className="flex flex-col gap-0.5 min-w-0">
                 <span className="text-[10px] tracking-widest uppercase text-stone-400">Hora</span>
                 <span className="text-sm text-stone-800">{actividad.hora}</span>
               </div>
-              <div className="flex flex-col gap-0.5">
+              <div className="flex flex-col gap-0.5 min-w-0">
                 <span className="text-[10px] tracking-widest uppercase text-stone-400">Duración</span>
                 <span className="text-sm text-stone-800">{actividad.duracion}</span>
               </div>
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1 min-w-0">
                 <span className="text-[10px] tracking-widest uppercase text-stone-400">Dificultad</span>
                 <DifficultyDots dificultad={actividad.dificultad} />
               </div>
@@ -290,7 +290,7 @@ export function ActividadPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-12 pb-16">
 
           {/* Left */}
-          <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-8 min-w-0">
 
             {/* Título como cabecera de sección */}
             <div className="flex flex-col gap-3">
@@ -309,14 +309,14 @@ export function ActividadPage() {
             </div>
 
             {/* Descripción */}
-            <p className="text-base text-stone-600 leading-relaxed" style={labelStyle}>
+            <p className="text-base text-stone-600 leading-relaxed wrap-break-word" style={labelStyle}>
               {actividad.descripcion}
             </p>
 
           </div>
 
-          {/* Right: inscription card + ubicación (sticky) */}
-          <div className="lg:sticky lg:top-24 self-start flex flex-col gap-4">
+          {/* Right: inscription card + ubicación (sticky solo en página completa) */}
+          <div className={`${!isModal ? 'lg:sticky lg:top-24' : ''} self-start flex flex-col gap-4`}>
 
             {inscrito && !esPasada ? (
 
@@ -351,23 +351,29 @@ export function ActividadPage() {
                   </div>
 
                   {/* Punto de encuentro */}
-                  <div className="px-6 py-4 border-t border-dashed border-stone-200 flex flex-col gap-0.5">
-                    <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Punto de encuentro</span>
-                    <span className="text-sm text-stone-800 leading-snug" style={labelStyle}>{actividad.puntoEncuentro}</span>
-                  </div>
+                  {actividad.puntoEncuentro && (
+                    <div className="px-6 py-4 border-t border-dashed border-stone-200 flex flex-col gap-0.5">
+                      <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Punto de encuentro</span>
+                      <span className="text-sm text-stone-800 leading-snug" style={labelStyle}>{actividad.puntoEncuentro}</span>
+                    </div>
+                  )}
 
                   {/* Organizador */}
-                  <div className="px-6 py-4 border-t border-dashed border-stone-200 flex flex-col gap-0.5">
-                    <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Organizador</span>
-                    <span className="text-sm text-stone-800" style={labelStyle}>{actividad.organizador}</span>
-                    <a
-                      href={`mailto:${actividad.contacto}`}
-                      className="text-[11px] text-stone-400 hover:text-stone-600 transition-colors truncate"
-                      style={labelStyle}
-                    >
-                      {actividad.contacto}
-                    </a>
-                  </div>
+                  {actividad.organizador && (
+                    <div className="px-6 py-4 border-t border-dashed border-stone-200 flex flex-col gap-0.5">
+                      <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Organizador</span>
+                      <span className="text-sm text-stone-800" style={labelStyle}>{actividad.organizador}</span>
+                      {actividad.contacto && (
+                        <a
+                          href={`mailto:${actividad.contacto}`}
+                          className="text-[11px] text-stone-400 hover:text-stone-600 transition-colors truncate"
+                          style={labelStyle}
+                        >
+                          {actividad.contacto}
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Ver mis actividades */}
@@ -438,19 +444,19 @@ export function ActividadPage() {
                     Detalles de la actividad
                   </p>
                   <div className="grid grid-cols-2 gap-y-4 gap-x-4">
-                    <div className="flex flex-col gap-0.5">
+                    <div className="flex flex-col gap-0.5 min-w-0">
                       <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Fecha</span>
-                      <span className="text-sm text-stone-800 capitalize" style={labelStyle}>{fecha}</span>
+                      <span className="text-sm text-stone-800 capitalize wrap-break-word" style={labelStyle}>{fecha}</span>
                     </div>
-                    <div className="flex flex-col gap-0.5">
+                    <div className="flex flex-col gap-0.5 min-w-0">
                       <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Hora</span>
                       <span className="text-sm text-stone-800" style={labelStyle}>{actividad.hora}</span>
                     </div>
-                    <div className="flex flex-col gap-0.5">
+                    <div className="flex flex-col gap-0.5 min-w-0">
                       <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Duración</span>
                       <span className="text-sm text-stone-800" style={labelStyle}>{actividad.duracion}</span>
                     </div>
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-1 min-w-0">
                       <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Dificultad</span>
                       <DifficultyDots dificultad={actividad.dificultad} />
                     </div>

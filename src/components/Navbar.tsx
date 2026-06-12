@@ -63,7 +63,7 @@ function AccountLabel({ displayName }: { displayName: string }) {
 export function Navbar() {
   const hidden = useScrollDirection()
   const [open, setOpen] = useState(false)
-  const { user, signOut } = useAuth()
+  const { user, userRole, signOut } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const isDesktop = useIsDesktop()
@@ -108,6 +108,9 @@ export function Navbar() {
         <div className="hidden lg:flex items-center gap-5">
           {user ? (
             <>
+              {userRole === 'admin' && (
+                <Link to="/admin" className={linkClass} style={labelStyle}>Admin</Link>
+              )}
               <Link to="/perfil">
                 <AccountLabel displayName={displayName} />
               </Link>
@@ -147,6 +150,16 @@ export function Navbar() {
 
           {user ? (
             <>
+              {userRole === 'admin' && (
+                <Link
+                  to="/admin"
+                  className={mobileLinkClass}
+                  style={labelStyle}
+                  onClick={() => setOpen(false)}
+                >
+                  Admin
+                </Link>
+              )}
               <Link
                 to="/perfil"
                 className="py-4 border-b border-stone-100"

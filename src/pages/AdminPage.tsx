@@ -104,7 +104,7 @@ function Select({ value, onChange, children, error = false }: {
 
 function FieldError({ msg }: { msg?: string }) {
   if (!msg) return null
-  return <p className="text-[10px] text-red-500 mt-0.5">{msg}</p>
+  return <p className="text-[10px] text-red-500 mt-0.5 wrap-break-word">{msg}</p>
 }
 
 function Textarea({ value, onChange, rows = 3 }: {
@@ -458,8 +458,8 @@ function ControlRow({ actividad }: { actividad: Actividad }) {
 
         {/* Toggle + info */}
         <button onClick={handleToggle} className="flex-1 text-left min-w-0 cursor-pointer group">
-          <div className="flex items-baseline gap-3 flex-wrap">
-            <p className="text-sm text-stone-800 leading-snug line-clamp-1 group-hover:text-stone-600 transition-colors">
+          <div className="flex items-baseline gap-3 min-w-0">
+            <p className="flex-1 min-w-0 text-sm text-stone-800 leading-snug truncate group-hover:text-stone-600 transition-colors">
               {actividad.titulo}
             </p>
             <span className="text-[10px] tracking-widest text-stone-400 whitespace-nowrap shrink-0">
@@ -514,9 +514,9 @@ function ControlRow({ actividad }: { actividad: Actividad }) {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-1.5">
               {inscritos.map(i => (
-                <div key={i.uid} className="flex items-baseline gap-2 min-w-0">
+                <div key={i.uid} className="flex flex-col min-w-0">
                   <span className="text-sm text-stone-700 truncate">{i.displayName || '—'}</span>
-                  <span className="text-[11px] text-stone-400 truncate shrink-0">{i.email}</span>
+                  <span className="text-[11px] text-stone-400 truncate">{i.email}</span>
                 </div>
               ))}
             </div>
