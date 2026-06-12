@@ -16,9 +16,9 @@ function plazasBadge(disponibles: number, total: number) {
   return null
 }
 
-type Props = { actividad: Actividad; inactiva?: boolean }
+type Props = { actividad: Actividad; inactiva?: boolean; from?: string }
 
-export function ActividadCard({ actividad, inactiva = false }: Props) {
+export function ActividadCard({ actividad, inactiva = false, from = 'actividades' }: Props) {
   const location = useLocation()
   const isDesktop = useIsDesktop()
   const conjunto = CONJUNTOS.find(c => c.id === actividad.conjuntoId)
@@ -31,7 +31,7 @@ export function ActividadCard({ actividad, inactiva = false }: Props) {
   return (
     <Link
       to={`/actividades/${actividad.id}`}
-      state={isDesktop ? { from: 'actividades', background: location } : { from: 'actividades' }}
+      state={isDesktop ? { from, background: location } : { from }}
       className={`group flex flex-col gap-3 ${inactiva ? 'opacity-50' : ''}`}
     >
       {/* Imagen */}

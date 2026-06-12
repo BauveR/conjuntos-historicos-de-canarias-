@@ -31,6 +31,22 @@ function NavLink({ entry, mobile, onClick }: { entry: NavEntry; mobile?: boolean
   return <a href={entry.href ?? '#'} className={cls} style={labelStyle} onClick={onClick}>{entry.label}</a>
 }
 
+function AccountLabel({ displayName }: { displayName: string }) {
+  return (
+    <div className="flex items-start gap-1.5">
+      <span className="mt-0.5 w-2 h-2 rounded-full bg-green-400 shrink-0" />
+      <div className="flex flex-col gap-0">
+        <span className="text-[10px] tracking-widest uppercase text-stone-400 leading-none" style={labelStyle}>
+          Mi cuenta
+        </span>
+        <span className="text-xs text-stone-700 leading-tight" style={labelStyle}>
+          {displayName}
+        </span>
+      </div>
+    </div>
+  )
+}
+
 export function Navbar() {
   const hidden = useScrollDirection()
   const [open, setOpen] = useState(false)
@@ -38,6 +54,8 @@ export function Navbar() {
   const navigate = useNavigate()
   const location = useLocation()
   const isDesktop = useIsDesktop()
+
+  const displayName = user?.displayName ?? user?.email?.split('@')[0] ?? ''
 
   const openLogin = () => {
     setOpen(false)
@@ -56,6 +74,7 @@ export function Navbar() {
     >
       {/* Barra principal */}
       <div className="flex items-center px-6 sm:px-8 h-16 border-b border-stone-100">
+
         {/* Logo */}
         <Link
           to="/"
@@ -73,13 +92,17 @@ export function Navbar() {
         </nav>
 
         {/* Auth — solo desktop */}
-        <div className="hidden lg:flex items-center gap-4">
+        <div className="hidden lg:flex items-center gap-5">
           {user ? (
             <>
-              <Link to="/perfil" className={linkClass} style={labelStyle}>
-                {user.displayName ?? user.email?.split('@')[0]}
+              <Link to="/perfil">
+                <AccountLabel displayName={displayName} />
               </Link>
-              <button onClick={signOut} className={`${linkClass} cursor-pointer`} style={labelStyle}>
+              <button
+                onClick={signOut}
+                className={`${linkClass} cursor-pointer`}
+                style={labelStyle}
+              >
                 Salir
               </button>
             </>
@@ -103,15 +126,20 @@ export function Navbar() {
       </div>
 
       {/* Menú móvil */}
-      <div className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out bg-white ${open ? 'max-h-96' : 'max-h-0'}`}>
-        <nav className="flex flex-col px-6 sm:px-8 pb-2">
+      <div className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out bg-white ${open ? 'max-h-[32rem]' : 'max-h-0'}`}>
+        <nav className="flex flex-col px-6 sm:px-8 pb-4">
           {NAV_LINKS.map(entry => (
             <NavLink key={entry.label} entry={entry} mobile onClick={() => setOpen(false)} />
           ))}
+
           {user ? (
             <>
-              <Link to="/perfil" className={mobileLinkClass} style={labelStyle} onClick={() => setOpen(false)}>
-                {user.displayName ?? user.email?.split('@')[0]}
+              <Link
+                to="/perfil"
+                className="py-4 border-b border-stone-100"
+                onClick={() => setOpen(false)}
+              >
+                <AccountLabel displayName={displayName} />
               </Link>
               <button
                 onClick={() => { setOpen(false); signOut() }}

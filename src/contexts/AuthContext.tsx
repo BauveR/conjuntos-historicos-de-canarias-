@@ -63,14 +63,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser)
+      setLoading(false)
       if (firebaseUser) {
         const role = await fetchRole(firebaseUser.uid)
         setUserRole(role)
       } else {
         setUserRole(null)
       }
-      setUser(firebaseUser)
-      setLoading(false)
     })
     return unsub
   }, [])

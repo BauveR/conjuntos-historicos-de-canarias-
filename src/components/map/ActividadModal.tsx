@@ -1,9 +1,11 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ActividadPage } from '../../pages/ActividadPage'
 
 export function ActividadModal() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const fromPerfil = location.state?.from === 'perfil'
   const close = () => navigate(-1)
 
   return (
@@ -24,7 +26,7 @@ export function ActividadModal() {
         transition={{ duration: 0.2, ease: 'easeOut' }}
       >
         <div
-          className="relative w-[92vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-xl pointer-events-auto"
+          className={`relative w-[92vw] ${fromPerfil ? 'max-w-sm' : 'max-w-4xl'} max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-xl pointer-events-auto`}
           onClick={e => e.stopPropagation()}
         >
           <button

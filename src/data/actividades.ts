@@ -9,13 +9,16 @@ export type Actividad = {
   titulo: string
   conjuntoId: number
   descripcion: string
-  fecha: string        // ISO: "2026-07-15"
-  hora: string         // "10:00"
-  duracion: string     // "2h 30min"
+  fecha: string
+  hora: string
+  duracion: string
   dificultad: Dificultad
   plazas: number
   plazasDisponibles: number
   tematica: Tematica
+  organizador: string
+  contacto: string
+  puntoEncuentro: string
 }
 
 const IMG = 'https://upload.wikimedia.org/wikipedia/commons/4/40/Convento_de_San_Buenaventura_-_Betancuria_-_Fuerteventura.jpg'
@@ -35,6 +38,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 20,
     plazasDisponibles: 12,
     tematica: 'Arquitectura',
+    organizador: 'Patronato de Turismo de Tenerife',
+    contacto: 'patrimonio@turismotenerife.es',
+    puntoEncuentro: 'Plaza del Adelantado, frente al Ayuntamiento',
   },
   {
     id: 2,
@@ -49,6 +55,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 15,
     plazasDisponibles: 8,
     tematica: 'Personajes históricos',
+    organizador: 'Patronato de Turismo de Tenerife',
+    contacto: 'patrimonio@turismotenerife.es',
+    puntoEncuentro: 'Puerta de la Catedral de La Laguna, C/ Obispo Rey Redondo',
   },
   // ── Betancuria (Fuerteventura) ─────────────────────────
   {
@@ -64,6 +73,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 18,
     plazasDisponibles: 18,
     tematica: 'Patrimonio religioso',
+    organizador: 'Cabildo de Fuerteventura — Área de Cultura',
+    contacto: 'cultura@cabildofuer.es',
+    puntoEncuentro: 'Entrada al Convento de San Buenaventura, Betancuria',
   },
   // ── Vegueta-Triana (Gran Canaria) ──────────────────────
   {
@@ -79,6 +91,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 25,
     plazasDisponibles: 10,
     tematica: 'Historia local',
+    organizador: 'Cabildo de Gran Canaria — Cultura',
+    contacto: 'cultura@grancanaria.com',
+    puntoEncuentro: 'Plaza de Santa Ana, escalinatas de la Catedral',
   },
   {
     id: 5,
@@ -93,6 +108,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 12,
     plazasDisponibles: 4,
     tematica: 'Arqueología',
+    organizador: 'Cabildo de Gran Canaria — Cultura',
+    contacto: 'cultura@grancanaria.com',
+    puntoEncuentro: 'Casa de Colón, C/ Colón 1, Vegueta',
   },
   // ── Garachico (Tenerife) ───────────────────────────────
   {
@@ -108,6 +126,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 20,
     plazasDisponibles: 15,
     tematica: 'Patrimonio marítimo',
+    organizador: 'Ayuntamiento de Garachico',
+    contacto: 'turismo@garachico.es',
+    puntoEncuentro: 'Plaza de la Libertad, junto al Castillo de San Miguel',
   },
   // ── Agüimes (Gran Canaria) ─────────────────────────────
   {
@@ -123,6 +144,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 30,
     plazasDisponibles: 22,
     tematica: 'Fiestas y tradiciones',
+    organizador: 'Ayuntamiento de Agüimes',
+    contacto: 'cultura@aguimes.es',
+    puntoEncuentro: 'Plaza de San Sebastián, frente a la Iglesia',
   },
   {
     id: 8,
@@ -137,6 +161,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 16,
     plazasDisponibles: 16,
     tematica: 'Agua y paisaje',
+    organizador: 'Ayuntamiento de Garachico',
+    contacto: 'turismo@garachico.es',
+    puntoEncuentro: 'Fuente de los Caños, C/ Esteban de Ponte',
   },
   {
     id: 9,
@@ -151,6 +178,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 20,
     plazasDisponibles: 3,
     tematica: 'Patrimonio industrial',
+    organizador: 'Patronato de Turismo de Tenerife',
+    contacto: 'patrimonio@turismotenerife.es',
+    puntoEncuentro: 'Museo de Historia de Tenerife, C/ San Agustín 22',
   },
   {
     id: 10,
@@ -165,6 +195,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 25,
     plazasDisponibles: 0,
     tematica: 'Patrimonio inmaterial',
+    organizador: 'Ayuntamiento de Garachico',
+    contacto: 'turismo@garachico.es',
+    puntoEncuentro: 'Casa de la Cultura de Garachico, Plaza Juan González de la Torre',
   },
   // ── Teguise (Lanzarote) ────────────────────────────────
   {
@@ -180,6 +213,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 22,
     plazasDisponibles: 14,
     tematica: 'Historia local',
+    organizador: 'Cabildo de Lanzarote — Turismo',
+    contacto: 'turismo@cabildodelanzarote.com',
+    puntoEncuentro: 'Plaza de la Constitución, Teguise',
   },
   {
     id: 12,
@@ -194,6 +230,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 18,
     plazasDisponibles: 18,
     tematica: 'Arqueología',
+    organizador: 'Cabildo de Lanzarote — Turismo',
+    contacto: 'turismo@cabildodelanzarote.com',
+    puntoEncuentro: 'Aparcamiento del Castillo de Santa Bárbara, Montaña Guanapay',
   },
   // ── Santa Cruz de La Palma (La Palma) ─────────────────
   {
@@ -209,6 +248,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 20,
     plazasDisponibles: 9,
     tematica: 'Arquitectura',
+    organizador: 'Ayuntamiento de Santa Cruz de La Palma',
+    contacto: 'turismo@santacruzdelapalma.es',
+    puntoEncuentro: 'Plaza de España, escalinatas de la Iglesia El Salvador',
   },
   {
     id: 14,
@@ -223,6 +265,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 25,
     plazasDisponibles: 20,
     tematica: 'Fiestas y tradiciones',
+    organizador: 'Ayuntamiento de Santa Cruz de La Palma',
+    contacto: 'turismo@santacruzdelapalma.es',
+    puntoEncuentro: 'Santuario de Nuestra Señora de Las Nieves',
   },
   // ── San Sebastián de La Gomera (La Gomera) ─────────────
   {
@@ -238,6 +283,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 15,
     plazasDisponibles: 6,
     tematica: 'Personajes históricos',
+    organizador: 'Cabildo de La Gomera',
+    contacto: 'cultura@cabildogomera.org',
+    puntoEncuentro: 'Torre del Conde, Parque de La Torre, San Sebastián',
   },
   {
     id: 16,
@@ -252,6 +300,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 12,
     plazasDisponibles: 12,
     tematica: 'Agua y paisaje',
+    organizador: 'Cabildo de La Gomera',
+    contacto: 'cultura@cabildogomera.org',
+    puntoEncuentro: 'Centro de Visitantes del Parque Nacional de Garajonay, Agulo',
   },
   // ── Valverde (El Hierro) ───────────────────────────────
   {
@@ -267,6 +318,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 16,
     plazasDisponibles: 11,
     tematica: 'Historia local',
+    organizador: 'Cabildo de El Hierro',
+    contacto: 'cultura@cabildodelhierro.org',
+    puntoEncuentro: 'Iglesia de la Concepción, Plaza Quintero Núñez, Valverde',
   },
   {
     id: 18,
@@ -281,8 +335,11 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 10,
     plazasDisponibles: 2,
     tematica: 'Arqueología',
+    organizador: 'Cabildo de El Hierro',
+    contacto: 'cultura@cabildodelhierro.org',
+    puntoEncuentro: 'Ecomuseo de Guinea, El Hierro',
   },
-  // ── FINALIZADAS (fechas pasadas) ───────────────────────
+  // ── FINALIZADAS ────────────────────────────────────────
   {
     id: 19,
     imagen: IMG,
@@ -296,6 +353,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 18,
     plazasDisponibles: 18,
     tematica: 'Patrimonio industrial',
+    organizador: 'Patronato de Turismo de Tenerife',
+    contacto: 'patrimonio@turismotenerife.es',
+    puntoEncuentro: 'Biblioteca Municipal de La Laguna, C/ Nava y Grimón',
   },
   {
     id: 20,
@@ -310,6 +370,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 14,
     plazasDisponibles: 14,
     tematica: 'Agua y paisaje',
+    organizador: 'Cabildo de Fuerteventura — Área de Cultura',
+    contacto: 'cultura@cabildofuer.es',
+    puntoEncuentro: 'Museo Arqueológico de Betancuria, C/ Roberto Roldán',
   },
   // ── AGOTADAS ──────────────────────────────────────────
   {
@@ -325,6 +388,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 20,
     plazasDisponibles: 0,
     tematica: 'Patrimonio inmaterial',
+    organizador: 'Patronato de Turismo de Tenerife',
+    contacto: 'patrimonio@turismotenerife.es',
+    puntoEncuentro: 'Plaza del Adelantado, frente al Ayuntamiento',
   },
   {
     id: 22,
@@ -339,6 +405,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 20,
     plazasDisponibles: 0,
     tematica: 'Personajes históricos',
+    organizador: 'Cabildo de Gran Canaria — Cultura',
+    contacto: 'cultura@grancanaria.com',
+    puntoEncuentro: 'Casa-Museo Pérez Galdós, C/ Cano 6, Vegueta',
   },
   {
     id: 23,
@@ -353,6 +422,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 15,
     plazasDisponibles: 0,
     tematica: 'Arqueología',
+    organizador: 'Ayuntamiento de Garachico',
+    contacto: 'turismo@garachico.es',
+    puntoEncuentro: 'Plaza de la Libertad, junto al Castillo de San Miguel',
   },
   {
     id: 24,
@@ -367,6 +439,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 12,
     plazasDisponibles: 0,
     tematica: 'Patrimonio inmaterial',
+    organizador: 'Ayuntamiento de Agüimes',
+    contacto: 'cultura@aguimes.es',
+    puntoEncuentro: 'Centro de Artesanía de Agüimes, C/ Progreso 4',
   },
   {
     id: 25,
@@ -381,6 +456,9 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 30,
     plazasDisponibles: 7,
     tematica: 'Fiestas y tradiciones',
+    organizador: 'Cabildo de Lanzarote — Turismo',
+    contacto: 'turismo@cabildodelanzarote.com',
+    puntoEncuentro: 'Plaza de la Constitución, Teguise',
   },
   {
     id: 26,
@@ -395,10 +473,12 @@ export const ACTIVIDADES: Actividad[] = [
     plazas: 20,
     plazasDisponibles: 13,
     tematica: 'Patrimonio inmaterial',
+    organizador: 'Ayuntamiento de Santa Cruz de La Palma',
+    contacto: 'turismo@santacruzdelapalma.es',
+    puntoEncuentro: 'Centro de Visitantes del Roque de los Muchachos, La Palma',
   },
 ]
 
-// Helpers de consulta
 export function getActividadesByConjunto(conjuntoId: number): Actividad[] {
   return ACTIVIDADES.filter(a => a.conjuntoId === conjuntoId)
 }

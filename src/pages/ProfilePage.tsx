@@ -50,7 +50,7 @@ function GridCardWrapper({ actividadId, uid, onLiberar, inactiva }: GridCardProp
 
   return (
     <div className="flex flex-col gap-2">
-      <ActividadCard actividad={actividad} inactiva={inactiva} />
+      <ActividadCard actividad={actividad} inactiva={inactiva} from="perfil" />
       {!inactiva && (
         confirmando ? (
           <div className="flex gap-2 px-1" style={labelStyle}>
