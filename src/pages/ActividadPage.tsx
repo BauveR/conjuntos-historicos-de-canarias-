@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, Navigate, useNavigate, useLocation } from 'react-router-dom'
+import { useParams, Navigate, useNavigate, useLocation, Link } from 'react-router-dom'
 import { doc, getDoc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
 import { ACTIVIDADES } from '../data/actividades'
 import { CONJUNTOS } from '../data/conjuntos'
@@ -398,6 +398,15 @@ export function ActividadPage() {
                     </a>
                   </div>
                 </div>
+
+                {/* Ver mis actividades */}
+                <Link
+                  to="/perfil"
+                  className="w-full py-3 rounded-xl border border-stone-200 text-[11px] tracking-widest uppercase text-stone-500 hover:bg-stone-50 transition-colors text-center block"
+                  style={labelStyle}
+                >
+                  Ver mis actividades
+                </Link>
 
                 {/* Liberar plaza */}
                 {confirmando ? (
