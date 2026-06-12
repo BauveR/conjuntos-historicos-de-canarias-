@@ -43,10 +43,10 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
           className={`w-full h-full object-cover transition-transform duration-500 ${inactiva ? 'grayscale' : 'group-hover:scale-105'}`}
         />
         {/* Overlay inactiva */}
-        {inactiva && (
+        {(inactiva || actividad.cancelada) && (
           <div className="absolute inset-0 bg-white/10 flex items-center justify-center">
             <span className="px-3 py-1 bg-white/90 text-stone-500 text-[10px] tracking-widest uppercase rounded-full" style={labelStyle}>
-              {actividad.plazasDisponibles === 0 ? 'Agotada' : 'Finalizada'}
+              {actividad.cancelada ? 'Cancelado' : actividad.plazasDisponibles === 0 ? 'Agotada' : 'Finalizada'}
             </span>
           </div>
         )}

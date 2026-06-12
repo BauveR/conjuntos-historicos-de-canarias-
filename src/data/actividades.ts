@@ -19,6 +19,7 @@ export type Actividad = {
   organizador: string
   contacto: string
   puntoEncuentro: string
+  cancelada?: boolean
 }
 
 const IMG = 'https://upload.wikimedia.org/wikipedia/commons/4/40/Convento_de_San_Buenaventura_-_Betancuria_-_Fuerteventura.jpg'

@@ -36,7 +36,7 @@ export function ProfileCardCompact({ actividad, inactiva = false, onLiberar }: P
   }
 
   return (
-    <div className={`flex gap-4 items-center ${inactiva ? 'opacity-50' : ''}`} style={labelStyle}>
+    <div className={`flex gap-4 items-center ${inactiva || actividad.cancelada ? 'opacity-50' : ''}`} style={labelStyle}>
 
       {/* Imagen */}
       <Link
@@ -47,12 +47,12 @@ export function ProfileCardCompact({ actividad, inactiva = false, onLiberar }: P
         <img
           src={actividad.imagen}
           alt={actividad.titulo}
-          className={`w-full h-full object-cover transition-transform duration-300 ${inactiva ? 'grayscale' : 'hover:scale-105'}`}
+          className={`w-full h-full object-cover transition-transform duration-300 ${inactiva || actividad.cancelada ? 'grayscale' : 'hover:scale-105'}`}
         />
-        {inactiva && (
+        {(inactiva || actividad.cancelada) && (
           <div className="absolute inset-0 bg-white/20 flex items-center justify-center">
             <span className="px-2 py-0.5 bg-white/90 text-stone-400 text-[9px] tracking-widest uppercase rounded-full">
-              Finalizada
+              {actividad.cancelada ? 'Cancelado' : 'Finalizada'}
             </span>
           </div>
         )}
@@ -77,8 +77,15 @@ export function ProfileCardCompact({ actividad, inactiva = false, onLiberar }: P
           {fecha} · {actividad.hora}{conjunto ? ` · ${conjunto.isla}` : ''}
         </p>
 
-        {/* Liberar plaza — solo futuras */}
-        {!inactiva && onLiberar && (
+        {/* Aviso cancelación */}
+        {actividad.cancelada && (
+          <p className="mt-0.5 text-[10px] tracking-widest uppercase text-red-400">
+            Evento cancelado
+          </p>
+        )}
+
+        {/* Liberar plaza — solo futuras no canceladas */}
+        {!inactiva && !actividad.cancelada && onLiberar && (
           confirmando ? (
             <div className="flex gap-2 mt-1">
               <button

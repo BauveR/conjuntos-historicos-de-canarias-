@@ -6,7 +6,7 @@ import type { Conjunto } from '../data/conjuntos'
 import { TEMATICAS, type Tematica } from '../data/tematicas'
 import { useAppContext } from '../contexts/AppContext'
 import {
-  addActividad, deleteActividad,
+  addActividad, cancelActividad, reactivarActividad,
   addConjunto, updateConjunto,
   getInscritos, seedFirestore,
   type InscritoData,
@@ -51,7 +51,7 @@ function IconUsers() {
 const NAV_ITEMS: NavItem[] = [
   { key: 'conjuntos',  label: 'Conjuntos',        sublabel: 'Ver y editar',   Icon: IconBuilding     },
   { key: 'actividad',  label: 'Nueva actividad',   sublabel: 'Crear evento',   Icon: IconCalendarPlus },
-  { key: 'asistentes', label: 'Asistentes',        sublabel: 'Control',        Icon: IconUsers        },
+  { key: 'asistentes', label: 'Eventos',             sublabel: 'Asistentes',     Icon: IconUsers        },
 ]
 
 // ── Shared UI ─────────────────────────────────────────────────────────────────
@@ -401,155 +401,218 @@ function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
   )
 }
 
-// ── Control de Asistentes ─────────────────────────────────────────────────────
+// ── Eventos y Asistentes ──────────────────────────────────────────────────────
 
-function ControlRow({ actividad }: { actividad: Actividad }) {
-  const [expanded, setExpanded] = useState(false)
-  const [inscritos, setInscritos] = useState<InscritoData[]>([])
-  const [loadingInscritos, setLoadingInscritos] = useState(false)
-  const [fetchedAt, setFetchedAt] = useState<number | null>(null)
+type ActivityCardProps = {
+  actividad: Actividad
+  selected: boolean
+  onClick: () => void
+}
+
+function ActivityCard({ actividad, selected, onClick }: ActivityCardProps) {
   const [confirmCancel, setConfirmCancel] = useState(false)
-  const [cancelling, setCancelling] = useState(false)
+  const [acting, setActing] = useState(false)
 
-  const inscritos_count = actividad.plazas - actividad.plazasDisponibles
-  const pct = actividad.plazas > 0 ? Math.round((inscritos_count / actividad.plazas) * 100) : 0
-
+  const count = actividad.plazas - actividad.plazasDisponibles
+  const pct   = actividad.plazas > 0 ? Math.round((count / actividad.plazas) * 100) : 0
   const fecha = new Date(actividad.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
-    day: 'numeric', month: 'short', year: 'numeric',
+    day: 'numeric', month: 'short',
   })
+  const isCancelada = !!actividad.cancelada
 
-  const fetchInscritos = async () => {
+  const handleCancel = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setActing(true)
+    try { await cancelActividad(actividad.id) }
+    finally { setActing(false); setConfirmCancel(false) }
+  }
+
+  const handleReactivar = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setActing(true)
+    try { await reactivarActividad(actividad.id) }
+    finally { setActing(false) }
+  }
+
+  return (
+    <div
+      className={`rounded-xl border transition-colors ${
+        selected
+          ? 'border-stone-800 bg-stone-50'
+          : isCancelada
+            ? 'border-red-100 bg-red-50/40'
+            : 'border-stone-100 hover:border-stone-200 bg-white'
+      }`}
+      style={labelStyle}
+    >
+      {/* Info + barra — clickable */}
+      <button onClick={onClick} className="w-full text-left px-4 pt-4 pb-3 cursor-pointer">
+        <div className="flex items-start gap-2 mb-0.5">
+          <p className={`text-sm truncate flex-1 ${isCancelada ? 'text-stone-400 line-through' : 'text-stone-800'}`}>
+            {actividad.titulo}
+          </p>
+          {isCancelada && (
+            <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-red-100 text-red-500 text-[9px] tracking-widest uppercase">
+              Cancelado
+            </span>
+          )}
+        </div>
+        <p className="text-[11px] text-stone-400 mb-3">{fecha}</p>
+        <div className="h-2 rounded-full bg-stone-100 overflow-hidden mb-2">
+          <div
+            className="h-full rounded-full transition-all"
+            style={{
+              width: `${pct}%`,
+              backgroundColor: isCancelada ? '#d6d3d1' : pct >= 90 ? '#ef4444' : pct >= 60 ? '#f59e0b' : '#78716c',
+            }}
+          />
+        </div>
+        <div className="flex justify-between text-[10px] text-stone-400 tabular-nums">
+          <span>{count} / {actividad.plazas} inscritos</span>
+          <span>{pct}%</span>
+        </div>
+      </button>
+
+      {/* Acción inferior */}
+      <div className="px-4 pt-2 pb-3 border-t border-stone-100">
+        {isCancelada ? (
+          <button
+            onClick={handleReactivar}
+            disabled={acting}
+            className="text-[10px] tracking-widest uppercase text-stone-300 hover:text-green-500 transition-colors cursor-pointer disabled:opacity-40"
+          >
+            {acting ? '...' : 'Reactivar evento'}
+          </button>
+        ) : confirmCancel ? (
+          <div className="flex gap-2 items-center">
+            <button
+              onClick={e => { e.stopPropagation(); setConfirmCancel(false) }}
+              className="text-[10px] text-stone-400 hover:text-stone-600 cursor-pointer"
+            >
+              No
+            </button>
+            <button
+              onClick={handleCancel}
+              disabled={acting}
+              className="px-3 py-1 rounded-lg bg-red-500 text-white text-[10px] tracking-widest uppercase hover:bg-red-600 disabled:opacity-40 cursor-pointer"
+            >
+              {acting ? '...' : 'Sí, cancelar'}
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={e => { e.stopPropagation(); setConfirmCancel(true) }}
+            className="text-[10px] tracking-widest uppercase text-stone-300 hover:text-red-400 transition-colors cursor-pointer"
+          >
+            Cancelar evento
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ControlAsistentes({ actividades }: { actividades: Actividad[] }) {
+  const today    = new Date().toISOString().slice(0, 10)
+  const proximas = actividades.filter(a => a.fecha >= today && !a.cancelada).sort((a, b) => a.fecha.localeCompare(b.fecha))
+  const pasadas  = actividades.filter(a => a.fecha <  today || !!a.cancelada).sort((a, b) => b.fecha.localeCompare(a.fecha))
+
+  const [showPasadas,      setShowPasadas]      = useState(false)
+  const [selectedId,       setSelectedId]       = useState<number | null>(null)
+  const [inscritos,        setInscritos]        = useState<InscritoData[]>([])
+  const [loadingInscritos, setLoadingInscritos] = useState(false)
+  const [fetchedAt,        setFetchedAt]        = useState<{ id: number; count: number } | null>(null)
+
+  const visible            = showPasadas ? pasadas : proximas
+  const selectedActividad  = actividades.find(a => a.id === selectedId)
+  const selectedCount      = selectedActividad
+    ? selectedActividad.plazas - selectedActividad.plazasDisponibles
+    : 0
+  const selectedFecha      = selectedActividad
+    ? new Date(selectedActividad.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
+        day: 'numeric', month: 'long', year: 'numeric',
+      })
+    : ''
+
+  const fetchInscritos = async (id: number, count: number) => {
     setLoadingInscritos(true)
     try {
-      const data = await getInscritos(actividad.id)
+      const data = await getInscritos(id)
       setInscritos(data)
-      setFetchedAt(inscritos_count)
+      setFetchedAt({ id, count })
     } finally {
       setLoadingInscritos(false)
     }
   }
 
-  // Re-fetch mientras está expandida si el conteo cambió — sin flash de "Sin inscritos"
   useEffect(() => {
-    if (!expanded || fetchedAt === inscritos_count) return
-    fetchInscritos()
-  }, [inscritos_count, expanded])
+    if (!selectedId) return
+    if (fetchedAt?.id === selectedId && fetchedAt?.count === selectedCount) return
+    fetchInscritos(selectedId, selectedCount)
+  }, [selectedId, selectedCount])
 
-  const handleToggle = async () => {
-    if (!expanded && fetchedAt !== inscritos_count && inscritos_count > 0) {
-      await fetchInscritos()
-    }
-    setExpanded(p => !p)
-  }
+  const handleSelect = (id: number) =>
+    setSelectedId(prev => prev === id ? null : id)
 
-  const handleCancel = async () => {
-    setCancelling(true)
-    try {
-      await deleteActividad(actividad.id)
-    } finally {
-      setCancelling(false)
-      setConfirmCancel(false)
-    }
-  }
+  const tabs = [
+    { label: `Próximas (${proximas.length})`, active: !showPasadas, onClick: () => setShowPasadas(false) },
+    { label: `Pasadas (${pasadas.length})`,   active: showPasadas,  onClick: () => setShowPasadas(true)  },
+  ]
 
   return (
-    <div className="border-b border-stone-100 last:border-0 py-4">
-      <div className="flex items-center gap-4">
+    <div className="flex flex-col gap-6">
 
-        {/* Toggle + info */}
-        <button onClick={handleToggle} className="flex-1 text-left min-w-0 cursor-pointer group">
-          <div className="flex items-baseline gap-3 min-w-0">
-            <p className="flex-1 min-w-0 text-sm text-stone-800 leading-snug truncate group-hover:text-stone-600 transition-colors">
-              {actividad.titulo}
-            </p>
-            <span className="text-[10px] tracking-widest text-stone-400 whitespace-nowrap shrink-0">
-              {fecha}
-            </span>
-          </div>
-          <div className="mt-2.5 flex items-center gap-3">
-            <div className="flex-1 h-1.5 rounded-full bg-stone-100 overflow-hidden">
-              <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: pct >= 90 ? '#ef4444' : pct >= 60 ? '#f59e0b' : '#78716c' }} />
+      {/* Panel de inscritos — arriba, visible al seleccionar un evento */}
+      {selectedActividad && (
+        <div className="bg-white rounded-2xl border border-stone-100 p-6" style={labelStyle}>
+          <div className="flex items-start justify-between mb-5">
+            <div className="min-w-0 flex-1 mr-4">
+              <p className="text-[10px] tracking-widest uppercase text-stone-400 mb-1">Inscritos</p>
+              <p className="text-sm text-stone-800 truncate">{selectedActividad.titulo}</p>
+              <p className="text-[11px] text-stone-400 mt-0.5 capitalize">
+                {selectedFecha} · {selectedCount} {selectedCount === 1 ? 'inscrito' : 'inscritos'}
+              </p>
             </div>
-            <span className="text-[11px] text-stone-400 whitespace-nowrap shrink-0 tabular-nums">
-              {inscritos_count}/{actividad.plazas} · {pct}%
-            </span>
-          </div>
-        </button>
-
-        {/* Cancel action */}
-        <div className="shrink-0">
-          {confirmCancel ? (
-            <div className="flex gap-2 items-center">
-              <button
-                onClick={() => setConfirmCancel(false)}
-                className="text-[10px] text-stone-400 hover:text-stone-600 cursor-pointer"
-              >
-                No
-              </button>
-              <button
-                onClick={handleCancel}
-                disabled={cancelling}
-                className="px-3 py-1 rounded-lg bg-red-500 text-white text-[10px] tracking-widest uppercase hover:bg-red-600 disabled:opacity-40 cursor-pointer"
-              >
-                {cancelling ? '...' : 'Sí'}
-              </button>
-            </div>
-          ) : (
             <button
-              onClick={() => setConfirmCancel(true)}
-              className="text-[10px] tracking-widest uppercase text-stone-300 hover:text-red-400 transition-colors cursor-pointer whitespace-nowrap"
+              onClick={() => setSelectedId(null)}
+              className="shrink-0 w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-400 transition-colors cursor-pointer"
+              aria-label="Cerrar"
             >
-              Cancelar
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
             </button>
-          )}
-        </div>
-      </div>
+          </div>
 
-      {expanded && (
-        <div className="mt-3 pt-3 border-t border-stone-50">
           {loadingInscritos ? (
-            <p className="text-[11px] text-stone-400">Cargando...</p>
+            <p className="text-[11px] text-stone-400 py-2">Cargando...</p>
           ) : inscritos.length === 0 ? (
-            <p className="text-[11px] text-stone-300">Sin inscritos aún</p>
+            <p className="text-[11px] text-stone-300 py-2">Sin inscritos aún</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-1.5">
+            <div className="divide-y divide-stone-50">
               {inscritos.map(i => (
-                <div key={i.uid} className="flex flex-col min-w-0">
-                  <span className="text-sm text-stone-700 truncate">{i.displayName || '—'}</span>
-                  <span className="text-[11px] text-stone-400 truncate">{i.email}</span>
+                <div key={i.uid} className="flex items-center gap-4 py-2.5 min-w-0">
+                  <span className="text-sm text-stone-700 truncate flex-1">{i.displayName || '—'}</span>
+                  <span className="text-[11px] text-stone-400 truncate shrink-0 max-w-[45%]">{i.email}</span>
                 </div>
               ))}
             </div>
           )}
         </div>
       )}
-    </div>
-  )
-}
 
-function ControlAsistentes({ actividades }: { actividades: Actividad[] }) {
-  const today = new Date().toISOString().slice(0, 10)
-  const proximas = actividades.filter(a => a.fecha >= today).sort((a, b) => a.fecha.localeCompare(b.fecha))
-  const pasadas  = actividades.filter(a => a.fecha < today).sort((a, b) => b.fecha.localeCompare(a.fecha))
-  const [showPasadas, setShowPasadas] = useState(false)
-  const visible = showPasadas ? pasadas : proximas
-
-  return (
-    <div>
-      <SectionCard title="Control de asistentes">
-        <div className="flex gap-2 mb-4">
-          {[
-            { label: `Próximas (${proximas.length})`, active: !showPasadas, onClick: () => setShowPasadas(false) },
-            { label: `Pasadas (${pasadas.length})`, active: showPasadas, onClick: () => setShowPasadas(true) },
-          ].map(tab => (
+      {/* Grid de eventos */}
+      <SectionCard title="Eventos">
+        <div className="flex gap-2 mb-5">
+          {tabs.map(t => (
             <button
-              key={tab.label}
-              onClick={tab.onClick}
+              key={t.label}
+              onClick={t.onClick}
               className={`px-3 py-1 rounded-full text-[10px] tracking-widest uppercase transition-colors border cursor-pointer ${
-                tab.active ? 'bg-stone-900 text-white border-stone-900' : 'text-stone-400 border-stone-200 hover:border-stone-400'
+                t.active ? 'bg-stone-900 text-white border-stone-900' : 'text-stone-400 border-stone-200 hover:border-stone-400'
               }`}
             >
-              {tab.label}
+              {t.label}
             </button>
           ))}
         </div>
@@ -557,9 +620,19 @@ function ControlAsistentes({ actividades }: { actividades: Actividad[] }) {
         {visible.length === 0 ? (
           <p className="text-sm text-stone-300 py-4 text-center">Sin actividades</p>
         ) : (
-          visible.map(a => <ControlRow key={a.id} actividad={a} />)
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {visible.map(a => (
+              <ActivityCard
+                key={a.id}
+                actividad={a}
+                selected={a.id === selectedId}
+                onClick={() => handleSelect(a.id)}
+              />
+            ))}
+          </div>
         )}
       </SectionCard>
+
     </div>
   )
 }
@@ -900,11 +973,11 @@ function GestionConjuntos({ conjuntos }: { conjuntos: Conjunto[] }) {
 function Sidebar({ section, setSection }: { section: AdminSection; setSection: (s: AdminSection) => void }) {
   return (
     <aside
-      className="hidden sm:flex fixed top-16 left-0 bottom-0 z-40 flex-col bg-stone-950 sm:w-14 lg:w-[220px] overflow-hidden"
+      className="hidden sm:flex fixed top-16 left-0 bottom-0 z-40 flex-col bg-stone-950 sm:w-14 lg:w-55 overflow-hidden"
       style={labelStyle}
     >
       {/* Logo row — lg only */}
-      <div className="hidden lg:flex items-center gap-3 px-5 h-14 border-b border-white/[0.06] shrink-0">
+      <div className="hidden lg:flex items-center gap-3 px-5 h-14 border-b border-white/6 shrink-0">
         <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: ACCENT }}>
           <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
             <path d="M3 21h18M6 21V7l6-4 6 4v14" />
@@ -925,7 +998,7 @@ function Sidebar({ section, setSection }: { section: AdminSection; setSection: (
               onClick={() => setSection(key)}
               className={`relative flex items-center gap-3.5 py-3 px-4 lg:px-5 w-full transition-colors cursor-pointer
                 sm:justify-center lg:justify-start
-                ${active ? 'text-white bg-white/[0.08]' : 'text-white/40 hover:text-white/70 hover:bg-white/[0.04]'}`}
+                ${active ? 'text-white bg-white/8' : 'text-white/40 hover:text-white/70 hover:bg-white/4'}`}
             >
               {/* Active left accent */}
               {active && (
@@ -947,7 +1020,7 @@ function Sidebar({ section, setSection }: { section: AdminSection; setSection: (
       </nav>
 
       {/* Back to site */}
-      <div className="shrink-0 py-3 border-t border-white/[0.06]">
+      <div className="shrink-0 py-3 border-t border-white/6">
         <Link
           to="/"
           className="flex items-center gap-3 py-2.5 px-4 lg:px-5 text-white/30 hover:text-white/60 transition-colors sm:justify-center lg:justify-start"
@@ -967,7 +1040,7 @@ function Sidebar({ section, setSection }: { section: AdminSection; setSection: (
 function MobileTabBar({ section, setSection }: { section: AdminSection; setSection: (s: AdminSection) => void }) {
   return (
     <nav
-      className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-stone-950 border-t border-white/[0.06] flex items-stretch"
+      className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-stone-950 border-t border-white/6 flex items-stretch"
       style={labelStyle}
     >
       {NAV_ITEMS.map(({ key, label, Icon }) => {
@@ -1027,7 +1100,7 @@ export function AdminPage() {
       <MobileTabBar section={section} setSection={setSection} />
 
       {/* Content */}
-      <div className="pt-16 sm:pl-14 lg:pl-[220px] pb-16 sm:pb-0 min-h-screen flex flex-col">
+      <div className="pt-16 sm:pl-14 lg:pl-55 pb-16 sm:pb-0 min-h-screen flex flex-col">
 
         <ContentHeader item={currentNav} />
 

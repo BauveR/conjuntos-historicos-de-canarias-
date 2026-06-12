@@ -28,7 +28,8 @@ export function ActividadPage() {
   const [confirmando, setConfirmando] = useState(false)
   const [liberando, setLiberando] = useState(false)
 
-  const esPasada = actividad ? actividad.fecha < new Date().toISOString().split('T')[0] : false
+  const esPasada    = actividad ? actividad.fecha < new Date().toISOString().split('T')[0] : false
+  const esCancelada = !!actividad?.cancelada
 
   const handleLiberar = async () => {
     if (!user || !actividad) return
@@ -120,7 +121,17 @@ export function ActividadPage() {
         <div className="px-6 py-5 flex flex-col gap-6">
 
           {/* Widget de inscripción */}
-          {inscrito && !esPasada ? (
+          {esCancelada ? (
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-5 flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="text-red-400 shrink-0">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+                <span className="text-[10px] tracking-widest uppercase text-red-400">Evento cancelado</span>
+              </div>
+              <p className="text-sm text-stone-500">Este evento ha sido cancelado por los organizadores.</p>
+            </div>
+          ) : inscrito && !esPasada ? (
             <div className="flex flex-col gap-3">
               <div className="rounded-2xl overflow-hidden border border-stone-200">
 
@@ -318,7 +329,20 @@ export function ActividadPage() {
           {/* Right: inscription card + ubicación (sticky solo en página completa) */}
           <div className={`${!isModal ? 'lg:sticky lg:top-24' : ''} self-start flex flex-col gap-4`}>
 
-            {inscrito && !esPasada ? (
+            {esCancelada ? (
+
+              /* ── Evento cancelado ── */
+              <div className="rounded-2xl border border-red-200 bg-red-50 p-6 flex flex-col gap-2 shadow-sm" style={labelStyle}>
+                <div className="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="text-red-400 shrink-0">
+                    <path d="M18 6 6 18M6 6l12 12" />
+                  </svg>
+                  <span className="text-[10px] tracking-widest uppercase text-red-400">Evento cancelado</span>
+                </div>
+                <p className="text-sm text-stone-500">Este evento ha sido cancelado por los organizadores.</p>
+              </div>
+
+            ) : inscrito && !esPasada ? (
 
               /* ── Ticket ── */
               <div className="flex flex-col gap-3">

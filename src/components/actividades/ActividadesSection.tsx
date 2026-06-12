@@ -41,8 +41,9 @@ export function ActividadesSection() {
     })
   }, [actividades, conjuntos, tematica, isla, conjuntoId, mes, dificultad])
 
-  const disponibles = actividadesFiltradas.filter(a => a.plazasDisponibles > 0 && a.fecha >= today)
-  const inactivas   = actividadesFiltradas.filter(a => a.plazasDisponibles === 0 || a.fecha < today)
+  const disponibles = actividadesFiltradas.filter(a => !a.cancelada && a.plazasDisponibles > 0 && a.fecha >= today)
+  const inactivas   = actividadesFiltradas.filter(a => !a.cancelada && (a.plazasDisponibles === 0 || a.fecha < today))
+  const canceladas  = actividadesFiltradas.filter(a => !!a.cancelada)
 
   const currentFilters: FilterState = { tematica, isla, conjuntoId, mes, dificultad }
 
@@ -90,7 +91,7 @@ export function ActividadesSection() {
       ) : (
         <>
           <ActividadesSlider actividades={disponibles} />
-          <ActividadesInactivas actividades={inactivas} />
+          <ActividadesInactivas actividades={[...inactivas, ...canceladas]} />
         </>
       )}
 

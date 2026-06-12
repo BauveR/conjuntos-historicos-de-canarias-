@@ -50,10 +50,17 @@ function GridCardWrapper({ actividadId, uid, onLiberar, inactiva }: GridCardProp
     }
   }
 
+  const isCancelada = !!actividad.cancelada
+
   return (
     <div className="flex flex-col gap-2">
-      <ActividadCard actividad={actividad} inactiva={inactiva} from="perfil" />
-      {!inactiva && (
+      <ActividadCard actividad={actividad} inactiva={inactiva || isCancelada} from="perfil" />
+      {isCancelada && (
+        <p className="text-[10px] tracking-widest uppercase text-red-400 px-1" style={labelStyle}>
+          Evento cancelado
+        </p>
+      )}
+      {!inactiva && !isCancelada && (
         confirmando ? (
           <div className="flex gap-2 px-1" style={labelStyle}>
             <button
@@ -92,9 +99,10 @@ export function ProfilePage() {
   const { ids, loading, remove } = useInscripciones()
   const [tab, setTab] = useState<Tab>('todas')
 
-  const inscritas = actividades.filter(a => ids.includes(a.id))
-  const proximas  = inscritas.filter(a => a.fecha >= today)
-  const pasadas   = inscritas.filter(a => a.fecha < today)
+  const inscritas  = actividades.filter(a => ids.includes(a.id))
+  const proximas   = inscritas.filter(a => a.fecha >= today && !a.cancelada)
+  const pasadas    = inscritas.filter(a => a.fecha < today && !a.cancelada)
+  const canceladas = inscritas.filter(a => !!a.cancelada)
 
   const visible = tab === 'proximas' ? proximas : tab === 'pasadas' ? pasadas : inscritas
 
@@ -144,6 +152,11 @@ export function ProfilePage() {
                 {pasadas.length > 0 && (
                   <span className="px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-500 text-[10px] tracking-widest uppercase">
                     {pasadas.length} pasada{pasadas.length !== 1 ? 's' : ''}
+                  </span>
+                )}
+                {canceladas.length > 0 && (
+                  <span className="px-2.5 py-0.5 rounded-full bg-red-100 text-red-400 text-[10px] tracking-widest uppercase">
+                    {canceladas.length} cancelada{canceladas.length !== 1 ? 's' : ''}
                   </span>
                 )}
               </div>
@@ -230,7 +243,7 @@ export function ProfilePage() {
                       <ProfileCardCompact
                         actividad={a}
                         inactiva={a.fecha < today}
-                        onLiberar={a.fecha >= today ? makeLiberar(a.id) : undefined}
+                        onLiberar={a.fecha >= today && !a.cancelada ? makeLiberar(a.id) : undefined}
                       />
                     </div>
                   ))}
@@ -244,7 +257,7 @@ export function ProfilePage() {
                       actividadId={a.id}
                       uid={user!.uid}
                       onLiberar={remove}
-                      inactiva={a.fecha < today}
+                      inactiva={a.fecha < today || !!a.cancelada}
                     />
                   ))}
                 </div>

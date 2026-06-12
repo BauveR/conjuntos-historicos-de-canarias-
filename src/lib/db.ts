@@ -1,5 +1,5 @@
 import {
-  collection, doc, setDoc, updateDoc, deleteDoc, getDocs,
+  collection, doc, setDoc, updateDoc, getDocs,
   onSnapshot, writeBatch, runTransaction, increment, serverTimestamp,
   type Unsubscribe,
 } from 'firebase/firestore'
@@ -111,8 +111,12 @@ export async function updateActividad(
   await updateDoc(doc(db, 'actividades', String(id)), data as Record<string, unknown>)
 }
 
-export async function deleteActividad(id: number): Promise<void> {
-  await deleteDoc(doc(db, 'actividades', String(id)))
+export async function cancelActividad(id: number): Promise<void> {
+  await updateDoc(doc(db, 'actividades', String(id)), { cancelada: true })
+}
+
+export async function reactivarActividad(id: number): Promise<void> {
+  await updateDoc(doc(db, 'actividades', String(id)), { cancelada: false })
 }
 
 export async function getInscritos(actividadId: number): Promise<InscritoData[]> {
