@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react'
-import { CONJUNTOS } from '../../data/conjuntos'
 import { ConjuntosMap } from './ConjuntosMap'
 import { ConjuntoPanel } from './ConjuntoPanel'
 import { ConjuntoDrawer } from './ConjuntoDrawer'
@@ -9,12 +8,12 @@ import { useAppContext } from '../../contexts/AppContext'
 import { SM_BREAKPOINT } from '../../hooks/useIsDesktop'
 
 export function MapSection() {
-  const { selectedId, setSelectedId, selectedIsla, setSelectedIsla, drawerOpen, setDrawerOpen } = useAppContext()
+  const { conjuntos, selectedId, setSelectedId, selectedIsla, setSelectedIsla, drawerOpen, setDrawerOpen } = useAppContext()
   const [mapVisible, setMapVisible] = useState(false)
   const [mapActive, setMapActive] = useState(false)
   const mapContainerRef = useRef<HTMLDivElement>(null)
 
-  const selected = CONJUNTOS.find(c => c.id === selectedId) ?? null
+  const selected = conjuntos.find(c => c.id === selectedId) ?? null
 
   useEffect(() => {
     const el = mapContainerRef.current
@@ -67,7 +66,7 @@ export function MapSection() {
 
           <div className="h-full">
             <ConjuntosMap
-              conjuntos={CONJUNTOS}
+              conjuntos={conjuntos}
               selectedId={selectedId}
               selectedIsla={selectedIsla}
               active={mapActive}

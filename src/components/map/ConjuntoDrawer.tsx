@@ -2,9 +2,9 @@ import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence, type Transition } from 'framer-motion'
 import type { Conjunto } from '../../data/conjuntos'
-import { ACTIVIDADES } from '../../data/actividades'
 import { TEMATICA_COLORS } from '../../data/tematicas'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
+import { useAppContext } from '../../contexts/AppContext'
 
 type Props = {
   conjunto: Conjunto | null
@@ -18,12 +18,11 @@ const mobileTransition: Transition = { type: 'spring', damping: 30, stiffness: 3
 
 export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
   const isDesktop = useIsDesktop()
+  const { actividades: todasActividades } = useAppContext()
 
   if (!conjunto) return null
 
-  const actividades = conjunto.actividadIds
-    .map(id => ACTIVIDADES.find(a => a.id === id))
-    .filter(Boolean)
+  const actividades = todasActividades.filter(a => a.conjuntoId === conjunto.id)
 
   const cardVariants = isDesktop
     ? { initial: { opacity: 0, scale: 0.96 }, animate: { opacity: 1, scale: 1 }, exit: { opacity: 0, scale: 0.96 } }

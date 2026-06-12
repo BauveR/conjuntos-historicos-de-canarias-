@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import type { Tematica } from '../../data/tematicas'
 import { TEMATICAS } from '../../data/tematicas'
 import type { Dificultad } from '../../data/actividades'
-import { CONJUNTOS } from '../../data/conjuntos'
+import { useAppContext } from '../../contexts/AppContext'
 
 const ISLAS = ['Gran Canaria', 'Tenerife', 'Lanzarote', 'Fuerteventura', 'La Palma', 'La Gomera', 'El Hierro']
 const DIFICULTADES: Dificultad[] = ['Fácil', 'Media', 'Difícil']
@@ -52,6 +52,7 @@ const mobileTransition: Transition = { type: 'spring', damping: 30, stiffness: 3
 
 export function FilterSheet({ open, initialSection, onClose, filters, mesesDisponibles, onApply }: Props) {
   const isDesktop = useIsDesktop()
+  const { conjuntos } = useAppContext()
   const [temp, setTemp] = useState<FilterState>(filters)
   const [openSection, setOpenSection] = useState<Section | null>(null)
 
@@ -61,7 +62,7 @@ export function FilterSheet({ open, initialSection, onClose, filters, mesesDispo
 
   const toggle = (s: Section) => setOpenSection(p => p === s ? null : s)
 
-  const conjuntosFiltrados = temp.isla ? CONJUNTOS.filter(c => c.isla === temp.isla) : CONJUNTOS
+  const conjuntosFiltrados = temp.isla ? conjuntos.filter(c => c.isla === temp.isla) : conjuntos
 
   const pick = {
     tematica:   (v: Tematica | null)   => { setTemp(t => ({ ...t, tematica: v }));                      setOpenSection(null) },
@@ -79,7 +80,7 @@ export function FilterSheet({ open, initialSection, onClose, filters, mesesDispo
   const pills = [
     temp.tematica   && { key: 'tematica'   as const, label: temp.tematica },
     temp.isla       && { key: 'isla'       as const, label: temp.isla },
-    temp.conjuntoId && { key: 'conjuntoId' as const, label: CONJUNTOS.find(c => c.id === temp.conjuntoId)?.nombre.replace('Conjunto Histórico de ', '') ?? '' },
+    temp.conjuntoId && { key: 'conjuntoId' as const, label: conjuntos.find(c => c.id === temp.conjuntoId)?.nombre.replace('Conjunto Histórico de ', '') ?? '' },
     temp.mes        && { key: 'mes'        as const, label: formatMes(temp.mes) },
     temp.dificultad && { key: 'dificultad' as const, label: temp.dificultad },
   ].filter(Boolean) as { key: keyof FilterState; label: string }[]

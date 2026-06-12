@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { doc, deleteDoc } from 'firebase/firestore'
 import type { User } from 'firebase/auth'
 import { useAuth } from '../contexts/AuthContext'
+import { useAppContext } from '../contexts/AppContext'
 import { useInscripciones } from '../hooks/useInscripciones'
-import { ACTIVIDADES } from '../data/actividades'
+import { liberarPlaza } from '../lib/db'
 import { ActividadCard } from '../components/actividades/ActividadCard'
 import { ProfileCardCompact } from '../components/profile/ProfileCardCompact'
-import { db } from '../firebase'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 const titleStyle = { fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }
@@ -31,17 +30,19 @@ type GridCardProps = {
 }
 
 function GridCardWrapper({ actividadId, uid, onLiberar, inactiva }: GridCardProps) {
-  const actividad = ACTIVIDADES.find(a => a.id === actividadId)!
+  const { actividades } = useAppContext()
+  const actividad = actividades.find(a => a.id === actividadId)
   const [confirmando, setConfirmando] = useState(false)
   const [liberando, setLiberando] = useState(false)
+
+  if (!actividad) return null
 
   const handleLiberar = async () => {
     setLiberando(true)
     try {
-      await deleteDoc(doc(db, 'users', uid, 'inscripciones', String(actividadId)))
+      await liberarPlaza(actividadId, uid)
       onLiberar(actividadId)
     } catch {
-      // silently fail
     } finally {
       setLiberando(false)
       setConfirmando(false)
@@ -86,10 +87,11 @@ function GridCardWrapper({ actividadId, uid, onLiberar, inactiva }: GridCardProp
 
 export function ProfilePage() {
   const { user, signOut } = useAuth()
+  const { actividades } = useAppContext()
   const { ids, loading, remove } = useInscripciones()
   const [tab, setTab] = useState<Tab>('todas')
 
-  const inscritas = ACTIVIDADES.filter(a => ids.includes(a.id))
+  const inscritas = actividades.filter(a => ids.includes(a.id))
   const proximas  = inscritas.filter(a => a.fecha >= today)
   const pasadas   = inscritas.filter(a => a.fecha < today)
 
@@ -103,7 +105,7 @@ export function ProfilePage() {
 
   const makeLiberar = (actividadId: number) => async () => {
     if (!user) return
-    await deleteDoc(doc(db, 'users', user.uid, 'inscripciones', String(actividadId)))
+    await liberarPlaza(actividadId, user.uid)
     remove(actividadId)
   }
 

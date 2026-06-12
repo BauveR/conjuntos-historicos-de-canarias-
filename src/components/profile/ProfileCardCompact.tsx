@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import type { Actividad } from '../../data/actividades'
-import { CONJUNTOS } from '../../data/conjuntos'
 import { TEMATICA_COLORS } from '../../data/tematicas'
+import { useAppContext } from '../../contexts/AppContext'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
@@ -14,7 +14,8 @@ type Props = {
 
 export function ProfileCardCompact({ actividad, inactiva = false, onLiberar }: Props) {
   const location = useLocation()
-  const conjunto = CONJUNTOS.find(c => c.id === actividad.conjuntoId)
+  const { conjuntos } = useAppContext()
+  const conjunto = conjuntos.find(c => c.id === actividad.conjuntoId)
   const [confirmando, setConfirmando] = useState(false)
   const [liberando, setLiberando] = useState(false)
 

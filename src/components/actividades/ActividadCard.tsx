@@ -1,9 +1,9 @@
 import { Link, useLocation } from 'react-router-dom'
 import type { Actividad } from '../../data/actividades'
-import { CONJUNTOS } from '../../data/conjuntos'
 import { TEMATICA_COLORS } from '../../data/tematicas'
 import { DifficultyDots } from './DifficultyDots'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
+import { useAppContext } from '../../contexts/AppContext'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
@@ -21,7 +21,8 @@ type Props = { actividad: Actividad; inactiva?: boolean; from?: string }
 export function ActividadCard({ actividad, inactiva = false, from = 'actividades' }: Props) {
   const location = useLocation()
   const isDesktop = useIsDesktop()
-  const conjunto = CONJUNTOS.find(c => c.id === actividad.conjuntoId)
+  const { conjuntos } = useAppContext()
+  const conjunto = conjuntos.find(c => c.id === actividad.conjuntoId)
   const fecha = new Date(actividad.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
     day: 'numeric',
     month: 'short',

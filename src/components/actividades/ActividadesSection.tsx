@@ -1,6 +1,4 @@
 import { useMemo, useState } from 'react'
-import { ACTIVIDADES } from '../../data/actividades'
-import { CONJUNTOS } from '../../data/conjuntos'
 import { FilterBar } from './FilterBar'
 import { FilterSheet, type FilterState } from './FilterSheet'
 import { ActividadesSlider } from './ActividadesSlider'
@@ -11,6 +9,7 @@ const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
 export function ActividadesSection() {
   const {
+    actividades, conjuntos,
     tematica, setTematica,
     isla, setIsla,
     conjuntoId, setConjuntoId,
@@ -22,25 +21,25 @@ export function ActividadesSection() {
   const [sheetOpen, setSheetOpen] = useState(false)
 
   const mesesDisponibles = useMemo(() => {
-    const set = new Set(ACTIVIDADES.map(a => a.fecha.slice(0, 7)))
+    const set = new Set(actividades.map(a => a.fecha.slice(0, 7)))
     return Array.from(set).sort()
-  }, [])
+  }, [actividades])
 
   const today = new Date().toISOString().slice(0, 10)
 
   const actividadesFiltradas = useMemo(() => {
-    return ACTIVIDADES.filter(a => {
+    return actividades.filter(a => {
       if (tematica && a.tematica !== tematica) return false
       if (conjuntoId && a.conjuntoId !== conjuntoId) return false
       if (mes && !a.fecha.startsWith(mes)) return false
       if (dificultad && a.dificultad !== dificultad) return false
       if (isla) {
-        const c = CONJUNTOS.find(c => c.id === a.conjuntoId)
+        const c = conjuntos.find(c => c.id === a.conjuntoId)
         if (!c || c.isla !== isla) return false
       }
       return true
     })
-  }, [tematica, isla, conjuntoId, mes, dificultad])
+  }, [actividades, conjuntos, tematica, isla, conjuntoId, mes, dificultad])
 
   const disponibles = actividadesFiltradas.filter(a => a.plazasDisponibles > 0 && a.fecha >= today)
   const inactivas   = actividadesFiltradas.filter(a => a.plazasDisponibles === 0 || a.fecha < today)

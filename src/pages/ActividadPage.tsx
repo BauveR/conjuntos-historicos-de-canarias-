@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useParams, Navigate, useNavigate, useLocation, Link } from 'react-router-dom'
-import { doc, getDoc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
-import { ACTIVIDADES } from '../data/actividades'
-import { CONJUNTOS } from '../data/conjuntos'
+import { doc, getDoc } from 'firebase/firestore'
 import { TEMATICA_COLORS } from '../data/tematicas'
 import { DifficultyDots } from '../components/actividades/DifficultyDots'
 import { useAuth } from '../contexts/AuthContext'
+import { useAppContext } from '../contexts/AppContext'
+import { inscribirse, liberarPlaza } from '../lib/db'
 import { db } from '../firebase'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
@@ -19,7 +19,8 @@ export function ActividadPage() {
   const isModal = !!location.state?.background
   const fromPerfil = location.state?.from === 'perfil'
   const { user } = useAuth()
-  const actividad = ACTIVIDADES.find(a => a.id === Number(id))
+  const { actividades, conjuntos, dataLoading } = useAppContext()
+  const actividad = actividades.find(a => a.id === Number(id))
 
   const [inscrito, setInscrito] = useState(false)
   const [inscribiendo, setInscribiendo] = useState(false)
@@ -32,11 +33,10 @@ export function ActividadPage() {
     if (!user || !actividad) return
     setLiberando(true)
     try {
-      await deleteDoc(doc(db, 'users', user.uid, 'inscripciones', String(actividad.id)))
+      await liberarPlaza(actividad.id, user.uid)
       setInscrito(false)
       setConfirmando(false)
     } catch {
-      // silently fail
     } finally {
       setLiberando(false)
     }
@@ -50,12 +50,9 @@ export function ActividadPage() {
     if (!actividad) return
     setInscribiendo(true)
     try {
-      await setDoc(doc(db, 'users', user.uid, 'inscripciones', String(actividad.id)), {
-        inscritoEn: serverTimestamp(),
-      })
+      await inscribirse(actividad.id, user.uid, user.email ?? '', user.displayName ?? '')
       setInscrito(true)
     } catch {
-      // silently fail
     } finally {
       setInscribiendo(false)
     }
@@ -68,9 +65,10 @@ export function ActividadPage() {
       .catch(() => {})
   }, [user, actividad])
 
+  if (dataLoading) return null
   if (!actividad) return <Navigate to="/" replace />
 
-  const conjunto = CONJUNTOS.find(c => c.id === actividad.conjuntoId)
+  const conjunto = conjuntos.find(c => c.id === actividad.conjuntoId)
   const fecha = new Date(actividad.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
     weekday: 'long',
     day: 'numeric',

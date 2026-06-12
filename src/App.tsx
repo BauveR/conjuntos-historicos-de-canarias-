@@ -56,6 +56,7 @@ export default function App() {
             <Routes key="modal">
               <Route path="/actividades/:id" element={<ActividadModal />} />
               <Route path="/login" element={<AuthModal />} />
+              <Route path="*" element={null} />
             </Routes>
           )}
         </AnimatePresence>
