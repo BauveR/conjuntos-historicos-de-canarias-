@@ -7,6 +7,8 @@ import { ActividadPage } from './pages/ActividadPage'
 import { AuthPage } from './pages/AuthPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { AdminPage } from './pages/AdminPage'
+import { PasaportePage } from './pages/PasaportePage'
+import { ContactoPage } from './pages/ContactoPage'
 import { ActividadModal } from './components/map/ActividadModal'
 import { AuthModal } from './components/auth/AuthModal'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
@@ -42,6 +44,8 @@ export default function App() {
               <Route path="/login" element={<AuthPage />} />
               <Route path="/perfil" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
+              <Route path="/pasaporte" element={<PasaportePage />} />
+              <Route path="/contacto" element={<ContactoPage />} />
             </Routes>
           </motion.div>
         </AnimatePresence>

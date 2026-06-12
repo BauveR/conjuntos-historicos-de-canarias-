@@ -26,10 +26,16 @@ export function Home() {
 
   useMapRestoration()
 
-  // Hash scroll only on explicit PUSH navigation (navbar links)
+  // Hash scroll when navigating from another route (cross-page)
+  // Skipped on POP (back/forward) — scroll restoration handles that case
+  // Delayed to let the page enter animation (0.24s) finish before scrolling
   useEffect(() => {
-    if (!location.hash || navType !== 'PUSH') return
-    document.getElementById(location.hash.slice(1))?.scrollIntoView({ behavior: 'smooth' })
+    if (!location.hash || navType === 'POP') return
+    const id = location.hash.slice(1)
+    const timer = setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+    }, 260)
+    return () => clearTimeout(timer)
   }, [location.hash, navType])
 
   // Continuously save scroll position keyed by history entry

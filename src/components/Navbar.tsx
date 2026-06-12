@@ -12,8 +12,8 @@ const NAV_LINKS: NavEntry[] = [
   { label: 'Inicio',                to: '/' },
   { label: 'Conjuntos',             to: '/#conjuntos' },
   { label: 'Rutas y Eventos',       to: '/#actividades' },
-  { label: 'Pasaporte Patrimonial', href: '#' },
-  { label: 'Contacto',              href: '#' },
+  { label: 'Pasaporte Patrimonial', to: '/pasaporte' },
+  { label: 'Contacto',              to: '/contacto' },
 ]
 
 const linkClass =
@@ -24,7 +24,20 @@ const mobileLinkClass =
   'block text-xs tracking-widest uppercase text-stone-500 hover:text-stone-900 transition-colors duration-200 py-4 border-b border-stone-100'
 
 function NavLink({ entry, mobile, onClick }: { entry: NavEntry; mobile?: boolean; onClick?: () => void }) {
+  const location = useLocation()
   const cls = mobile ? mobileLinkClass : linkClass
+
+  if (entry.to?.startsWith('/#')) {
+    const sectionId = entry.to.slice(2)
+    const handleClick = () => {
+      onClick?.()
+      if (location.pathname === '/') {
+        document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' })
+      }
+    }
+    return <Link to={entry.to} className={cls} style={labelStyle} onClick={handleClick}>{entry.label}</Link>
+  }
+
   if (entry.to) {
     return <Link to={entry.to} className={cls} style={labelStyle} onClick={onClick}>{entry.label}</Link>
   }
