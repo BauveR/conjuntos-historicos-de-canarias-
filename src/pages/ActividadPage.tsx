@@ -29,7 +29,7 @@ type BookingWidgetProps = {
   compact?: boolean
 }
 
-function BookingWidget({
+export function BookingWidget({
   actividad, fecha, pct,
   inscrito, esPasada, esCancelada,
   inscribiendo, inscripcionError,

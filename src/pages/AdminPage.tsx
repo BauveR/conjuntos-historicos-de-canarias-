@@ -223,7 +223,7 @@ const DEFAULT_IMAGE = 'https://upload.wikimedia.org/wikipedia/commons/4/40/Conve
 
 type ActividadErrors = Partial<Record<keyof ActividadForm, string>>
 
-function validateActividad(form: ActividadForm): ActividadErrors {
+export function validateActividad(form: ActividadForm): ActividadErrors {
   const e: ActividadErrors = {}
   const today = new Date().toISOString().split('T')[0]
 
@@ -257,6 +257,7 @@ function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
   const [errors, setErrors] = useState<ActividadErrors>({})
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [saveError, setSaveError] = useState('')
 
   const set = (key: keyof ActividadForm) => (v: string) => {
     setForm(f => ({ ...f, [key]: v }))
@@ -267,6 +268,7 @@ function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
     const errs = validateActividad(form)
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
     setSaving(true)
+    setSaveError('')
     try {
       const plazas = Number(form.plazas)
       await addActividad({
@@ -289,6 +291,8 @@ function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
       setErrors({})
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
+    } catch {
+      setSaveError('Error al crear la actividad. Inténtalo de nuevo.')
     } finally {
       setSaving(false)
     }
@@ -394,6 +398,7 @@ function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
           </div>
 
           <SaveButton loading={saving} success={success} onClick={handleSave} label="Crear actividad" />
+          {saveError && <p className="text-[10px] text-red-500 text-center">{saveError}</p>}
         </div>
       </SectionCard>
 
@@ -412,6 +417,7 @@ type ActivityCardProps = {
 function ActivityCard({ actividad, selected, onClick }: ActivityCardProps) {
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [acting, setActing] = useState(false)
+  const [actingError, setActingError] = useState('')
 
   const count = actividad.plazas - actividad.plazasDisponibles
   const pct   = actividad.plazas > 0 ? Math.round((count / actividad.plazas) * 100) : 0
@@ -423,14 +429,18 @@ function ActivityCard({ actividad, selected, onClick }: ActivityCardProps) {
   const handleCancel = async (e: React.MouseEvent) => {
     e.stopPropagation()
     setActing(true)
+    setActingError('')
     try { await cancelActividad(actividad.id) }
+    catch { setActingError('Error al cancelar. Inténtalo de nuevo.') }
     finally { setActing(false); setConfirmCancel(false) }
   }
 
   const handleReactivar = async (e: React.MouseEvent) => {
     e.stopPropagation()
     setActing(true)
+    setActingError('')
     try { await reactivarActividad(actividad.id) }
+    catch { setActingError('Error al reactivar. Inténtalo de nuevo.') }
     finally { setActing(false) }
   }
 
@@ -472,6 +482,10 @@ function ActivityCard({ actividad, selected, onClick }: ActivityCardProps) {
           <span>{pct}%</span>
         </div>
       </button>
+
+      {actingError && (
+        <p className="px-4 pb-2 text-[10px] text-red-400">{actingError}</p>
+      )}
 
       {/* Acción inferior */}
       <div className="px-4 pt-2 pb-3 border-t border-stone-100">
@@ -521,6 +535,7 @@ function ControlAsistentes({ actividades }: { actividades: Actividad[] }) {
   const [selectedId,       setSelectedId]       = useState<number | null>(null)
   const [inscritos,        setInscritos]        = useState<InscritoData[]>([])
   const [loadingInscritos, setLoadingInscritos] = useState(false)
+  const [fetchError,       setFetchError]       = useState<string | null>(null)
   const [fetchedAt,        setFetchedAt]        = useState<{ id: number; count: number } | null>(null)
 
   const visible            = showPasadas ? pasadas : proximas
@@ -536,10 +551,13 @@ function ControlAsistentes({ actividades }: { actividades: Actividad[] }) {
 
   const fetchInscritos = async (id: number, count: number) => {
     setLoadingInscritos(true)
+    setFetchError(null)
     try {
       const data = await getInscritos(id)
       setInscritos(data)
       setFetchedAt({ id, count })
+    } catch {
+      setFetchError('Error al cargar inscritos. Inténtalo de nuevo.')
     } finally {
       setLoadingInscritos(false)
     }
@@ -586,6 +604,8 @@ function ControlAsistentes({ actividades }: { actividades: Actividad[] }) {
 
           {loadingInscritos ? (
             <p className="text-[11px] text-stone-400 py-2">Cargando...</p>
+          ) : fetchError ? (
+            <p className="text-[11px] text-red-400 py-2">{fetchError}</p>
           ) : inscritos.length === 0 ? (
             <p className="text-[11px] text-stone-300 py-2">Sin inscritos aún</p>
           ) : (
@@ -697,6 +717,7 @@ function ConjuntoRow({ conjunto }: { conjunto: Conjunto }) {
   const [errors, setErrors] = useState<ConjuntoErrors>({})
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [saveError, setSaveError] = useState('')
 
   const set = (key: keyof ConjuntoForm) => (v: string) => {
     setForm(f => ({ ...f, [key]: v }))
@@ -713,10 +734,13 @@ function ConjuntoRow({ conjunto }: { conjunto: Conjunto }) {
     const errs = validateConjunto(form)
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
     setSaving(true)
+    setSaveError('')
     try {
       await updateConjunto(conjunto.id, formToConjuntoData(form))
       setSuccess(true)
       setTimeout(() => { setSuccess(false); setExpanded(false) }, 1500)
+    } catch {
+      setSaveError('Error al guardar. Inténtalo de nuevo.')
     } finally {
       setSaving(false)
     }
@@ -806,6 +830,7 @@ function ConjuntoRow({ conjunto }: { conjunto: Conjunto }) {
               <SaveButton loading={saving} success={success} onClick={handleSave} />
             </div>
           </div>
+          {saveError && <p className="text-[10px] text-red-500 text-center">{saveError}</p>}
         </div>
       )}
     </div>
@@ -820,6 +845,7 @@ function NuevoConjuntoPanel() {
   const [errors, setErrors] = useState<ConjuntoErrors>({})
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [saveError, setSaveError] = useState('')
 
   const set = (key: keyof ConjuntoForm) => (v: string) => {
     setForm(f => ({ ...f, [key]: v }))
@@ -830,12 +856,15 @@ function NuevoConjuntoPanel() {
     const errs = validateConjunto(form)
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
     setSaving(true)
+    setSaveError('')
     try {
       await addConjunto(formToConjuntoData(form))
       setForm({ nombre: '', municipio: '', isla: '', imagen: '', descripcion: '', lat: '', lng: '', fundacion: '', declaraciones: '' })
       setErrors({})
       setSuccess(true)
       setTimeout(() => setSuccess(false), 2500)
+    } catch {
+      setSaveError('Error al crear el conjunto. Inténtalo de nuevo.')
     } finally {
       setSaving(false)
     }
@@ -895,6 +924,7 @@ function NuevoConjuntoPanel() {
           </div>
         </div>
         <SaveButton loading={saving} success={success} onClick={handleSave} label="Crear conjunto" />
+        {saveError && <p className="text-[10px] text-red-500 text-center">{saveError}</p>}
       </div>
     </SectionCard>
   )
