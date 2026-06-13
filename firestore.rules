@@ -24,7 +24,7 @@ service cloud.firestore {
       allow update: if isAdmin();
 
       match /inscripciones/{actividadId} {
-        allow read, write: if request.auth.uid == uid;
+        allow read, write: if request.auth.uid == uid || isAdmin();
       }
     }
 
@@ -47,8 +47,8 @@ service cloud.firestore {
         // Admin ve la lista completa; el propio uid necesita leer su doc en liberarPlaza
         allow read: if isAdmin() || request.auth.uid == uid;
 
-        // El propio uid escribe/borra su inscrito (inscribirse / liberarPlaza)
-        allow write: if request.auth.uid == uid;
+        // El propio uid escribe/borra su inscrito; admin puede borrar (limpieza)
+        allow write: if request.auth.uid == uid || isAdmin();
       }
     }
 
