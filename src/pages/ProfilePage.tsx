@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import type { User } from 'firebase/auth'
 import { useAuth } from '../contexts/AuthContext'
 import { useAppContext } from '../contexts/AppContext'
-import { useInscripciones } from '../hooks/useInscripciones'
 import { liberarPlaza, YaLiberadaError } from '../lib/db'
 import { ActividadCard } from '../components/actividades/ActividadCard'
 import { ProfileCardCompact } from '../components/profile/ProfileCardCompact'
@@ -25,11 +24,10 @@ function getInitials(user: User): string {
 type GridCardProps = {
   actividadId: number
   uid: string
-  onLiberar: (id: number) => void
   inactiva: boolean
 }
 
-function GridCardWrapper({ actividadId, uid, onLiberar, inactiva }: GridCardProps) {
+function GridCardWrapper({ actividadId, uid, inactiva }: GridCardProps) {
   const { actividades } = useAppContext()
   const actividad = actividades.find(a => a.id === actividadId)
   const [confirmando, setConfirmando] = useState(false)
@@ -41,9 +39,8 @@ function GridCardWrapper({ actividadId, uid, onLiberar, inactiva }: GridCardProp
     setLiberando(true)
     try {
       await liberarPlaza(actividadId, uid)
-      onLiberar(actividadId)
     } catch (err) {
-      if (err instanceof YaLiberadaError) onLiberar(actividadId)
+      if (!(err instanceof YaLiberadaError)) throw err
     } finally {
       setLiberando(false)
       setConfirmando(false)
@@ -94,12 +91,11 @@ function GridCardWrapper({ actividadId, uid, onLiberar, inactiva }: GridCardProp
 }
 
 export function ProfilePage() {
-  const { user, signOut } = useAuth()
+  const { user, signOut, inscripcionIds, inscripcionesLoading } = useAuth()
   const { actividades } = useAppContext()
-  const { ids, loading, remove } = useInscripciones()
   const [tab, setTab] = useState<Tab>('todas')
 
-  const inscritas  = actividades.filter(a => ids.includes(a.id))
+  const inscritas  = actividades.filter(a => inscripcionIds.includes(a.id))
   const proximas   = inscritas.filter(a => a.fecha >= today && !a.cancelada)
   const pasadas    = inscritas.filter(a => a.fecha < today && !a.cancelada)
   const canceladas = inscritas.filter(a => !!a.cancelada)
@@ -119,7 +115,6 @@ export function ProfilePage() {
     } catch (err) {
       if (!(err instanceof YaLiberadaError)) return
     }
-    remove(actividadId)
   }
 
   return (
@@ -142,7 +137,7 @@ export function ProfilePage() {
             <h1 className="text-xl sm:text-2xl text-stone-900 uppercase tracking-tight truncate" style={titleStyle}>
               {user?.displayName ?? user?.email?.split('@')[0]}
             </h1>
-            {!loading && (
+            {!inscripcionesLoading && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {proximas.length > 0 && (
                   <span className="px-2.5 py-0.5 rounded-full bg-stone-900 text-white text-[10px] tracking-widest uppercase">
@@ -182,7 +177,7 @@ export function ProfilePage() {
       {/* Content */}
       <div className="px-6 sm:px-10 lg:px-32 py-8">
 
-        {loading ? (
+        {inscripcionesLoading ? (
           <div className="py-20 flex items-center justify-center">
             <p className="text-sm text-stone-300 tracking-widest uppercase">Cargando...</p>
           </div>
@@ -256,7 +251,6 @@ export function ProfilePage() {
                       key={a.id}
                       actividadId={a.id}
                       uid={user!.uid}
-                      onLiberar={remove}
                       inactiva={a.fecha < today || !!a.cancelada}
                     />
                   ))}

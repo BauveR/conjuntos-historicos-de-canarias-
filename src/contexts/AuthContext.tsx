@@ -10,7 +10,7 @@ import {
   updateProfile,
 } from 'firebase/auth'
 import type { User } from 'firebase/auth'
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { collection, doc, getDoc, setDoc, serverTimestamp, onSnapshot } from 'firebase/firestore'
 import { auth, db } from '../firebase'
 
 export type UserRole = 'user' | 'admin'
@@ -19,6 +19,8 @@ type AuthContextValue = {
   user: User | null
   userRole: UserRole | null
   loading: boolean
+  inscripcionIds: number[]
+  inscripcionesLoading: boolean
   signIn: (email: string, password: string) => Promise<UserRole>
   signUp: (name: string, email: string, password: string) => Promise<UserRole>
   signInWithGoogle: () => Promise<UserRole>
@@ -60,6 +62,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [userRole, setUserRole] = useState<UserRole | null>(null)
   const [loading, setLoading] = useState(true)
+  const [inscripcionIds, setInscripcionIds] = useState<number[]>([])
+  const [inscripcionesLoading, setInscripcionesLoading] = useState(false)
   const pendingRole = useRef<Promise<UserRole> | null>(null)
 
   useEffect(() => {
@@ -76,6 +80,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
     return unsub
   }, [])
+
+  useEffect(() => {
+    if (!user) {
+      setInscripcionIds([])
+      setInscripcionesLoading(false)
+      return
+    }
+    setInscripcionesLoading(true)
+    const unsub = onSnapshot(
+      collection(db, 'users', user.uid, 'inscripciones'),
+      snap => {
+        setInscripcionIds(snap.docs.map(d => Number(d.id)))
+        setInscripcionesLoading(false)
+      },
+      () => {
+        setInscripcionIds([])
+        setInscripcionesLoading(false)
+      },
+    )
+    return unsub
+  }, [user])
 
   const signIn = async (email: string, password: string): Promise<UserRole> => {
     const { user: u } = await signInWithEmailAndPassword(auth, email, password)
@@ -109,7 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, userRole, loading, signIn, signUp, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, userRole, loading, inscripcionIds, inscripcionesLoading, signIn, signUp, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   )

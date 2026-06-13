@@ -40,20 +40,31 @@ export class SinPlazasError extends Error {
   constructor() { super('SIN_PLAZAS') }
 }
 
+export class EventoCanceladoError extends Error {
+  constructor() { super('EVENTO_CANCELADO') }
+}
+
 export async function inscribirse(
   actividadId: number,
   uid: string,
   email: string,
   displayName: string,
 ): Promise<void> {
-  const actividadRef  = doc(db, 'actividades', String(actividadId))
+  const actividadRef   = doc(db, 'actividades', String(actividadId))
   const inscripcionRef = doc(db, 'users', uid, 'inscripciones', String(actividadId))
-  const inscritoRef   = doc(db, 'actividades', String(actividadId), 'inscritos', uid)
+  const inscritoRef    = doc(db, 'actividades', String(actividadId), 'inscritos', uid)
 
   await runTransaction(db, async tx => {
-    const snap = await tx.get(actividadRef)
-    const plazas = (snap.data()?.plazasDisponibles ?? 0) as number
-    if (plazas <= 0) throw new SinPlazasError()
+    const [actSnap, inscripcionSnap] = await Promise.all([
+      tx.get(actividadRef),
+      tx.get(inscripcionRef),
+    ])
+
+    if (inscripcionSnap.exists()) return
+
+    const data = actSnap.data()
+    if (data?.cancelada) throw new EventoCanceladoError()
+    if ((data?.plazasDisponibles ?? 0) <= 0) throw new SinPlazasError()
 
     tx.set(inscripcionRef, { inscritoEn: serverTimestamp() })
     tx.set(inscritoRef, { inscritoEn: serverTimestamp(), email, displayName })
@@ -99,8 +110,12 @@ export async function liberarPlaza(actividadId: number, uid: string): Promise<vo
 
 // ── Actividades CRUD ──────────────────────────────────────────────────────────
 
+function randomId(): number {
+  return crypto.getRandomValues(new Uint32Array(1))[0]
+}
+
 export async function addActividad(data: Omit<Actividad, 'id'>): Promise<void> {
-  const id = Date.now()
+  const id = randomId()
   await setDoc(doc(db, 'actividades', String(id)), { ...data, id })
 }
 
@@ -137,7 +152,7 @@ export async function getInscritos(actividadId: number): Promise<InscritoData[]>
 // ── Conjuntos CRUD ────────────────────────────────────────────────────────────
 
 export async function addConjunto(data: Omit<Conjunto, 'id' | 'actividadIds'>): Promise<void> {
-  const id = Date.now()
+  const id = randomId()
   await setDoc(doc(db, 'conjuntos', String(id)), { ...data, id, actividadIds: [] })
 }
 

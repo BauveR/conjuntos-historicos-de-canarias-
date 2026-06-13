@@ -47,7 +47,7 @@ function runTxWith(tx: Transaction) {
 
 // ── Import after mocks ────────────────────────────────────────────────────────
 
-const { inscribirse, liberarPlaza, SinPlazasError, YaLiberadaError } =
+const { inscribirse, liberarPlaza, SinPlazasError, YaLiberadaError, EventoCanceladoError } =
   await import('./db')
 
 // ── inscribirse ───────────────────────────────────────────────────────────────
@@ -60,7 +60,8 @@ describe('inscribirse', () => {
 
   it('lanza SinPlazasError cuando no quedan plazas', async () => {
     const tx = makeTx({
-      'actividades/1': { plazas: 20, plazasDisponibles: 0 },
+      'actividades/1':              { plazas: 20, plazasDisponibles: 0 },
+      'users/uid-a/inscripciones/1': null,
     })
     runTxWith(tx)
 
@@ -73,7 +74,8 @@ describe('inscribirse', () => {
 
   it('lanza SinPlazasError si plazasDisponibles es negativo', async () => {
     const tx = makeTx({
-      'actividades/1': { plazas: 20, plazasDisponibles: -1 },
+      'actividades/1':              { plazas: 20, plazasDisponibles: -1 },
+      'users/uid-a/inscripciones/1': null,
     })
     runTxWith(tx)
 
@@ -81,9 +83,37 @@ describe('inscribirse', () => {
       .rejects.toBeInstanceOf(SinPlazasError)
   })
 
+  it('lanza EventoCanceladoError si el evento está cancelado', async () => {
+    const tx = makeTx({
+      'actividades/1':              { plazas: 20, plazasDisponibles: 10, cancelada: true },
+      'users/uid-a/inscripciones/1': null,
+    })
+    runTxWith(tx)
+
+    await expect(inscribirse(1, 'uid-a', 'a@test.es', 'Usuario A'))
+      .rejects.toBeInstanceOf(EventoCanceladoError)
+
+    expect(tx.set).not.toHaveBeenCalled()
+    expect(tx.update).not.toHaveBeenCalled()
+  })
+
+  it('no escribe nada si el usuario ya está inscrito', async () => {
+    const tx = makeTx({
+      'actividades/1':              { plazas: 20, plazasDisponibles: 5 },
+      'users/uid-a/inscripciones/1': { inscritoEn: null },
+    })
+    runTxWith(tx)
+
+    await inscribirse(1, 'uid-a', 'a@test.es', 'Usuario A')
+
+    expect(tx.set).not.toHaveBeenCalled()
+    expect(tx.update).not.toHaveBeenCalled()
+  })
+
   it('escribe inscripcion, inscrito y decrementa el contador con plazas disponibles', async () => {
     const tx = makeTx({
-      'actividades/1': { plazas: 20, plazasDisponibles: 5 },
+      'actividades/1':              { plazas: 20, plazasDisponibles: 5 },
+      'users/uid-a/inscripciones/1': null,
     })
     runTxWith(tx)
 
@@ -98,7 +128,8 @@ describe('inscribirse', () => {
 
   it('escribe en las rutas correctas de Firestore', async () => {
     const tx = makeTx({
-      'actividades/1': { plazas: 10, plazasDisponibles: 3 },
+      'actividades/1':              { plazas: 10, plazasDisponibles: 3 },
+      'users/uid-b/inscripciones/1': null,
     })
     runTxWith(tx)
 
