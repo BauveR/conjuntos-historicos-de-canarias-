@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 
 const LAYERS = [
-  { trailFrac: 0.80, opacity: 0.05, strokeWidth: 3, blur: 2 },
+  { trailFrac: 0.80, opacity: 0.05, strokeWidth: 3, blur: 0 },
   { trailFrac: 0.60, opacity: 0.14, strokeWidth: 2, blur: 0 },
   { trailFrac: 0.38, opacity: 0.35, strokeWidth: 1.5, blur: 0 },
   { trailFrac: 0.18, opacity: 0.60, strokeWidth: 1, blur: 0 },
