@@ -25,15 +25,14 @@ export function Hero() {
   return (
     <section
       ref={sectionRef}
-      className="h-[80vh] flex justify-center px-8 sm:px-16"
+      className="h-[80vh] flex justify-center px-2 sm:px-16"
       style={{ background: 'linear-gradient(to bottom, #c36414, #d6a103)' }}
     >
-      <div className="my-auto flex flex-col items-center w-fit gap-6">
+      <div className="my-auto flex flex-col items-center w-full sm:w-fit gap-6">
         <SkylineCanvas svg={rawMonumental} prefix="sm" className="w-full" />
         <motion.h1
-          style={{ scale, opacity }}
-          className="flex items-center gap-3 text-3xl sm:text-4xl lg:text-5xl font-thin text-white uppercase tracking-widest mt-6"
           style={{ scale, opacity, fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}
+          className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-lg sm:text-4xl lg:text-5xl font-thin text-white uppercase tracking-widest mt-6"
         >
           <motion.span
             initial={{ x: -500, opacity: 0 }}
@@ -46,6 +45,7 @@ export function Hero() {
             initial={{ x: 500, opacity: 0 }}
             animate={{ x: [null, 0], opacity: [null, 1] }}
             transition={titleTransition(0.75)}
+            className="text-3xl sm:text-4xl lg:text-5xl"
           >
             de Canarias
           </motion.span>
