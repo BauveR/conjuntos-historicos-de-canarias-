@@ -32,12 +32,13 @@ export function Hero() {
         <SkylineCanvas svg={rawMonumental} prefix="sm" className="w-full" />
         <motion.h1
           style={{ scale, opacity, fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}
-          className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-lg sm:text-4xl lg:text-5xl font-thin text-white uppercase tracking-widest mt-6"
+          className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-sm sm:text-xl md:text-4xl lg:text-5xl font-thin text-white uppercase tracking-widest mt-6"
         >
           <motion.span
             initial={{ x: -500, opacity: 0 }}
             animate={{ x: [null, 0], opacity: [null, 1] }}
             transition={titleTransition(0.6)}
+            className="whitespace-nowrap"
           >
             Conjuntos Históricos
           </motion.span>
@@ -45,7 +46,7 @@ export function Hero() {
             initial={{ x: 500, opacity: 0 }}
             animate={{ x: [null, 0], opacity: [null, 1] }}
             transition={titleTransition(0.75)}
-            className="text-3xl sm:text-4xl lg:text-5xl"
+            className="whitespace-nowrap text-3xl sm:text-xl md:text-4xl lg:text-5xl"
           >
             de Canarias
           </motion.span>
