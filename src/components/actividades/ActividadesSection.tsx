@@ -1,8 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { FilterBar } from './FilterBar'
 import { FilterSheet, type FilterState } from './FilterSheet'
 import { ActividadesSlider } from './ActividadesSlider'
 import { ActividadesInactivas } from './ActividadesInactivas'
+import { CardSkeleton } from './CardSkeleton'
 import { useDataContext } from '../../contexts/DataContext'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
@@ -19,6 +21,14 @@ export function ActividadesSection() {
   } = useDataContext()
 
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [ready, setReady] = useState(actividades.length > 0)
+
+  useEffect(() => {
+    if (actividades.length > 0 && !ready) {
+      const t = setTimeout(() => setReady(true), 350)
+      return () => clearTimeout(t)
+    }
+  }, [actividades.length, ready])
 
   const mesesDisponibles = useMemo(() => {
     const set = new Set(actividades.map(a => a.fecha.slice(0, 7)))
@@ -75,7 +85,15 @@ export function ActividadesSection() {
         />
       </div>
 
-      {actividades.length > 0 && actividadesFiltradas.length === 0 ? (
+      {!ready ? (
+        <div className="flex gap-5 overflow-hidden -mx-4 px-4 sm:mx-0 sm:px-0">
+          {[0, 1, 2].map(i => (
+            <div key={i} className="flex-shrink-0 w-[78vw] sm:w-72 lg:w-80">
+              <CardSkeleton />
+            </div>
+          ))}
+        </div>
+      ) : actividades.length > 0 && actividadesFiltradas.length === 0 ? (
         <div className="py-20 text-center flex flex-col items-center gap-4">
           <p className="text-sm text-stone-400" style={labelStyle}>
             No hay actividades para los filtros seleccionados.
@@ -89,10 +107,14 @@ export function ActividadesSection() {
           </button>
         </div>
       ) : (
-        <>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.65 }}
+        >
           <ActividadesSlider actividades={disponibles} />
           <ActividadesInactivas actividades={[...inactivas, ...canceladas]} />
-        </>
+        </motion.div>
       )}
 
       <FilterSheet
