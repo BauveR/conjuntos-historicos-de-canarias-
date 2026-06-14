@@ -31,7 +31,7 @@ export default function App() {
         <Navbar />
 
         {/* Main content — renders background location when modal is open */}
-        <AnimatePresence mode="wait" custom={isBack}>
+        <AnimatePresence>
           <motion.div
             key={(background ?? location).pathname}
             custom={isBack}

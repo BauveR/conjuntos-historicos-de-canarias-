@@ -25,9 +25,12 @@ type DataContextValue = {
 
 const DataContext = createContext<DataContextValue | null>(null)
 
+let _actividades: Actividad[] = []
+let _conjuntos: Conjunto[] = []
+
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [actividades, setActividades] = useState<Actividad[]>([])
-  const [conjuntos, setConjuntos] = useState<Conjunto[]>([])
+  const [actividades, setActividades] = useState<Actividad[]>(_actividades)
+  const [conjuntos, setConjuntos] = useState<Conjunto[]>(_conjuntos)
   const [dataLoading, setDataLoading] = useState(true)
 
   const [tematica, setTematica] = useState<Tematica | null>(null)
@@ -41,11 +44,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
     let conjLoaded = false
 
     const unsub1 = subscribeActividades(data => {
+      _actividades = data
       setActividades(data)
       actLoaded = true
       if (conjLoaded) setDataLoading(false)
     })
     const unsub2 = subscribeConjuntos(data => {
+      _conjuntos = data
       setConjuntos(data)
       conjLoaded = true
       if (actLoaded) setDataLoading(false)
