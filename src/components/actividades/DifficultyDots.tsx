@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import type { Dificultad } from '../../data/actividades'
 
 const TOTAL_DOTS = 6
@@ -17,29 +16,17 @@ export function DifficultyDots({ dificultad, showLabel = true }: Props) {
   return (
     <div className="flex items-center gap-2">
       <div className="flex items-center gap-1.5">
-        {Array.from({ length: TOTAL_DOTS }).map((_, i) => {
-          const isActive = i < filled
-          return isActive ? (
-            <motion.span
-              key={i}
-              className="block rounded-full"
-              style={{ width: 8, height: 8, backgroundColor: color }}
-              animate={{ scale: [1, 1.35, 1], opacity: [0.7, 1, 0.7] }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                delay: i * 0.18,
-                ease: 'easeInOut',
-              }}
-            />
-          ) : (
-            <span
-              key={i}
-              className="block rounded-full bg-stone-200"
-              style={{ width: 8, height: 8 }}
-            />
-          )
-        })}
+        {Array.from({ length: TOTAL_DOTS }).map((_, i) => (
+          <span
+            key={i}
+            className="block rounded-full"
+            style={{
+              width: 8,
+              height: 8,
+              backgroundColor: i < filled ? color : '#e7e5e4',
+            }}
+          />
+        ))}
       </div>
       {showLabel && (
         <span

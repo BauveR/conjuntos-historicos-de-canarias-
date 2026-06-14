@@ -1,12 +1,12 @@
 import { useRef, useEffect, useLayoutEffect } from 'react'
 import { useNavigationType, useLocation } from 'react-router-dom'
-import { useAppContext } from '../contexts/AppContext'
+import { useMapUIContext } from '../contexts/MapUIContext'
 import { SM_BREAKPOINT } from './useIsDesktop'
 
 export function useMapRestoration() {
   const navType = useNavigationType()
   const location = useLocation()
-  const { selectedId, setDrawerOpen } = useAppContext()
+  const { selectedId, setDrawerOpen } = useMapUIContext()
 
   // Capture at mount time — restoration only applies to the initial render after back navigation
   const shouldRestore = useRef(

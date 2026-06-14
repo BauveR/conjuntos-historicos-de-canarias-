@@ -12,7 +12,8 @@ import { ContactoPage } from './pages/ContactoPage'
 import { ActividadModal } from './components/map/ActividadModal'
 import { AuthModal } from './components/auth/AuthModal'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
-import { AppProvider } from './contexts/AppContext'
+import { DataProvider } from './contexts/DataContext'
+import { MapUIProvider } from './contexts/MapUIContext'
 import { AuthProvider } from './contexts/AuthContext'
 import { pageVariants } from './utils/pageTransition'
 import './App.css'
@@ -25,7 +26,8 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <AppProvider>
+      <DataProvider>
+      <MapUIProvider>
         <Navbar />
 
         {/* Main content — renders background location when modal is open */}
@@ -60,7 +62,8 @@ export default function App() {
             </Routes>
           )}
         </AnimatePresence>
-      </AppProvider>
+      </MapUIProvider>
+      </DataProvider>
     </AuthProvider>
   )
 }

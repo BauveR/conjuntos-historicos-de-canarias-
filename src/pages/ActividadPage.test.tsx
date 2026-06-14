@@ -46,7 +46,7 @@ const baseProps = {
   onLiberar: vi.fn(),
 }
 
-function renderWidget(props: Partial<typeof baseProps> = {}) {
+function renderWidget(props: Partial<typeof baseProps> & { compact?: boolean } = {}) {
   return render(
     <MemoryRouter>
       <BookingWidget {...baseProps} {...props} />

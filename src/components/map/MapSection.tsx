@@ -4,11 +4,13 @@ import { ConjuntoPanel } from './ConjuntoPanel'
 import { ConjuntoDrawer } from './ConjuntoDrawer'
 import { IslaFilter } from './IslaFilter'
 import { MapHint } from './MapHint'
-import { useAppContext } from '../../contexts/AppContext'
+import { useDataContext } from '../../contexts/DataContext'
+import { useMapUIContext } from '../../contexts/MapUIContext'
 import { SM_BREAKPOINT } from '../../hooks/useIsDesktop'
 
 export function MapSection() {
-  const { conjuntos, selectedId, setSelectedId, selectedIsla, setSelectedIsla, drawerOpen, setDrawerOpen } = useAppContext()
+  const { conjuntos } = useDataContext()
+  const { selectedId, setSelectedId, selectedIsla, setSelectedIsla, drawerOpen, setDrawerOpen } = useMapUIContext()
   const [mapVisible, setMapVisible] = useState(false)
   const [mapActive, setMapActive] = useState(false)
   const mapContainerRef = useRef<HTMLDivElement>(null)
@@ -25,7 +27,7 @@ export function MapSection() {
           observer.disconnect()
         }
       },
-      { threshold: 0.3 }
+      { threshold: 0.1 }
     )
     observer.observe(el)
     return () => observer.disconnect()
@@ -52,7 +54,7 @@ export function MapSection() {
   const handleDrawerNavigate = () => setDrawerOpen(false)
 
   return (
-    <section className="w-full bg-white px-4 sm:px-10 lg:px-32 py-6 sm:py-8 overscroll-contain">
+    <section className="w-full bg-white px-6 sm:px-8 lg:px-10 py-6 sm:py-8 overscroll-contain">
 
       <div className="mb-3">
         <IslaFilter selectedIsla={selectedIsla} onSelect={handleIslaSelect} />
@@ -60,18 +62,28 @@ export function MapSection() {
 
       <div className="flex flex-row w-full h-[68svh] sm:h-[78svh] overflow-hidden rounded-3xl border border-stone-100 shadow-sm">
 
-        <div ref={mapContainerRef} className="h-full flex-1 min-w-0 touch-none isolate relative">
+        <div ref={mapContainerRef} className="h-full flex-1 min-w-0 touch-none relative">
 
-          <MapHint visible={mapVisible} active={mapActive} />
+          <div className="h-full relative overflow-hidden">
+            {mapVisible && (
+              <div className="absolute inset-0">
+                <ConjuntosMap
+                  conjuntos={conjuntos}
+                  selectedId={selectedId}
+                  selectedIsla={selectedIsla}
+                  active={mapActive}
+                  onSelect={handleSelect}
+                  onActivate={() => setMapActive(true)}
+                />
+              </div>
+            )}
 
-          <div className="h-full">
-            <ConjuntosMap
-              conjuntos={conjuntos}
-              selectedId={selectedId}
-              selectedIsla={selectedIsla}
-              active={mapActive}
-              onSelect={handleSelect}
-              onActivate={() => setMapActive(true)}
+            <MapHint visible={mapVisible} active={mapActive} />
+
+            <div
+              className={`absolute inset-0 bg-stone-100 pointer-events-none transition-opacity duration-700 ease-in-out ${
+                mapVisible ? 'opacity-0' : 'opacity-100'
+              }`}
             />
           </div>
         </div>

@@ -1,23 +1,16 @@
 import { useEffect, useLayoutEffect } from 'react'
 import { useLocation, useNavigationType } from 'react-router-dom'
-import { HeroSplit } from '../components/hero/HeroSplit'
+import { Hero } from '../components/hero/Hero'
 import { MapSection } from '../components/map/MapSection'
 import { ActividadesSection } from '../components/actividades/ActividadesSection'
 import { useMapRestoration } from '../hooks/useMapRestoration'
 
-function scrollTo(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
-}
-
-// Cleared on reload (module re-executes), survives SPA navigation
 const scrollPositions: Record<string, number> = {}
 
 export function Home() {
   const location = useLocation()
   const navType = useNavigationType()
 
-  // Restore scroll on back navigation — must run before useMapRestoration's
-  // useLayoutEffect so that useMapRestoration can override when selectedId is set
   useLayoutEffect(() => {
     if (navType !== 'POP') return
     const saved = scrollPositions[location.key]
@@ -26,9 +19,6 @@ export function Home() {
 
   useMapRestoration()
 
-  // Hash scroll when navigating from another route (cross-page)
-  // Skipped on POP (back/forward) — scroll restoration handles that case
-  // Delayed to let the page enter animation (0.24s) finish before scrolling
   useEffect(() => {
     if (!location.hash || navType === 'POP') return
     const id = location.hash.slice(1)
@@ -38,7 +28,6 @@ export function Home() {
     return () => clearTimeout(timer)
   }, [location.hash, navType])
 
-  // Continuously save scroll position keyed by history entry
   useEffect(() => {
     const key = location.key
     const save = () => { scrollPositions[key] = window.scrollY }
@@ -48,14 +37,7 @@ export function Home() {
 
   return (
     <main className="pt-16">
-      <HeroSplit
-        imageSrc="https://upload.wikimedia.org/wikipedia/commons/4/40/Convento_de_San_Buenaventura_-_Betancuria_-_Fuerteventura.jpg"
-        imageAlt="Convento de San Buenaventura, Betancuria, Fuerteventura"
-        title="Conjuntos Históricos de Canarias"
-        subtitle="Descubre el patrimonio histórico protegido de las siete islas"
-        ctaLabel="Explorar"
-        onCtaClick={() => scrollTo('conjuntos')}
-      />
+      <Hero />
 
       <section id="conjuntos" className="scroll-mt-16">
         <MapSection />

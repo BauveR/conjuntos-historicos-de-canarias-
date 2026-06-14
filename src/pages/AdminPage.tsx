@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import type { Actividad, Dificultad } from '../data/actividades'
 import type { Conjunto } from '../data/conjuntos'
 import { TEMATICAS, type Tematica } from '../data/tematicas'
-import { useAppContext } from '../contexts/AppContext'
+import { useDataContext } from '../contexts/DataContext'
 import {
   addActividad, cancelActividad, reactivarActividad,
   addConjunto, updateConjunto,
@@ -1101,7 +1101,7 @@ function MobileTabBar({ section, setSection }: { section: AdminSection; setSecti
 
 function ContentHeader({ item }: { item: NavItem }) {
   return (
-    <div className="bg-white border-b border-stone-100 px-6 sm:px-10 pt-8 pb-7">
+    <div className="bg-white border-b border-stone-100 px-6 sm:px-8 pt-8 pb-7">
       <p className="text-[10px] tracking-widest uppercase mb-1.5" style={{ color: ACCENT }}>
         {item.sublabel}
       </p>
@@ -1115,7 +1115,7 @@ function ContentHeader({ item }: { item: NavItem }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function AdminPage() {
-  const { actividades, conjuntos, dataLoading } = useAppContext()
+  const { actividades, conjuntos, dataLoading } = useDataContext()
   const [section, setSection] = useState<AdminSection>('conjuntos')
 
   const currentNav = NAV_ITEMS.find(n => n.key === section)!
@@ -1134,7 +1134,7 @@ export function AdminPage() {
 
         <ContentHeader item={currentNav} />
 
-        <div className="flex-1 px-6 sm:px-10 py-8">
+        <div className="flex-1 px-6 sm:px-8 py-8">
 
           {!dataLoading && actividades.length === 0 && <SeedBanner />}
 

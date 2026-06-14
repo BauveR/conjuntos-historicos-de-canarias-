@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import type { Tematica } from '../../data/tematicas'
 import { TEMATICAS } from '../../data/tematicas'
 import type { Dificultad } from '../../data/actividades'
-import { useAppContext } from '../../contexts/AppContext'
+import { useDataContext } from '../../contexts/DataContext'
 
 const ISLAS = ['Gran Canaria', 'Tenerife', 'Lanzarote', 'Fuerteventura', 'La Palma', 'La Gomera', 'El Hierro']
 const DIFICULTADES: Dificultad[] = ['Fácil', 'Media', 'Difícil']
@@ -52,7 +52,7 @@ const mobileTransition: Transition = { type: 'spring', damping: 30, stiffness: 3
 
 export function FilterSheet({ open, initialSection, onClose, filters, mesesDisponibles, onApply }: Props) {
   const isDesktop = useIsDesktop()
-  const { conjuntos } = useAppContext()
+  const { conjuntos } = useDataContext()
   const [temp, setTemp] = useState<FilterState>(filters)
   const [openSection, setOpenSection] = useState<Section | null>(null)
 

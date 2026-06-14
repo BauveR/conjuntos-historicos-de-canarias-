@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import type { Conjunto } from '../../data/conjuntos'
 import { TEMATICA_COLORS } from '../../data/tematicas'
 import { HandTap } from '../HandTap'
-import { useAppContext } from '../../contexts/AppContext'
+import { useDataContext } from '../../contexts/DataContext'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 const titleStyle = { fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }
@@ -14,7 +14,7 @@ type Props = {
 
 export function ConjuntoPanel({ conjunto, onClose }: Props) {
   const location = useLocation()
-  const { actividades: todasActividades } = useAppContext()
+  const { actividades: todasActividades } = useDataContext()
   const actividades = conjunto
     ? todasActividades.filter(a => a.conjuntoId === conjunto.id)
     : []

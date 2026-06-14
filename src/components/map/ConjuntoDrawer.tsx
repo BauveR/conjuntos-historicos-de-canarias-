@@ -4,7 +4,7 @@ import { motion, AnimatePresence, type Transition } from 'framer-motion'
 import type { Conjunto } from '../../data/conjuntos'
 import { TEMATICA_COLORS } from '../../data/tematicas'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
-import { useAppContext } from '../../contexts/AppContext'
+import { useDataContext } from '../../contexts/DataContext'
 
 type Props = {
   conjunto: Conjunto | null
@@ -18,7 +18,7 @@ const mobileTransition: Transition = { type: 'spring', damping: 30, stiffness: 3
 
 export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
   const isDesktop = useIsDesktop()
-  const { actividades: todasActividades } = useAppContext()
+  const { actividades: todasActividades } = useDataContext()
 
   if (!conjunto) return null
 

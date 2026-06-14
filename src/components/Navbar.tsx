@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { useScrollDirection } from '../hooks/useScrollDirection'
+
 import { useAuth } from '../contexts/AuthContext'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 
@@ -61,7 +61,6 @@ function AccountLabel({ displayName }: { displayName: string }) {
 }
 
 export function Navbar() {
-  const hidden = useScrollDirection()
   const [open, setOpen] = useState(false)
   const { user, userRole, signOut } = useAuth()
   const navigate = useNavigate()
@@ -81,12 +80,10 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 bg-white transition-transform duration-300 ease-in-out ${
-        hidden && !open ? '-translate-y-full' : 'translate-y-0'
-      }`}
+      className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-stone-100"
     >
       {/* Barra principal */}
-      <div className="flex items-center px-6 sm:px-8 h-16 border-b border-stone-100">
+      <div className="flex items-center px-6 sm:px-8 h-16">
 
         {/* Logo */}
         <Link

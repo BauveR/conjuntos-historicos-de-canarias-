@@ -3,7 +3,7 @@ import { FilterBar } from './FilterBar'
 import { FilterSheet, type FilterState } from './FilterSheet'
 import { ActividadesSlider } from './ActividadesSlider'
 import { ActividadesInactivas } from './ActividadesInactivas'
-import { useAppContext } from '../../contexts/AppContext'
+import { useDataContext } from '../../contexts/DataContext'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
@@ -16,7 +16,7 @@ export function ActividadesSection() {
     mes, setMes,
     dificultad, setDificultad,
     applyFilters,
-  } = useAppContext()
+  } = useDataContext()
 
   const [sheetOpen, setSheetOpen] = useState(false)
 
@@ -48,7 +48,7 @@ export function ActividadesSection() {
   const currentFilters: FilterState = { tematica, isla, conjuntoId, mes, dificultad }
 
   return (
-    <section className="px-4 sm:px-10 lg:px-16 py-12 sm:py-16 bg-white">
+    <section className="px-6 sm:px-8 lg:px-10 py-12 sm:py-16 bg-white">
       <div className="mb-8">
         <p className="text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-2" style={labelStyle}>
           Rutas y actividades
@@ -75,7 +75,7 @@ export function ActividadesSection() {
         />
       </div>
 
-      {actividadesFiltradas.length === 0 ? (
+      {actividades.length > 0 && actividadesFiltradas.length === 0 ? (
         <div className="py-20 text-center flex flex-col items-center gap-4">
           <p className="text-sm text-stone-400" style={labelStyle}>
             No hay actividades para los filtros seleccionados.

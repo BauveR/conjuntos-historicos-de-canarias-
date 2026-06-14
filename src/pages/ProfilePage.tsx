@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { User } from 'firebase/auth'
 import { useAuth } from '../contexts/AuthContext'
-import { useAppContext } from '../contexts/AppContext'
+import { useDataContext } from '../contexts/DataContext'
 import { liberarPlaza, YaLiberadaError } from '../lib/db'
 import { ActividadCard } from '../components/actividades/ActividadCard'
 import { ProfileCardCompact } from '../components/profile/ProfileCardCompact'
@@ -28,7 +28,7 @@ type GridCardProps = {
 }
 
 function GridCardWrapper({ actividadId, uid, inactiva }: GridCardProps) {
-  const { actividades } = useAppContext()
+  const { actividades } = useDataContext()
   const actividad = actividades.find(a => a.id === actividadId)
   const [confirmando, setConfirmando] = useState(false)
   const [liberando, setLiberando] = useState(false)
@@ -92,7 +92,7 @@ function GridCardWrapper({ actividadId, uid, inactiva }: GridCardProps) {
 
 export function ProfilePage() {
   const { user, signOut, inscripcionIds, inscripcionesLoading } = useAuth()
-  const { actividades } = useAppContext()
+  const { actividades } = useDataContext()
   const [tab, setTab] = useState<Tab>('todas')
 
   const inscritas  = actividades.filter(a => inscripcionIds.includes(a.id))
@@ -121,7 +121,7 @@ export function ProfilePage() {
     <main className="min-h-screen bg-white" style={labelStyle}>
 
       {/* Hero header */}
-      <div className="bg-stone-50 border-b border-stone-100 pt-24 pb-10 px-6 sm:px-10 lg:px-32">
+      <div className="bg-stone-50 border-b border-stone-100 pt-24 pb-10 px-6 sm:px-8 lg:px-10">
         <div className="flex items-center gap-5">
 
           {/* Avatar */}
@@ -175,7 +175,7 @@ export function ProfilePage() {
       </div>
 
       {/* Content */}
-      <div className="px-6 sm:px-10 lg:px-32 py-8">
+      <div className="px-6 sm:px-8 lg:px-10 py-8">
 
         {inscripcionesLoading ? (
           <div className="py-20 flex items-center justify-center">

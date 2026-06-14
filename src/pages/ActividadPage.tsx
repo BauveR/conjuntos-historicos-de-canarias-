@@ -3,7 +3,7 @@ import { useParams, Navigate, useNavigate, useLocation, Link } from 'react-route
 import { TEMATICA_COLORS } from '../data/tematicas'
 import { DifficultyDots } from '../components/actividades/DifficultyDots'
 import { useAuth } from '../contexts/AuthContext'
-import { useAppContext } from '../contexts/AppContext'
+import { useDataContext } from '../contexts/DataContext'
 import { inscribirse, liberarPlaza, SinPlazasError, YaLiberadaError, EventoCanceladoError } from '../lib/db'
 import type { Actividad } from '../data/actividades'
 
@@ -274,7 +274,7 @@ export function ActividadPage() {
   const isModal = !!location.state?.background
   const fromPerfil = location.state?.from === 'perfil'
   const { user, inscripcionIds } = useAuth()
-  const { actividades, conjuntos, dataLoading } = useAppContext()
+  const { actividades, conjuntos, dataLoading } = useDataContext()
   const actividad = actividades.find(a => a.id === Number(id))
 
   const inscrito = !!actividad && inscripcionIds.includes(actividad.id)
@@ -420,7 +420,7 @@ export function ActividadPage() {
   // ── Vista principal ──────────────────────────────────────────────────────────
   return (
     <main className={`${isModal ? 'pt-6' : 'pt-16 min-h-screen'} bg-white`}>
-      <div className="max-w-5xl mx-auto px-6 sm:px-10 lg:px-8">
+      <div className="max-w-5xl mx-auto px-6 sm:px-8">
 
         {!isModal && (
           <div className="py-5">
