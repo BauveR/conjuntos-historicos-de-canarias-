@@ -54,7 +54,7 @@ export function MapSection() {
   const handleDrawerNavigate = () => setDrawerOpen(false)
 
   return (
-    <section className="w-full bg-white px-6 sm:px-8 lg:px-10 py-6 sm:py-8 overscroll-contain">
+    <section className="w-full bg-white px-6 sm:px-8 lg:px-10 py-6 sm:py-8 overscroll-contain isolate">
 
       <div className="mb-3">
         <IslaFilter selectedIsla={selectedIsla} onSelect={handleIslaSelect} />

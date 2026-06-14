@@ -80,7 +80,7 @@ export function Navbar() {
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-stone-100"
+      className="fixed top-0 left-0 right-0 z-[100] bg-white border-b border-stone-100"
     >
       {/* Barra principal */}
       <div className="flex items-center px-6 sm:px-8 h-16">

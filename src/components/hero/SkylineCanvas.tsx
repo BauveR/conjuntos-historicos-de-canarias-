@@ -1,20 +1,16 @@
 import { useEffect, useRef } from 'react'
 
 const LAYERS = [
-  { trailFrac: 0.75, opacity: 0.03, strokeWidth: 4, blur: 4 },
-  { trailFrac: 0.65, opacity: 0.04, strokeWidth: 3, blur: 3 },
-  { trailFrac: 0.55, opacity: 0.08, strokeWidth: 2, blur: 2 },
-  { trailFrac: 0.44, opacity: 0.14, strokeWidth: 2, blur: 1 },
-  { trailFrac: 0.34, opacity: 0.22, strokeWidth: 1.5, blur: 1 },
-  { trailFrac: 0.24, opacity: 0.38, strokeWidth: 1.5, blur: 0 },
-  { trailFrac: 0.14, opacity: 0.58, strokeWidth: 1, blur: 0 },
-  { trailFrac: 0.06, opacity: 0.78, strokeWidth: 1, blur: 0 },
-  { trailFrac: 0.02, opacity: 0.95, strokeWidth: 0.5, blur: 0 },
-  { trailFrac: 0.01, opacity: 1.00, strokeWidth: 0.5, blur: 0 },
+  { trailFrac: 0.80, opacity: 0.05, strokeWidth: 3, blur: 2 },
+  { trailFrac: 0.60, opacity: 0.14, strokeWidth: 2, blur: 0 },
+  { trailFrac: 0.38, opacity: 0.35, strokeWidth: 1.5, blur: 0 },
+  { trailFrac: 0.18, opacity: 0.60, strokeWidth: 1, blur: 0 },
+  { trailFrac: 0.07, opacity: 0.85, strokeWidth: 1, blur: 0 },
+  { trailFrac: 0.02, opacity: 1.00, strokeWidth: 0.5, blur: 0 },
 ] as const
 
-const SPEED = 45
-const MIN_LEN = 120
+const SPEED = 30
+const MIN_LEN = 200
 
 export function SkylineCanvas({
   svg,
