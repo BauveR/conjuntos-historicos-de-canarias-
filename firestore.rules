@@ -41,7 +41,9 @@ service cloud.firestore {
       allow update: if isAdmin()
         || (isAuth()
             && request.resource.data.diff(resource.data)
-                .affectedKeys().hasOnly(['plazasDisponibles']));
+                .affectedKeys().hasOnly(['plazasDisponibles'])
+            && request.resource.data.plazasDisponibles >= 0
+            && request.resource.data.plazasDisponibles <= resource.data.plazas);
 
       match /inscritos/{uid} {
         // Admin ve la lista completa; el propio uid necesita leer su doc en liberarPlaza
