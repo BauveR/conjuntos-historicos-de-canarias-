@@ -83,7 +83,7 @@ export function buildConfirmacionEmail(data: EmailData): string {
           <tr>
             <td style="background:#faf9f7;border-radius:0 0 16px 16px;padding:20px 40px;border-top:1px solid #f0ede8;">
               <p style="margin:0;font-size:11px;color:#a8a29e;font-family:'Open Sans',sans-serif;">
-                Conjuntos Históricos de Canarias · Este correo es automático, no respondas a este mensaje.
+                conjuntoshistoricosdecanarias.com · Este correo es automático, no respondas a este mensaje.
               </p>
             </td>
           </tr>

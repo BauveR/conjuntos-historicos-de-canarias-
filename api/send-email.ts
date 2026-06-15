@@ -30,7 +30,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!valid) return res.status(401).json({ error: 'Invalid token' })
 
   const { data, error } = await resend.emails.send({
-    from: 'Conjuntos Históricos de Canarias <noreply@conjuntospatrimonialesdecanarias.com>',
+    from: 'Conjuntos Históricos de Canarias <noreply@conjuntoshistoricosdecanarias.com>',
     to: email,
     subject: `Inscripción confirmada · ${emailData.titulo}`,
     html: buildConfirmacionEmail(emailData),
