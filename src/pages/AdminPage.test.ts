@@ -14,7 +14,7 @@ const base = {
   organizador: '',
   contacto: '',
   puntoEncuentro: '',
-  descripcion: '',
+  descripcion: 'Recorrido completo por el recinto histórico con guía especializado.',
   imagen: '',
 }
 
@@ -81,6 +81,18 @@ describe('validateActividad', () => {
 
   it('acepta plazas decimales redondeadas (no entero)', () => {
     expect(validateActividad({ ...base, plazas: '5.5' })).toHaveProperty('plazas')
+  })
+
+  it('requiere descripción', () => {
+    expect(validateActividad({ ...base, descripcion: '' })).toHaveProperty('descripcion')
+  })
+
+  it('rechaza descripción menor de 20 caracteres', () => {
+    expect(validateActividad({ ...base, descripcion: 'Muy corta.' })).toHaveProperty('descripcion')
+  })
+
+  it('acepta descripción de exactamente 20 caracteres', () => {
+    expect(validateActividad({ ...base, descripcion: '12345678901234567890' })).not.toHaveProperty('descripcion')
   })
 
   it('acepta contacto vacío', () => {

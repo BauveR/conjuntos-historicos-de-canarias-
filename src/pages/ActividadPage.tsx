@@ -139,7 +139,11 @@ export function BookingWidget({
           <div className="px-6 py-4 border-t border-dashed border-stone-200 flex flex-col gap-0.5">
             <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Fecha</span>
             <span className="text-sm text-stone-800 capitalize" style={labelStyle}>{fecha}</span>
-            <span className="text-[11px] text-stone-400" style={labelStyle}>{actividad.hora} · {actividad.duracion}</span>
+            {(actividad.hora || actividad.duracion) && (
+              <span className="text-[11px] text-stone-400" style={labelStyle}>
+                {[actividad.hora, actividad.duracion].filter(Boolean).join(' · ')}
+              </span>
+            )}
           </div>
           {actividad.puntoEncuentro && (
             <div className="px-6 py-4 border-t border-dashed border-stone-200 flex flex-col gap-0.5">
@@ -222,14 +226,18 @@ export function BookingWidget({
               <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Fecha</span>
               <span className="text-sm text-stone-800 capitalize wrap-break-word" style={labelStyle}>{fecha}</span>
             </div>
-            <div className="flex flex-col gap-0.5 min-w-0">
-              <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Hora</span>
-              <span className="text-sm text-stone-800" style={labelStyle}>{actividad.hora}</span>
-            </div>
-            <div className="flex flex-col gap-0.5 min-w-0">
-              <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Duración</span>
-              <span className="text-sm text-stone-800" style={labelStyle}>{actividad.duracion}</span>
-            </div>
+            {actividad.hora && (
+              <div className="flex flex-col gap-0.5 min-w-0">
+                <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Hora</span>
+                <span className="text-sm text-stone-800" style={labelStyle}>{actividad.hora}</span>
+              </div>
+            )}
+            {actividad.duracion && (
+              <div className="flex flex-col gap-0.5 min-w-0">
+                <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Duración</span>
+                <span className="text-sm text-stone-800" style={labelStyle}>{actividad.duracion}</span>
+              </div>
+            )}
             <div className="flex flex-col gap-1 min-w-0">
               <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Dificultad</span>
               <DifficultyDots dificultad={actividad.dificultad} />
@@ -378,14 +386,18 @@ export function ActividadPage() {
                 <span className="text-[10px] tracking-widest uppercase text-stone-400">Fecha</span>
                 <span className="text-sm text-stone-800 capitalize wrap-break-word">{fecha}</span>
               </div>
-              <div className="flex flex-col gap-0.5 min-w-0">
-                <span className="text-[10px] tracking-widest uppercase text-stone-400">Hora</span>
-                <span className="text-sm text-stone-800">{actividad.hora}</span>
-              </div>
-              <div className="flex flex-col gap-0.5 min-w-0">
-                <span className="text-[10px] tracking-widest uppercase text-stone-400">Duración</span>
-                <span className="text-sm text-stone-800">{actividad.duracion}</span>
-              </div>
+              {actividad.hora && (
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <span className="text-[10px] tracking-widest uppercase text-stone-400">Hora</span>
+                  <span className="text-sm text-stone-800">{actividad.hora}</span>
+                </div>
+              )}
+              {actividad.duracion && (
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <span className="text-[10px] tracking-widest uppercase text-stone-400">Duración</span>
+                  <span className="text-sm text-stone-800">{actividad.duracion}</span>
+                </div>
+              )}
               <div className="flex flex-col gap-1 min-w-0">
                 <span className="text-[10px] tracking-widest uppercase text-stone-400">Dificultad</span>
                 <DifficultyDots dificultad={actividad.dificultad} />

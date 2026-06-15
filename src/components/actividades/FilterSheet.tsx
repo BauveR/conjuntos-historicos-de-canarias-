@@ -4,10 +4,8 @@ import { useState, useEffect } from 'react'
 import type { Tematica } from '../../data/tematicas'
 import { TEMATICAS } from '../../data/tematicas'
 import type { Dificultad } from '../../data/actividades'
+import { ISLAS, DIFICULTADES } from '../../data/islas'
 import { useDataContext } from '../../contexts/DataContext'
-
-const ISLAS = ['Gran Canaria', 'Tenerife', 'Lanzarote', 'Fuerteventura', 'La Palma', 'La Gomera', 'El Hierro']
-const DIFICULTADES: Dificultad[] = ['Fácil', 'Media', 'Difícil']
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
 function useIsDesktop() {

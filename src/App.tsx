@@ -1,22 +1,24 @@
+import { lazy, Suspense } from 'react'
 import { Routes, Route, useLocation, useNavigationType } from 'react-router-dom'
 import type { Location } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Navbar } from './components/Navbar'
 import { Home } from './pages/Home'
-import { ActividadPage } from './pages/ActividadPage'
 import { AuthPage } from './pages/AuthPage'
-import { ProfilePage } from './pages/ProfilePage'
-import { AdminPage } from './pages/AdminPage'
-import { PasaportePage } from './pages/PasaportePage'
-import { ContactoPage } from './pages/ContactoPage'
-import { ActividadModal } from './components/map/ActividadModal'
-import { AuthModal } from './components/auth/AuthModal'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { DataProvider } from './contexts/DataContext'
 import { MapUIProvider } from './contexts/MapUIContext'
 import { AuthProvider } from './contexts/AuthContext'
 import { pageVariants } from './utils/pageTransition'
 import './App.css'
+
+const ActividadPage  = lazy(() => import('./pages/ActividadPage').then(m  => ({ default: m.ActividadPage  })))
+const ProfilePage    = lazy(() => import('./pages/ProfilePage').then(m    => ({ default: m.ProfilePage    })))
+const AdminPage      = lazy(() => import('./pages/AdminPage').then(m      => ({ default: m.AdminPage      })))
+const PasaportePage  = lazy(() => import('./pages/PasaportePage').then(m  => ({ default: m.PasaportePage  })))
+const ContactoPage   = lazy(() => import('./pages/ContactoPage').then(m   => ({ default: m.ContactoPage   })))
+const ActividadModal = lazy(() => import('./components/map/ActividadModal').then(m => ({ default: m.ActividadModal })))
+const AuthModal      = lazy(() => import('./components/auth/AuthModal').then(m     => ({ default: m.AuthModal     })))
 
 export default function App() {
   const location = useLocation()
@@ -40,26 +42,30 @@ export default function App() {
             animate="animate"
             exit="exit"
           >
-            <Routes location={background ?? location}>
-              <Route path="/" element={<Home />} />
-              <Route path="/actividades/:id" element={<ActividadPage />} />
-              <Route path="/login" element={<AuthPage />} />
-              <Route path="/perfil" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-              <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
-              <Route path="/pasaporte" element={<PasaportePage />} />
-              <Route path="/contacto" element={<ContactoPage />} />
-            </Routes>
+            <Suspense fallback={null}>
+              <Routes location={background ?? location}>
+                <Route path="/" element={<Home />} />
+                <Route path="/actividades/:id" element={<ActividadPage />} />
+                <Route path="/login" element={<AuthPage />} />
+                <Route path="/perfil" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
+                <Route path="/pasaporte" element={<PasaportePage />} />
+                <Route path="/contacto" element={<ContactoPage />} />
+              </Routes>
+            </Suspense>
           </motion.div>
         </AnimatePresence>
 
         {/* Modal overlay — shown when navigated with background state */}
         <AnimatePresence>
           {background && (
-            <Routes key="modal">
-              <Route path="/actividades/:id" element={<ActividadModal />} />
-              <Route path="/login" element={<AuthModal />} />
-              <Route path="*" element={null} />
-            </Routes>
+            <Suspense fallback={null}>
+              <Routes key="modal">
+                <Route path="/actividades/:id" element={<ActividadModal />} />
+                <Route path="/login" element={<AuthModal />} />
+                <Route path="*" element={null} />
+              </Routes>
+            </Suspense>
           )}
         </AnimatePresence>
       </MapUIProvider>

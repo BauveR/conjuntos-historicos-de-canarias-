@@ -3,7 +3,8 @@ import type React from 'react'
 import { Link } from 'react-router-dom'
 import type { Actividad, Dificultad } from '../data/actividades'
 import type { Conjunto } from '../data/conjuntos'
-import { TEMATICAS, type Tematica } from '../data/tematicas'
+import { TEMATICAS, TEMATICA_COLORS, type Tematica } from '../data/tematicas'
+import { ISLAS, DIFICULTADES } from '../data/islas'
 import { useDataContext } from '../contexts/DataContext'
 import {
   addActividad, cancelActividad, reactivarActividad,
@@ -14,9 +15,7 @@ import {
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 const titleStyle = { fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }
-const ISLAS = ['Gran Canaria', 'Tenerife', 'Lanzarote', 'Fuerteventura', 'La Palma', 'La Gomera', 'El Hierro']
-const DIFICULTADES: Dificultad[] = ['Fácil', 'Media', 'Difícil']
-const ACCENT = '#af7537'
+const ACCENT = '#cd6a26'
 
 type AdminSection = 'conjuntos' | 'actividad' | 'asistentes'
 
@@ -58,7 +57,7 @@ const NAV_ITEMS: NavItem[] = [
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <label className="text-[10px] tracking-widest uppercase text-stone-400">{children}</label>
+    <label className="text-[10px] tracking-widest uppercase text-stone-500">{children}</label>
   )
 }
 
@@ -77,7 +76,7 @@ function Input({ value, onChange, type = 'text', placeholder, className = '', er
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
       className={`w-full border rounded-xl px-3 py-2 text-sm text-stone-800 bg-white focus:outline-none transition-colors placeholder:text-stone-300 ${
-        error ? 'border-red-300 focus:border-red-400' : 'border-stone-200 focus:border-stone-400'
+        error ? 'border-red-300 focus:border-red-400' : 'border-stone-200 focus:border-[#595d8d]'
       } ${className}`}
     />
   )
@@ -94,7 +93,7 @@ function Select({ value, onChange, children, error = false }: {
       value={value}
       onChange={e => onChange(e.target.value)}
       className={`w-full border rounded-xl px-3 py-2 text-sm text-stone-800 bg-white focus:outline-none transition-colors ${
-        error ? 'border-red-300 focus:border-red-400' : 'border-stone-200 focus:border-stone-400'
+        error ? 'border-red-300 focus:border-red-400' : 'border-stone-200 focus:border-[#595d8d]'
       }`}
     >
       {children}
@@ -107,17 +106,19 @@ function FieldError({ msg }: { msg?: string }) {
   return <p className="text-[10px] text-red-500 mt-0.5 wrap-break-word">{msg}</p>
 }
 
-function Textarea({ value, onChange, rows = 3 }: {
+function Textarea({ value, onChange, rows = 3, placeholder }: {
   value: string
   onChange: (v: string) => void
   rows?: number
+  placeholder?: string
 }) {
   return (
     <textarea
       value={value}
       onChange={e => onChange(e.target.value)}
       rows={rows}
-      className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm text-stone-800 bg-white focus:outline-none focus:border-stone-400 transition-colors resize-none"
+      placeholder={placeholder}
+      className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm text-stone-800 bg-white focus:outline-none focus:border-[#595d8d] transition-colors resize-none"
     />
   )
 }
@@ -132,9 +133,8 @@ function SaveButton({ loading, success, onClick, label = 'Guardar' }: {
     <button
       onClick={onClick}
       disabled={loading}
-      className={`w-full py-2.5 rounded-xl text-[11px] tracking-widest uppercase transition-colors disabled:opacity-40 cursor-pointer ${
-        success ? 'bg-green-600 text-white' : 'bg-stone-900 text-white hover:bg-stone-700'
-      }`}
+      className="w-full py-2.5 rounded-xl text-[11px] tracking-widest uppercase transition-all disabled:opacity-40 cursor-pointer text-white hover:opacity-90"
+      style={{ backgroundColor: success ? '#50664d' : '#595d8d' }}
     >
       {loading ? '...' : success ? '✓ Guardado' : label}
     </button>
@@ -144,7 +144,7 @@ function SaveButton({ loading, success, onClick, label = 'Guardar' }: {
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="bg-white rounded-2xl border border-stone-100 p-6" style={labelStyle}>
-      <p className="text-[10px] tracking-widest uppercase text-stone-400 mb-5">{title}</p>
+      <p className="text-[10px] tracking-widest uppercase mb-5" style={{ color: ACCENT }}>{title}</p>
       {children}
     </div>
   )
@@ -215,7 +215,7 @@ type ActividadForm = {
 
 const defaultActividadForm: ActividadForm = {
   titulo: '', conjuntoId: '', tematica: '', fecha: '', hora: '',
-  duracion: '', dificultad: '', plazas: '', organizador: '',
+  duracion: '', dificultad: 'Fácil', plazas: '', organizador: '',
   contacto: '', puntoEncuentro: '', descripcion: '', imagen: '',
 }
 
@@ -234,14 +234,17 @@ export function validateActividad(form: ActividadForm): ActividadErrors {
   if (!form.tematica)   e.tematica   = 'Selecciona una temática'
 
   if (!form.fecha) e.fecha = 'Obligatoria'
-  else if (form.fecha < today) e.fecha = 'Debe ser una fecha futura'
+  else if (form.fecha < today) e.fecha = 'La fecha no puede ser anterior a hoy'
 
   if (!form.plazas) e.plazas = 'Obligatorio'
   else {
     const n = Number(form.plazas)
-    if (!Number.isInteger(n) || n < 1) e.plazas = 'Mínimo 1 plaza'
+    if (!Number.isInteger(n) || n < 1) e.plazas = 'Número entero, mínimo 1'
     else if (n > 500) e.plazas = 'Máximo 500 plazas'
   }
+
+  if (!form.descripcion.trim()) e.descripcion = 'Obligatoria'
+  else if (form.descripcion.trim().length < 20) e.descripcion = 'Mínimo 20 caracteres'
 
   if (form.contacto.trim() && !isValidContacto(form.contacto.trim()))
     e.contacto = 'Email o teléfono español (6/7/8/9 + 8 dígitos)'
@@ -278,7 +281,7 @@ function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
         fecha: form.fecha,
         hora: form.hora,
         duracion: form.duracion,
-        dificultad: (form.dificultad || 'Fácil') as Dificultad,
+        dificultad: form.dificultad as Dificultad,
         plazas,
         plazasDisponibles: plazas,
         organizador: form.organizador,
@@ -387,8 +390,9 @@ function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <FieldLabel>Descripción</FieldLabel>
+            <FieldLabel>Descripción *</FieldLabel>
             <Textarea value={form.descripcion} onChange={set('descripcion')} rows={5} />
+            <FieldError msg={errors.descripcion} />
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -444,21 +448,31 @@ function ActivityCard({ actividad, selected, onClick }: ActivityCardProps) {
     finally { setActing(false) }
   }
 
+  const plazasLibres = actividad.plazasDisponibles
+
   return (
     <div
       className={`rounded-xl border transition-colors ${
         selected
-          ? 'border-stone-800 bg-stone-50'
+          ? 'bg-stone-50'
           : isCancelada
             ? 'border-red-100 bg-red-50/40'
             : 'border-stone-100 hover:border-stone-200 bg-white'
       }`}
-      style={labelStyle}
+      style={{ ...labelStyle, ...(selected ? { borderColor: '#595d8d' } : {}) }}
     >
       {/* Info + barra — clickable */}
       <button onClick={onClick} className="w-full text-left px-4 pt-4 pb-3 cursor-pointer">
+        {/* Tematica badge */}
+        <span
+          className="inline-block mb-2 px-2 py-0.5 rounded-full text-[9px] tracking-widest uppercase text-white font-medium"
+          style={{ backgroundColor: isCancelada ? '#d6d3d1' : TEMATICA_COLORS[actividad.tematica] }}
+        >
+          {actividad.tematica}
+        </span>
+
         <div className="flex items-start gap-2 mb-0.5">
-          <p className={`text-sm truncate flex-1 ${isCancelada ? 'text-stone-400 line-through' : 'text-stone-800'}`}>
+          <p className={`text-sm truncate flex-1 leading-snug ${isCancelada ? 'text-stone-400 line-through' : 'text-stone-800'}`}>
             {actividad.titulo}
           </p>
           {isCancelada && (
@@ -468,18 +482,27 @@ function ActivityCard({ actividad, selected, onClick }: ActivityCardProps) {
           )}
         </div>
         <p className="text-[11px] text-stone-400 mb-3">{fecha}</p>
-        <div className="h-2 rounded-full bg-stone-100 overflow-hidden mb-2">
+
+        <div className="h-1.5 rounded-full bg-stone-100 overflow-hidden mb-2">
           <div
             className="h-full rounded-full transition-all"
             style={{
               width: `${pct}%`,
-              backgroundColor: isCancelada ? '#d6d3d1' : pct >= 90 ? '#ef4444' : pct >= 60 ? '#f59e0b' : '#78716c',
+              backgroundColor: isCancelada ? '#d6d3d1' : pct >= 90 ? '#ef4444' : pct >= 60 ? '#f59e0b' : '#595d8d',
             }}
           />
         </div>
-        <div className="flex justify-between text-[10px] text-stone-400 tabular-nums">
-          <span>{count} / {actividad.plazas} inscritos</span>
-          <span>{pct}%</span>
+        <div className="flex justify-between text-[10px] tabular-nums">
+          <span className="text-stone-500">{count} / {actividad.plazas} inscritos</span>
+          {!isCancelada && plazasLibres <= 5 && plazasLibres > 0 && (
+            <span className="text-red-400">¡{plazasLibres} libre{plazasLibres !== 1 ? 's' : ''}!</span>
+          )}
+          {!isCancelada && plazasLibres === 0 && (
+            <span className="text-stone-400">Completo</span>
+          )}
+          {!isCancelada && plazasLibres > 5 && (
+            <span className="text-stone-400">{pct}%</span>
+          )}
         </div>
       </button>
 
@@ -493,7 +516,7 @@ function ActivityCard({ actividad, selected, onClick }: ActivityCardProps) {
           <button
             onClick={handleReactivar}
             disabled={acting}
-            className="text-[10px] tracking-widest uppercase text-stone-300 hover:text-green-500 transition-colors cursor-pointer disabled:opacity-40"
+            className="text-[10px] tracking-widest uppercase text-stone-300 transition-colors cursor-pointer disabled:opacity-40 hover:text-[#50664d]"
           >
             {acting ? '...' : 'Reactivar evento'}
           </button>
@@ -629,8 +652,9 @@ function ControlAsistentes({ actividades }: { actividades: Actividad[] }) {
               key={t.label}
               onClick={t.onClick}
               className={`px-3 py-1 rounded-full text-[10px] tracking-widest uppercase transition-colors border cursor-pointer ${
-                t.active ? 'bg-stone-900 text-white border-stone-900' : 'text-stone-400 border-stone-200 hover:border-stone-400'
+                t.active ? 'text-white border-transparent' : 'text-stone-400 border-stone-200 hover:border-stone-400'
               }`}
+          style={t.active ? { backgroundColor: '#595d8d' } : {}}
             >
               {t.label}
             </button>
@@ -662,6 +686,7 @@ function ControlAsistentes({ actividades }: { actividades: Actividad[] }) {
 type ConjuntoForm = {
   nombre: string; municipio: string; isla: string; imagen: string
   descripcion: string; lat: string; lng: string; fundacion: string; declaraciones: string
+  bibliografia: string
 }
 
 function conjuntoToForm(c: Conjunto): ConjuntoForm {
@@ -671,6 +696,7 @@ function conjuntoToForm(c: Conjunto): ConjuntoForm {
     lat: String(c.lat), lng: String(c.lng),
     fundacion: c.fundacion ?? '',
     declaraciones: (c.declaraciones ?? []).join(', '),
+    bibliografia: (c.bibliografia ?? []).join('\n'),
   }
 }
 
@@ -683,6 +709,9 @@ function formToConjuntoData(f: ConjuntoForm): Omit<Conjunto, 'id' | 'actividadId
     ...(f.declaraciones.trim()
       ? { declaraciones: f.declaraciones.split(',').map(s => s.trim()).filter(Boolean) }
       : {}),
+    ...(f.bibliografia.trim()
+      ? { bibliografia: f.bibliografia.split('\n').map(s => s.trim()).filter(Boolean) }
+      : {}),
   }
 }
 
@@ -694,19 +723,26 @@ function validateConjunto(form: ConjuntoForm): ConjuntoErrors {
   if (!form.nombre.trim()) e.nombre = 'Obligatorio'
   else if (form.nombre.trim().length < 3) e.nombre = 'Mínimo 3 caracteres'
 
+  if (!form.municipio.trim()) e.municipio = 'Obligatorio'
+
   if (!form.isla) e.isla = 'Selecciona una isla'
 
-  if (form.lat.trim()) {
+  if (!form.descripcion.trim()) e.descripcion = 'Obligatoria'
+  else if (form.descripcion.trim().length < 10) e.descripcion = 'Mínimo 10 caracteres'
+
+  if (!form.lat.trim()) e.lat = 'Obligatoria'
+  else {
     const n = Number(form.lat)
     if (isNaN(n) || n < -90 || n > 90) e.lat = 'Entre -90 y 90'
   }
-  if (form.lng.trim()) {
+  if (!form.lng.trim()) e.lng = 'Obligatoria'
+  else {
     const n = Number(form.lng)
     if (isNaN(n) || n < -180 || n > 180) e.lng = 'Entre -180 y 180'
   }
 
   if (form.imagen.trim() && !isValidUrl(form.imagen.trim()))
-    e.imagen = 'URL no válida (debe empezar por https://)'
+    e.imagen = 'URL no válida (debe empezar por http:// o https://)'
 
   return e
 }
@@ -776,12 +812,14 @@ function ConjuntoRow({ conjunto }: { conjunto: Conjunto }) {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <FieldLabel>Municipio</FieldLabel>
-              <Input value={form.municipio} onChange={set('municipio')} />
+              <FieldLabel>Municipio *</FieldLabel>
+              <Input value={form.municipio} onChange={set('municipio')} error={!!errors.municipio} />
+              <FieldError msg={errors.municipio} />
             </div>
             <div className="flex flex-col gap-1.5">
               <FieldLabel>Isla *</FieldLabel>
               <Select value={form.isla} onChange={set('isla')} error={!!errors.isla}>
+                <option value="">Seleccionar</option>
                 {ISLAS.map(i => <option key={i} value={i}>{i}</option>)}
               </Select>
               <FieldError msg={errors.isla} />
@@ -789,12 +827,12 @@ function ConjuntoRow({ conjunto }: { conjunto: Conjunto }) {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <FieldLabel>Latitud</FieldLabel>
+              <FieldLabel>Latitud *</FieldLabel>
               <Input value={form.lat} onChange={set('lat')} type="number" error={!!errors.lat} />
               <FieldError msg={errors.lat} />
             </div>
             <div className="flex flex-col gap-1.5">
-              <FieldLabel>Longitud</FieldLabel>
+              <FieldLabel>Longitud *</FieldLabel>
               <Input value={form.lng} onChange={set('lng')} type="number" error={!!errors.lng} />
               <FieldError msg={errors.lng} />
             </div>
@@ -805,8 +843,9 @@ function ConjuntoRow({ conjunto }: { conjunto: Conjunto }) {
             <FieldError msg={errors.imagen} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <FieldLabel>Descripción</FieldLabel>
+            <FieldLabel>Descripción *</FieldLabel>
             <Textarea value={form.descripcion} onChange={set('descripcion')} rows={3} />
+            <FieldError msg={errors.descripcion} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
@@ -817,6 +856,10 @@ function ConjuntoRow({ conjunto }: { conjunto: Conjunto }) {
               <FieldLabel>Declaraciones (coma)</FieldLabel>
               <Input value={form.declaraciones} onChange={set('declaraciones')} placeholder="Patrimonio UNESCO" />
             </div>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <FieldLabel>Bibliografía (una referencia por línea)</FieldLabel>
+            <Textarea value={form.bibliografia} onChange={set('bibliografia')} rows={3} placeholder={'Autor, A. (2005). Título. Editorial.\nhttps://...'} />
           </div>
           <div className="flex gap-2">
             <button
@@ -840,7 +883,7 @@ function ConjuntoRow({ conjunto }: { conjunto: Conjunto }) {
 function NuevoConjuntoPanel() {
   const [form, setForm] = useState<ConjuntoForm>({
     nombre: '', municipio: '', isla: '', imagen: '', descripcion: '',
-    lat: '', lng: '', fundacion: '', declaraciones: '',
+    lat: '', lng: '', fundacion: '', declaraciones: '', bibliografia: '',
   })
   const [errors, setErrors] = useState<ConjuntoErrors>({})
   const [saving, setSaving] = useState(false)
@@ -859,7 +902,7 @@ function NuevoConjuntoPanel() {
     setSaveError('')
     try {
       await addConjunto(formToConjuntoData(form))
-      setForm({ nombre: '', municipio: '', isla: '', imagen: '', descripcion: '', lat: '', lng: '', fundacion: '', declaraciones: '' })
+      setForm({ nombre: '', municipio: '', isla: '', imagen: '', descripcion: '', lat: '', lng: '', fundacion: '', declaraciones: '', bibliografia: '' })
       setErrors({})
       setSuccess(true)
       setTimeout(() => setSuccess(false), 2500)
@@ -880,8 +923,9 @@ function NuevoConjuntoPanel() {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1.5">
-            <FieldLabel>Municipio</FieldLabel>
-            <Input value={form.municipio} onChange={set('municipio')} />
+            <FieldLabel>Municipio *</FieldLabel>
+            <Input value={form.municipio} onChange={set('municipio')} error={!!errors.municipio} />
+            <FieldError msg={errors.municipio} />
           </div>
           <div className="flex flex-col gap-1.5">
             <FieldLabel>Isla *</FieldLabel>
@@ -894,12 +938,12 @@ function NuevoConjuntoPanel() {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1.5">
-            <FieldLabel>Latitud</FieldLabel>
+            <FieldLabel>Latitud *</FieldLabel>
             <Input value={form.lat} onChange={set('lat')} type="number" error={!!errors.lat} />
             <FieldError msg={errors.lat} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <FieldLabel>Longitud</FieldLabel>
+            <FieldLabel>Longitud *</FieldLabel>
             <Input value={form.lng} onChange={set('lng')} type="number" error={!!errors.lng} />
             <FieldError msg={errors.lng} />
           </div>
@@ -910,8 +954,9 @@ function NuevoConjuntoPanel() {
           <FieldError msg={errors.imagen} />
         </div>
         <div className="flex flex-col gap-1.5">
-          <FieldLabel>Descripción</FieldLabel>
+          <FieldLabel>Descripción *</FieldLabel>
           <Textarea value={form.descripcion} onChange={set('descripcion')} rows={3} />
+          <FieldError msg={errors.descripcion} />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1.5">
@@ -922,6 +967,10 @@ function NuevoConjuntoPanel() {
             <FieldLabel>Declaraciones (coma)</FieldLabel>
             <Input value={form.declaraciones} onChange={set('declaraciones')} placeholder="Patrimonio UNESCO" />
           </div>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <FieldLabel>Bibliografía (una referencia por línea)</FieldLabel>
+          <Textarea value={form.bibliografia} onChange={set('bibliografia')} rows={3} placeholder={'Autor, A. (2005). Título. Editorial.\nhttps://...'} />
         </div>
         <SaveButton loading={saving} success={success} onClick={handleSave} label="Crear conjunto" />
         {saveError && <p className="text-[10px] text-red-500 text-center">{saveError}</p>}
@@ -1003,17 +1052,17 @@ function GestionConjuntos({ conjuntos }: { conjuntos: Conjunto[] }) {
 function Sidebar({ section, setSection }: { section: AdminSection; setSection: (s: AdminSection) => void }) {
   return (
     <aside
-      className="hidden sm:flex fixed top-16 left-0 bottom-0 z-40 flex-col bg-stone-950 sm:w-14 lg:w-55 overflow-hidden"
-      style={labelStyle}
+      className="hidden sm:flex fixed top-16 left-0 bottom-0 z-40 flex-col sm:w-14 lg:w-55 overflow-hidden"
+      style={{ ...labelStyle, backgroundColor: '#595d8d' }}
     >
       {/* Logo row — lg only */}
-      <div className="hidden lg:flex items-center gap-3 px-5 h-14 border-b border-white/6 shrink-0">
-        <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: ACCENT }}>
+      <div className="hidden lg:flex items-center gap-3 px-5 h-14 border-b border-white/15 shrink-0">
+        <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: '#b19e7b' }}>
           <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
             <path d="M3 21h18M6 21V7l6-4 6 4v14" />
           </svg>
         </div>
-        <span className="text-white/50 text-[10px] tracking-[0.2em] uppercase whitespace-nowrap">
+        <span className="text-white/70 text-[10px] tracking-[0.2em] uppercase whitespace-nowrap">
           Administración
         </span>
       </div>
@@ -1026,21 +1075,15 @@ function Sidebar({ section, setSection }: { section: AdminSection; setSection: (
             <button
               key={key}
               onClick={() => setSection(key)}
-              className={`relative flex items-center gap-3.5 py-3 px-4 lg:px-5 w-full transition-colors cursor-pointer
+              className={`flex items-center gap-3.5 py-3 px-4 lg:px-5 w-full transition-colors cursor-pointer
                 sm:justify-center lg:justify-start
-                ${active ? 'text-white bg-white/8' : 'text-white/40 hover:text-white/70 hover:bg-white/4'}`}
+                ${active ? 'text-white' : 'text-white/55 hover:text-white hover:bg-white/10'}`}
+              style={active ? { backgroundColor: '#b19e7b' } : {}}
             >
-              {/* Active left accent */}
-              {active && (
-                <span
-                  className="absolute left-0 inset-y-1.5 w-0.5 rounded-r-full"
-                  style={{ backgroundColor: ACCENT }}
-                />
-              )}
               <span className="shrink-0"><Icon /></span>
               <span className="hidden lg:flex flex-col items-start min-w-0">
                 <span className="text-[11px] tracking-widest uppercase whitespace-nowrap">{label}</span>
-                <span className={`text-[9px] tracking-widest whitespace-nowrap ${active ? 'text-white/40' : 'text-white/20'}`}>
+                <span className={`text-[9px] tracking-widest whitespace-nowrap ${active ? 'text-white/70' : 'text-white/30'}`}>
                   {sublabel}
                 </span>
               </span>
@@ -1050,10 +1093,10 @@ function Sidebar({ section, setSection }: { section: AdminSection; setSection: (
       </nav>
 
       {/* Back to site */}
-      <div className="shrink-0 py-3 border-t border-white/6">
+      <div className="shrink-0 py-3 border-t border-white/15">
         <Link
           to="/"
-          className="flex items-center gap-3 py-2.5 px-4 lg:px-5 text-white/30 hover:text-white/60 transition-colors sm:justify-center lg:justify-start"
+          className="flex items-center gap-3 py-2.5 px-4 lg:px-5 text-white/40 hover:text-white/80 transition-colors sm:justify-center lg:justify-start"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
             <path d="M19 12H5M12 5l-7 7 7 7" />
@@ -1070,8 +1113,8 @@ function Sidebar({ section, setSection }: { section: AdminSection; setSection: (
 function MobileTabBar({ section, setSection }: { section: AdminSection; setSection: (s: AdminSection) => void }) {
   return (
     <nav
-      className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-stone-950 border-t border-white/6 flex items-stretch"
-      style={labelStyle}
+      className="sm:hidden fixed bottom-0 inset-x-0 z-40 border-t border-white/15 flex items-stretch"
+      style={{ ...labelStyle, backgroundColor: '#595d8d' }}
     >
       {NAV_ITEMS.map(({ key, label, Icon }) => {
         const active = section === key
@@ -1080,12 +1123,12 @@ function MobileTabBar({ section, setSection }: { section: AdminSection; setSecti
             key={key}
             onClick={() => setSection(key)}
             className={`flex-1 flex flex-col items-center justify-center gap-1 py-2.5 transition-colors cursor-pointer relative
-              ${active ? 'text-white' : 'text-white/35'}`}
+              ${active ? 'text-white' : 'text-white/50'}`}
           >
             {active && (
               <span
-                className="absolute top-0 inset-x-4 h-0.5 rounded-b-full"
-                style={{ backgroundColor: ACCENT }}
+                className="absolute top-0 inset-x-0 h-0.5"
+                style={{ backgroundColor: '#b19e7b' }}
               />
             )}
             <Icon />

@@ -3,10 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { TEMATICAS, type Tematica } from '../../data/tematicas'
 import type { Dificultad } from '../../data/actividades'
 import { CONJUNTOS } from '../../data/conjuntos'
+import { ISLAS, DIFICULTADES } from '../../data/islas'
 import { formatMes } from './FilterSheet'
-
-const ISLAS = ['Gran Canaria', 'Tenerife', 'Lanzarote', 'Fuerteventura', 'La Palma', 'La Gomera', 'El Hierro']
-const DIFICULTADES: Dificultad[] = ['Fácil', 'Media', 'Difícil']
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
 type Props = {

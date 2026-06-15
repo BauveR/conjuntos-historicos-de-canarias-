@@ -10,6 +10,7 @@ export type Conjunto = {
   lng: number
   fundacion?: string
   declaraciones?: string[]
+  bibliografia?: string[]
 }
 
 export const CONJUNTOS: Conjunto[] = [

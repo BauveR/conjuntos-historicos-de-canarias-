@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import type { Conjunto } from '../../data/conjuntos'
 import { TEMATICA_COLORS } from '../../data/tematicas'
@@ -15,6 +16,7 @@ type Props = {
 export function ConjuntoPanel({ conjunto, onClose }: Props) {
   const location = useLocation()
   const { actividades: todasActividades } = useDataContext()
+  const [bibOpen, setBibOpen] = useState(false)
   const actividades = conjunto
     ? todasActividades.filter(a => a.conjuntoId === conjunto.id)
     : []
@@ -123,6 +125,39 @@ export function ConjuntoPanel({ conjunto, onClose }: Props) {
             </Link>
           ))}
         </div>
+
+        {/* Bibliografía */}
+        {(conjunto.bibliografia?.length ?? 0) > 0 && (
+          <div className="border border-stone-100 rounded-2xl overflow-hidden">
+            <button
+              onClick={() => setBibOpen(p => !p)}
+              className="w-full flex items-center justify-between px-5 py-3.5 text-left cursor-pointer hover:bg-stone-50 transition-colors"
+              style={labelStyle}
+            >
+              <span className="text-[10px] tracking-[0.25em] uppercase text-stone-400">Bibliografía</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+                className={`text-stone-300 shrink-0 transition-transform duration-200 ${bibOpen ? 'rotate-180' : ''}`}
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
+            {bibOpen && (
+              <ul className="flex flex-col gap-2 px-5 pb-5 pt-1">
+                {conjunto.bibliografia!.map((ref, i) => (
+                  <li key={i} className="text-[11px] text-stone-500 leading-relaxed" style={labelStyle}>
+                    {ref.startsWith('http') ? (
+                      <a href={ref} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 decoration-stone-300 hover:text-stone-700 break-all">
+                        {ref}
+                      </a>
+                    ) : ref}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
 
       </div>
     </div>
