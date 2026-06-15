@@ -60,11 +60,11 @@ export function ActividadesSection() {
   return (
     <section className="px-6 sm:px-8 lg:px-10 py-12 sm:py-16 bg-white">
       <div className="mb-8">
-        <p className="text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-2" style={labelStyle}>
+        <h2
+          className="text-2xl sm:text-3xl uppercase tracking-widest leading-snug"
+          style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100", color: '#cd6a26' }}
+        >
           Rutas y actividades
-        </p>
-        <h2 className="text-2xl sm:text-3xl font-light text-stone-900 leading-snug" style={{ fontFamily: "'Playfair Display', serif" }}>
-          Experiencias en el patrimonio
         </h2>
       </div>
 

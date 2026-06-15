@@ -66,7 +66,7 @@ export function ConjuntoPanel({ conjunto, onClose }: Props) {
           {conjunto.isla} — {conjunto.municipio}
         </p>
 
-        <h2 className="text-2xl font-thin text-stone-900 uppercase tracking-tight leading-tight" style={titleStyle}>
+        <h2 className="text-2xl font-thin uppercase tracking-tight leading-tight" style={{ ...titleStyle, color: '#b19e7b' }}>
           {conjunto.nombre}
         </h2>
 

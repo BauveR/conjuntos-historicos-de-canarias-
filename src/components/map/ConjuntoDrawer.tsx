@@ -76,8 +76,8 @@ export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
                 </p>
 
                 <h2
-                  className="text-4xl font-thin text-stone-900 uppercase tracking-tight leading-tight"
-                  style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}
+                  className="text-4xl font-thin uppercase tracking-tight leading-tight"
+                  style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100", color: '#b19e7b' }}
                 >
                   {conjunto.nombre}
                 </h2>
@@ -186,8 +186,8 @@ export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
                   {conjunto.isla} — {conjunto.municipio}
                 </p>
                 <h2
-                  className="text-2xl font-thin text-stone-900 uppercase tracking-tight leading-snug"
-                  style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}
+                  className="text-2xl font-thin uppercase tracking-tight leading-snug"
+                  style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100", color: '#b19e7b' }}
                 >
                   {conjunto.nombre}
                 </h2>

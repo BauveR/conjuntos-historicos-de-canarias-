@@ -60,8 +60,8 @@ export function FilterBar({
       <div className="flex items-center gap-2 sm:hidden">
         <button
           onClick={onOpenSheet}
-          className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-stone-200 text-[11px] text-stone-500 tracking-wide hover:border-stone-400 transition-colors"
-          style={labelStyle}
+          className="flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] text-white tracking-wide transition-colors"
+          style={{ ...labelStyle, backgroundColor: '#595d8d' }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
             <path d="M4 6h16M7 12h10M10 18h4" />
@@ -91,12 +91,8 @@ export function FilterBar({
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setPanelOpen(p => !p)}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full border text-[11px] tracking-wide transition-all duration-200 ${
-              panelOpen
-                ? 'border-stone-900 bg-stone-900 text-white'
-                : 'border-stone-200 text-stone-500 hover:border-stone-400'
-            }`}
-            style={labelStyle}
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[11px] text-white tracking-wide transition-colors"
+            style={{ ...labelStyle, backgroundColor: '#595d8d' }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
               <path d="M4 6h16M7 12h10M10 18h4" />
@@ -203,7 +199,7 @@ function FilterColumn({ title, options, selected, onSelect }: {
   const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
   return (
     <div className="flex flex-col gap-1">
-      <p className="text-[10px] tracking-widest uppercase text-stone-400 mb-2 font-semibold" style={labelStyle}>
+      <p className="text-[10px] tracking-widest uppercase mb-2 font-semibold" style={{ ...labelStyle, color: '#cd6a26' }}>
         {title}
       </p>
       {options.map(opt => (

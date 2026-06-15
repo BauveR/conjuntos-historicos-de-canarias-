@@ -88,8 +88,8 @@ export function Navbar() {
         {/* Logo */}
         <Link
           to="/"
-          className="text-[11px] sm:text-sm tracking-widest uppercase text-stone-900 whitespace-nowrap"
-          style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}
+          className="text-[11px] sm:text-sm tracking-widest uppercase whitespace-nowrap"
+          style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100", color: '#b19e7b' }}
         >
           Conjuntos Históricos de Canarias
         </Link>

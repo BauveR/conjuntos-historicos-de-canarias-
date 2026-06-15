@@ -66,9 +66,9 @@ const createLabelIcon = (selected: boolean, label: string) =>
     html: `<div style="
       display:inline-flex;align-items:center;
       padding:5px 12px;border-radius:9999px;
-      background:${selected ? '#1c1917' : '#ffffff'};
-      border:1.5px solid ${selected ? '#1c1917' : '#78.2716c'};
-      box-shadow:0 2px 10px rgba(0,0,0,${selected ? '0.35' : '0.18.2'});
+      background:${selected ? '#b19e7b' : '#ffffff'};
+      border:1.5px solid ${selected ? '#b19e7b' : '#d6d3d1'};
+      box-shadow:0 2px 10px rgba(0,0,0,${selected ? '0.25' : '0.12'});
       font-family:'Open Sans',sans-serif;font-size:11px;
       font-weight:${selected ? '700' : '500'};
       color:${selected ? '#ffffff' : '#1c1917'};

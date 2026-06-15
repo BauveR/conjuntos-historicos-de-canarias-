@@ -121,10 +121,10 @@ export function BookingWidget({
     return (
       <div className="flex flex-col gap-3">
         <div className="rounded-2xl overflow-hidden border border-stone-200 shadow-sm">
-          <div className="bg-stone-900 px-6 py-5 flex flex-col gap-3">
+          <div className="px-6 py-5 flex flex-col gap-3" style={{ backgroundColor: '#50664d' }}>
             <div className="flex items-center gap-2">
-              <span className="text-green-400 text-base leading-none">✓</span>
-              <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>
+              <span className="text-white text-base leading-none">✓</span>
+              <span className="text-[10px] tracking-widest uppercase text-white/80" style={labelStyle}>
                 Inscripción confirmada
               </span>
             </div>

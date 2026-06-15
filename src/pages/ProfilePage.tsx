@@ -100,7 +100,7 @@ export function ProfilePage() {
   const pasadas    = inscritas.filter(a => a.fecha < today && !a.cancelada)
   const canceladas = inscritas.filter(a => !!a.cancelada)
 
-  const visible = tab === 'proximas' ? proximas : tab === 'pasadas' ? pasadas : inscritas
+  const visible = tab === 'proximas' ? proximas : tab === 'pasadas' ? pasadas : [...proximas, ...pasadas, ...canceladas]
 
   const tabs: { key: Tab; label: string; count: number }[] = [
     { key: 'todas',    label: 'Todas',    count: inscritas.length },
@@ -125,7 +125,7 @@ export function ProfilePage() {
         <div className="flex items-center gap-5">
 
           {/* Avatar */}
-          <div className="shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-stone-900 flex items-center justify-center" style={titleStyle}>
+          <div className="shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center" style={{ ...titleStyle, backgroundColor: '#b19e7b' }}>
             <span className="text-white text-xl sm:text-2xl">
               {user ? getInitials(user) : '?'}
             </span>
@@ -140,7 +140,7 @@ export function ProfilePage() {
             {!inscripcionesLoading && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {proximas.length > 0 && (
-                  <span className="px-2.5 py-0.5 rounded-full bg-stone-900 text-white text-[10px] tracking-widest uppercase">
+                  <span className="px-2.5 py-0.5 rounded-full text-white text-[10px] tracking-widest uppercase" style={{ backgroundColor: '#50664d' }}>
                     {proximas.length} próxima{proximas.length !== 1 ? 's' : ''}
                   </span>
                 )}
@@ -209,9 +209,10 @@ export function ProfilePage() {
                 <button
                   key={t.key}
                   onClick={() => setTab(t.key)}
+                  style={tab === t.key ? { backgroundColor: '#595d8d' } : {}}
                   className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[11px] tracking-widest uppercase transition-colors cursor-pointer border ${
                     tab === t.key
-                      ? 'bg-stone-900 text-white border-stone-900'
+                      ? 'text-white border-transparent'
                       : 'bg-white text-stone-500 border-stone-200 hover:border-stone-400'
                   }`}
                 >

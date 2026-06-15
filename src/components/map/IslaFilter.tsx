@@ -19,12 +19,12 @@ export function IslaFilter({ selectedIsla, onSelect }: Props) {
           <button
             key={isla}
             onClick={() => onSelect(isla === 'Todas' ? null : isla)}
+            style={{ ...labelStyle, ...(isActive ? { backgroundColor: '#595d8d' } : {}) }}
             className={`flex-none px-3 py-1.5 rounded-xl text-[10px] tracking-widest uppercase whitespace-nowrap transition-colors duration-150 cursor-pointer border ${
               isActive
-                ? 'bg-stone-900 text-white border-stone-900'
+                ? 'text-white border-transparent'
                 : 'bg-white text-stone-500 border-stone-200 hover:border-stone-400 hover:text-stone-900'
             }`}
-            style={labelStyle}
           >
             {isla}
           </button>

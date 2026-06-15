@@ -5,6 +5,7 @@ import rawPopular from '../../assets/skyline popular canarias-01.svg?raw'
 import { SkylineCanvas } from './SkylineCanvas'
 import Grainient from './Grainient'
 import SplitText from './SplitText'
+import Strands from './Strands'
 
 export function Hero() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -46,6 +47,23 @@ export function Hero() {
           centerX={0}
           centerY={0}
           zoom={0.9}
+        />
+      </div>
+      <div className="absolute left-1/2 top-[60%] -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl h-64 pointer-events-none z-[5]">
+        <Strands
+          colors={["#f9f5f0", "#cd6a26", "#595d8d"]}
+          count={1}
+          speed={0.4}
+          amplitude={0.2}
+          waviness={1}
+          thickness={0.5}
+          glow={0.7}
+          taper={1.5}
+          spread={0}
+          intensity={0.6}
+          saturation={1.5}
+          opacity={1}
+          scale={2.6}
         />
       </div>
       <div className="relative z-10 my-auto flex flex-col items-center w-full sm:w-fit gap-6">

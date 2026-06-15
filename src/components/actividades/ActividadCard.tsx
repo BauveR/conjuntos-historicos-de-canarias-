@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import type { Actividad } from '../../data/actividades'
-import { TEMATICA_COLORS } from '../../data/tematicas'
+
 import { DifficultyDots } from './DifficultyDots'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
 import { useDataContext } from '../../contexts/DataContext'
@@ -10,9 +10,7 @@ const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 function plazasBadge(disponibles: number, total: number) {
   if (total === 0) return null
   const pct = disponibles / total
-  if (pct <= 0.10) return { text: `${disponibles} plazas`, className: 'bg-red-500 text-white' }
-  if (pct < 0.40)  return { text: `${disponibles} plazas`, className: 'bg-orange-400 text-white' }
-  if (pct >= 0.60) return { text: `${disponibles} plazas`, className: 'bg-blue-500 text-white' }
+  if (pct <= 0.10 || pct < 0.40 || pct >= 0.60) return { text: `${disponibles} plazas` }
   return null
 }
 
@@ -52,16 +50,16 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
         )}
         {/* Badge temática */}
         <span
-          className="absolute top-3 left-3 px-3 py-1 text-white font-bold text-[10px] tracking-widest uppercase rounded-full"
-          style={{ ...labelStyle, backgroundColor: TEMATICA_COLORS[actividad.tematica] }}
+          className="absolute top-3 left-3 px-3 py-1 font-bold text-[10px] tracking-widest uppercase rounded-full"
+          style={{ ...labelStyle, color: '#cd6a26', backgroundColor: 'white', outline: '1.5px solid #cd6a26' }}
         >
           {actividad.tematica}
         </span>
         {/* Badge plazas */}
         {badge && (
           <span
-            className={`absolute top-3 right-3 px-3 py-1 font-bold text-[10px] tracking-widest uppercase rounded-full ${badge.className}`}
-            style={labelStyle}
+            className="absolute top-3 right-3 px-3 py-1 font-bold text-[10px] tracking-widest uppercase rounded-full text-white"
+            style={{ ...labelStyle, backgroundColor: '#cd6a26' }}
           >
             {badge.text}
           </span>
