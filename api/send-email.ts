@@ -1,11 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { Resend } from 'resend'
-import * as admin from 'firebase-admin'
-import { buildConfirmacionEmail, type EmailData } from './emailTemplate'
+import { initializeApp, getApps, cert } from 'firebase-admin/app'
+import { getAuth } from 'firebase-admin/auth'
+import { buildConfirmacionEmail, type EmailData } from './emailTemplate.js'
 
-if (!admin.apps.length) {
+if (!getApps().length) {
   const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT ?? '{}')
-  admin.initializeApp({ credential: admin.credential.cert(serviceAccount) })
+  initializeApp({ credential: cert(serviceAccount) })
 }
 
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -18,7 +19,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!idToken || !email) return res.status(400).json({ error: 'Missing fields' })
 
   try {
-    await admin.auth().verifyIdToken(idToken)
+    await getAuth().verifyIdToken(idToken)
   } catch {
     return res.status(401).json({ error: 'Invalid token' })
   }
