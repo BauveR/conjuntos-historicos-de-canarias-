@@ -29,16 +29,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const valid = await verifyFirebaseToken(idToken)
   if (!valid) return res.status(401).json({ error: 'Invalid token' })
 
-  try {
-    await resend.emails.send({
-      from: 'Conjuntos Históricos de Canarias <noreply@conjuntospatrimonialesdecanarias.com>',
-      to: email,
-      subject: `Inscripción confirmada · ${emailData.titulo}`,
-      html: buildConfirmacionEmail(emailData),
-    })
-    return res.status(200).json({ ok: true })
-  } catch (err) {
-    console.error('Resend error:', err)
-    return res.status(500).json({ error: 'Email send failed' })
+  const { data, error } = await resend.emails.send({
+    from: 'Conjuntos Históricos de Canarias <noreply@conjuntospatrimonialesdecanarias.com>',
+    to: email,
+    subject: `Inscripción confirmada · ${emailData.titulo}`,
+    html: buildConfirmacionEmail(emailData),
+  })
+
+  if (error) {
+    console.error('Resend error:', JSON.stringify(error))
+    return res.status(500).json({ error })
   }
+
+  return res.status(200).json({ ok: true, id: data?.id })
 }
