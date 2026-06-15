@@ -8,8 +8,8 @@
       }
 
       .cls-2 {
-        fill: #dfbf81;
-        fill-opacity: 0.95;
+        fill: white;
+        fill-opacity: 0.60;
       }
     </style>
   </defs>

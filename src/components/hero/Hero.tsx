@@ -1,15 +1,10 @@
 import { useRef } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
-import type { Transition } from 'framer-motion'
 import rawMonumental from '../../assets/skyline monumental-01.svg?raw'
 import rawPopular from '../../assets/skyline popular canarias-01.svg?raw'
 import { SkylineCanvas } from './SkylineCanvas'
-
-const titleTransition = (delay = 0): Transition => ({
-  duration: 1.4,
-  ease: [0.16, 1, 0.3, 1],
-  delay,
-})
+import Grainient from './Grainient'
+import SplitText from './SplitText'
 
 export function Hero() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -25,31 +20,53 @@ export function Hero() {
   return (
     <section
       ref={sectionRef}
-      className="h-[80vh] flex justify-center px-2 sm:px-16"
-      style={{ background: 'linear-gradient(to bottom, #c36414, #d6a103)' }}
+      className="relative h-[80vh] flex justify-center px-2 sm:px-16"
     >
-      <div className="my-auto flex flex-col items-center w-full sm:w-fit gap-6">
+      <div className="absolute inset-0">
+        <Grainient
+          color1="#cd6a26"
+          color2="#b19e7b"
+          color3="#595d8d"
+          timeSpeed={0.22}
+          colorBalance={0}
+          warpStrength={1.9}
+          warpFrequency={5}
+          warpSpeed={3.0}
+          warpAmplitude={14}
+          blendAngle={0}
+          blendSoftness={0.05}
+          rotationAmount={500}
+          noiseScale={2}
+          grainAmount={0.14}
+          grainScale={2}
+          grainAnimated={false}
+          contrast={1.7}
+          gamma={1}
+          saturation={0.85}
+          centerX={0}
+          centerY={0}
+          zoom={0.9}
+        />
+      </div>
+      <div className="relative z-10 my-auto flex flex-col items-center w-full sm:w-fit gap-6">
         <SkylineCanvas svg={rawMonumental} prefix="sm" className="w-full" />
         <motion.h1
-          style={{ scale, opacity, fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}
-          className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-sm sm:text-xl md:text-4xl lg:text-5xl font-thin text-white uppercase tracking-widest mt-6"
+          style={{ scale, opacity, fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 400", color: '#f9f5f0' }}
+          className="text-sm sm:text-xl md:text-4xl lg:text-5xl font-normal uppercase tracking-widest mt-6 text-center"
         >
-          <motion.span
-            initial={{ x: -500, opacity: 0 }}
-            animate={{ x: [null, 0], opacity: [null, 1] }}
-            transition={titleTransition(0.6)}
-            className="whitespace-nowrap"
-          >
-            Conjuntos Históricos
-          </motion.span>
-          <motion.span
-            initial={{ x: 500, opacity: 0 }}
-            animate={{ x: [null, 0], opacity: [null, 1] }}
-            transition={titleTransition(0.75)}
-            className="whitespace-nowrap text-3xl sm:text-xl md:text-4xl lg:text-5xl"
-          >
-            de Canarias
-          </motion.span>
+          <SplitText
+            text="Conjuntos Históricos de Canarias"
+            tag="span"
+            splitType="chars"
+            delay={60}
+            duration={1.0}
+            ease="power3.out"
+            from={{ opacity: 0, y: 30 }}
+            to={{ opacity: 1, y: 0 }}
+            threshold={0.1}
+            rootMargin="0px"
+            textAlign="center"
+          />
         </motion.h1>
         <SkylineCanvas svg={rawPopular} prefix="sp" className="w-full" />
       </div>
