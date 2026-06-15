@@ -68,7 +68,7 @@ export function FilterBar({
           </svg>
           Filtros
           {activeCount > 0 && (
-            <span className="w-4 h-4 rounded-full bg-stone-900 text-white text-[9px] flex items-center justify-center font-bold">
+            <span className="w-4 h-4 rounded-full text-white text-[9px] flex items-center justify-center font-bold" style={{ backgroundColor: '#b19e7b' }}>
               {activeCount}
             </span>
           )}

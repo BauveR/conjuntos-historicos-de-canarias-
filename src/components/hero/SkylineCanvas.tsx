@@ -1,12 +1,8 @@
 import { useEffect, useRef } from 'react'
 
 const LAYERS = [
-  { trailFrac: 0.80, opacity: 0.05, strokeWidth: 3, blur: 0 },
-  { trailFrac: 0.60, opacity: 0.14, strokeWidth: 2, blur: 0 },
-  { trailFrac: 0.38, opacity: 0.35, strokeWidth: 1.5, blur: 0 },
-  { trailFrac: 0.18, opacity: 0.60, strokeWidth: 1, blur: 0 },
-  { trailFrac: 0.07, opacity: 0.85, strokeWidth: 1, blur: 0 },
-  { trailFrac: 0.02, opacity: 1.00, strokeWidth: 0.5, blur: 0 },
+  { trailFrac: 0.85, opacity: 0.20, strokeWidth: 3 },
+  { trailFrac: 0.45, opacity: 0.95, strokeWidth: 1.2 },
 ] as const
 
 const SPEED = 30
@@ -30,37 +26,9 @@ export function SkylineCanvas({
     const svgEl = container.querySelector('svg')
     if (!svgEl) return
 
-    let defs = svgEl.querySelector('defs')
-    if (!defs) {
-      defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
-      svgEl.prepend(defs)
-    }
-
-    LAYERS.forEach((layer, li) => {
-      const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter')
-      filter.id = `${prefix}-glow-${li}`
-      filter.setAttribute('x', '-10%')
-      filter.setAttribute('y', '-10%')
-      filter.setAttribute('width', '120%')
-      filter.setAttribute('height', '120%')
-
-      const blur = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur')
-      blur.setAttribute('in', 'SourceGraphic')
-      blur.setAttribute('stdDeviation', String(layer.blur))
-      blur.setAttribute('result', 'blur')
-
-      const merge = document.createElementNS('http://www.w3.org/2000/svg', 'feMerge')
-      const n1 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode')
-      n1.setAttribute('in', 'blur')
-      const n2 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode')
-      n2.setAttribute('in', 'SourceGraphic')
-      merge.append(n1, n2)
-      filter.append(blur, merge)
-      defs!.append(filter)
-    })
-
     const cls1Els = Array.from(svgEl.querySelectorAll('.cls-1'))
     const rules: string[] = []
+    const insertedGroups: SVGGElement[] = []
     let animIdx = 0
 
     cls1Els.forEach((el) => {
@@ -74,7 +42,6 @@ export function SkylineCanvas({
       const duration = Math.max(2, total / SPEED)
       const delay = -(i * 1.3)
 
-      // Overlay strokes on top of the original filled shape — don't replace it
       const layerEls = LAYERS.map((layer, li) => {
         const clone = geo.cloneNode() as SVGElement
         clone.removeAttribute('class')
@@ -84,7 +51,6 @@ export function SkylineCanvas({
         clone.setAttribute('stroke-opacity', String(layer.opacity))
         clone.setAttribute('stroke-linecap', 'round')
         clone.setAttribute('stroke-linejoin', 'round')
-        if (layer.blur > 0) clone.setAttribute('filter', `url(#${prefix}-glow-${li})`)
         clone.setAttribute('class', `${p}l${li}`)
         return clone
       })
@@ -100,15 +66,18 @@ export function SkylineCanvas({
 
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
       g.append(...layerEls)
-      // Insert comet strokes after the original element — original fill is preserved
       el.after(g)
+      insertedGroups.push(g)
     })
 
     const style = document.createElement('style')
     style.textContent = rules.join('\n')
     document.head.appendChild(style)
 
-    return () => style.remove()
+    return () => {
+      style.remove()
+      insertedGroups.forEach(g => g.remove())
+    }
   }, [prefix])
 
   return (

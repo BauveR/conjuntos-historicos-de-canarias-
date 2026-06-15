@@ -100,12 +100,12 @@ export function ProfilePage() {
   const pasadas    = inscritas.filter(a => a.fecha < today && !a.cancelada)
   const canceladas = inscritas.filter(a => !!a.cancelada)
 
-  const visible = tab === 'proximas' ? proximas : tab === 'pasadas' ? pasadas : [...proximas, ...pasadas, ...canceladas]
+  const visible = tab === 'proximas' ? proximas : tab === 'pasadas' ? [...pasadas, ...canceladas] : [...proximas, ...pasadas, ...canceladas]
 
   const tabs: { key: Tab; label: string; count: number }[] = [
     { key: 'todas',    label: 'Todas',    count: inscritas.length },
     { key: 'proximas', label: 'Próximas', count: proximas.length  },
-    { key: 'pasadas',  label: 'Pasadas',  count: pasadas.length   },
+    { key: 'pasadas',  label: 'Pasadas',  count: pasadas.length + canceladas.length },
   ]
 
   const makeLiberar = (actividadId: number) => async () => {

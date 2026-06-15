@@ -49,7 +49,7 @@ export function Hero() {
           zoom={0.9}
         />
       </div>
-      <div className="absolute left-1/2 top-[60%] -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl h-64 pointer-events-none z-[5]">
+      <div className="absolute left-1/2 top-[52%] sm:top-[54%] -translate-x-1/2 -translate-y-1/2 w-[55%] h-[88px] sm:w-full sm:h-64 max-w-2xl pointer-events-none z-[5]">
         <Strands
           colors={["#f9f5f0", "#cd6a26", "#595d8d"]}
           count={1}
@@ -67,10 +67,10 @@ export function Hero() {
         />
       </div>
       <div className="relative z-10 my-auto flex flex-col items-center w-full sm:w-fit gap-6">
-        <SkylineCanvas svg={rawMonumental} prefix="sm" className="w-full" />
+        <SkylineCanvas svg={rawMonumental} prefix="sm" className="w-full sm:w-[560px] md:w-[700px] lg:w-[960px]" />
         <motion.h1
           style={{ scale, opacity, fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 400", color: '#f9f5f0' }}
-          className="text-sm sm:text-xl md:text-4xl lg:text-5xl font-normal uppercase tracking-widest mt-6 text-center"
+          className="text-sm sm:text-xl md:text-2xl lg:text-3xl font-normal uppercase tracking-widest mt-6 text-center"
         >
           <SplitText
             text="Conjuntos Históricos de Canarias"
@@ -86,7 +86,14 @@ export function Hero() {
             textAlign="center"
           />
         </motion.h1>
-        <SkylineCanvas svg={rawPopular} prefix="sp" className="w-full" />
+        <SkylineCanvas svg={rawPopular} prefix="sp" className="w-full sm:w-[560px] md:w-[700px] lg:w-[960px]" />
+        <a
+          href="/#actividades"
+          className="px-6 py-2.5 rounded-full text-[11px] tracking-widest uppercase text-white transition-opacity hover:opacity-80"
+          style={{ backgroundColor: '#595d8d', fontFamily: "'Open Sans', sans-serif" }}
+        >
+          Explorar actividades
+        </a>
       </div>
     </section>
   )

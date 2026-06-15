@@ -185,8 +185,8 @@ export function FilterSheet({ open, initialSection, onClose, filters, mesesDispo
 
               <button
                 onClick={handleApply}
-                className="w-full py-3.5 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors duration-200"
-                style={labelStyle}
+                className="w-full py-3.5 rounded-xl text-white text-[11px] tracking-widest uppercase transition-colors duration-200"
+                style={{ ...labelStyle, backgroundColor: '#595d8d' }}
               >
                 {activeCount > 0 ? `Aplicar · ${activeCount} filtro${activeCount > 1 ? 's' : ''}` : 'Aplicar'}
               </button>
@@ -240,7 +240,7 @@ function OptionRow({ label, selected, onSelect }: { label: string; selected: boo
     >
       {label}
       {selected && (
-        <span className="w-5 h-5 rounded-full bg-stone-900 flex items-center justify-center shrink-0">
+        <span className="w-5 h-5 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: '#595d8d' }}>
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round">
             <path d="M20 6L9 17l-5-5" />
           </svg>
