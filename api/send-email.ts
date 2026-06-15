@@ -2,8 +2,6 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { Resend } from 'resend'
 import { buildConfirmacionEmail, type EmailData } from './emailTemplate.js'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 async function verifyFirebaseToken(idToken: string): Promise<boolean> {
   const res = await fetch(
     `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${process.env.FIREBASE_API_KEY}`,
@@ -19,9 +17,14 @@ async function verifyFirebaseToken(idToken: string): Promise<boolean> {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).end()
 
+  const resendKey = process.env.RESEND_API_KEY
+  if (!resendKey) return res.status(500).json({ error: 'RESEND_API_KEY not configured' })
+
   const { idToken, email, ...emailData } = req.body as { idToken: string; email: string } & EmailData
 
   if (!idToken || !email) return res.status(400).json({ error: 'Missing fields' })
+
+  const resend = new Resend(resendKey)
 
   const valid = await verifyFirebaseToken(idToken)
   if (!valid) return res.status(401).json({ error: 'Invalid token' })
