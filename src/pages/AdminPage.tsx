@@ -1,4 +1,25 @@
 import { useState, useEffect } from 'react'
+
+declare global {
+  interface Window {
+    cloudinary?: {
+      openMediaLibrary: (
+        options: { cloud_name: string; api_key: string; multiple?: boolean },
+        callbacks: { insertHandler: (data: { assets: Array<{ secure_url: string }> }) => void }
+      ) => void
+    }
+  }
+}
+
+const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME as string
+const CLOUD_KEY  = import.meta.env.VITE_CLOUDINARY_API_KEY  as string
+
+function openCloudinaryPicker(onSelect: (url: string) => void) {
+  window.cloudinary?.openMediaLibrary(
+    { cloud_name: CLOUD_NAME, api_key: CLOUD_KEY, multiple: false },
+    { insertHandler: (data) => { if (data.assets[0]) onSelect(data.assets[0].secure_url) } }
+  )
+}
 import { createPortal } from 'react-dom'
 import type React from 'react'
 import { Link } from 'react-router-dom'
@@ -580,7 +601,22 @@ function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
 
           <div className="flex flex-col gap-1.5">
             <FieldLabel>Imagen URL</FieldLabel>
-            <Input value={form.imagen} onChange={set('imagen')} placeholder="https://..." error={!!errors.imagen} />
+            <div className="flex gap-2">
+              <Input value={form.imagen} onChange={set('imagen')} placeholder="https://..." error={!!errors.imagen} />
+              <button
+                type="button"
+                onClick={() => openCloudinaryPicker(url => set('imagen')(url))}
+                className="shrink-0 px-3 rounded-xl border border-stone-200 text-[10px] tracking-widest text-stone-400 hover:border-[#595d8d] hover:text-[#595d8d] transition-colors cursor-pointer whitespace-nowrap"
+              >
+                Biblioteca
+              </button>
+            </div>
+            {form.imagen && !errors.imagen && (
+              <img src={form.imagen} alt="" className="h-24 w-full object-cover rounded-xl mt-1"
+                onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                onLoad={e => { (e.target as HTMLImageElement).style.display = '' }}
+              />
+            )}
             <FieldError msg={errors.imagen} />
           </div>
 
@@ -826,7 +862,22 @@ function EditActividadDrawer({
 
                 <div className="flex flex-col gap-1.5">
                   <FieldLabel>Imagen URL</FieldLabel>
-                  <Input value={form.imagen} onChange={set('imagen')} placeholder="https://..." error={!!errors.imagen} />
+                  <div className="flex gap-2">
+                    <Input value={form.imagen} onChange={set('imagen')} placeholder="https://..." error={!!errors.imagen} />
+                    <button
+                      type="button"
+                      onClick={() => openCloudinaryPicker(url => set('imagen')(url))}
+                      className="shrink-0 px-3 rounded-xl border border-stone-200 text-[10px] tracking-widest text-stone-400 hover:border-[#595d8d] hover:text-[#595d8d] transition-colors cursor-pointer whitespace-nowrap"
+                    >
+                      Biblioteca
+                    </button>
+                  </div>
+                  {form.imagen && !errors.imagen && (
+                    <img src={form.imagen} alt="" className="h-24 w-full object-cover rounded-xl mt-1"
+                      onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                      onLoad={e => { (e.target as HTMLImageElement).style.display = '' }}
+                    />
+                  )}
                   <FieldError msg={errors.imagen} />
                 </div>
 
@@ -1298,7 +1349,22 @@ function ConjuntoRow({ conjunto }: { conjunto: Conjunto }) {
           </div>
           <div className="flex flex-col gap-1.5">
             <FieldLabel>Imagen URL</FieldLabel>
-            <Input value={form.imagen} onChange={set('imagen')} error={!!errors.imagen} />
+            <div className="flex gap-2">
+              <Input value={form.imagen} onChange={set('imagen')} placeholder="https://..." error={!!errors.imagen} />
+              <button
+                type="button"
+                onClick={() => openCloudinaryPicker(url => set('imagen')(url))}
+                className="shrink-0 px-3 rounded-xl border border-stone-200 text-[10px] tracking-widest text-stone-400 hover:border-[#595d8d] hover:text-[#595d8d] transition-colors cursor-pointer whitespace-nowrap"
+              >
+                Biblioteca
+              </button>
+            </div>
+            {form.imagen && !errors.imagen && (
+              <img src={form.imagen} alt="" className="h-24 w-full object-cover rounded-xl mt-1"
+                onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                onLoad={e => { (e.target as HTMLImageElement).style.display = '' }}
+              />
+            )}
             <FieldError msg={errors.imagen} />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -1409,7 +1475,22 @@ function NuevoConjuntoPanel() {
         </div>
         <div className="flex flex-col gap-1.5">
           <FieldLabel>Imagen URL</FieldLabel>
-          <Input value={form.imagen} onChange={set('imagen')} placeholder="https://..." error={!!errors.imagen} />
+          <div className="flex gap-2">
+            <Input value={form.imagen} onChange={set('imagen')} placeholder="https://..." error={!!errors.imagen} />
+            <button
+              type="button"
+              onClick={() => openCloudinaryPicker(url => set('imagen')(url))}
+              className="shrink-0 px-3 rounded-xl border border-stone-200 text-[10px] tracking-widest text-stone-400 hover:border-[#595d8d] hover:text-[#595d8d] transition-colors cursor-pointer whitespace-nowrap"
+            >
+              Biblioteca
+            </button>
+          </div>
+          {form.imagen && !errors.imagen && (
+            <img src={form.imagen} alt="" className="h-24 w-full object-cover rounded-xl mt-1"
+              onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+              onLoad={e => { (e.target as HTMLImageElement).style.display = '' }}
+            />
+          )}
           <FieldError msg={errors.imagen} />
         </div>
         <div className="flex flex-col gap-1.5">
