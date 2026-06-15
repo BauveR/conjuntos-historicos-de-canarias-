@@ -85,7 +85,7 @@ export function buildConfirmacionEmail(data: EmailData): string {
           <!-- Header -->
           <tr>
             <td style="background:#50664d;border-radius:16px 16px 0 0;padding:32px 40px 28px;">
-              <p style="margin:0 0 6px;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.6);font-family:'Open Sans',sans-serif;">Conjuntos Históricos de Canarias</p>
+              <p style="margin:0 0 12px;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.85);font-family:'Open Sans',sans-serif;font-weight:600;">Conjuntos Históricos de Canarias</p>
               <table cellpadding="0" cellspacing="0" style="margin-bottom:14px;">
                 <tr>
                   <td valign="middle" style="padding-right:10px;">
