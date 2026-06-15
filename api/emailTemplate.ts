@@ -52,10 +52,16 @@ export function buildConfirmacionEmail(data: EmailData): string {
           <tr>
             <td style="background:#50664d;border-radius:16px 16px 0 0;padding:32px 40px 28px;">
               <p style="margin:0 0 6px;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.6);font-family:'Open Sans',sans-serif;">Conjuntos Históricos de Canarias</p>
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-                <span style="font-size:18px;color:#fff;">✓</span>
-                <span style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.7);font-family:'Open Sans',sans-serif;">Inscripción confirmada</span>
-              </div>
+              <table cellpadding="0" cellspacing="0" style="margin-bottom:14px;">
+                <tr>
+                  <td valign="middle" style="padding-right:8px;">
+                    <span style="font-size:11px;color:#fff;line-height:1;">✓</span>
+                  </td>
+                  <td valign="middle">
+                    <span style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.7);font-family:'Open Sans',sans-serif;">Inscripción confirmada</span>
+                  </td>
+                </tr>
+              </table>
               <h1 style="margin:0;font-size:22px;font-weight:300;color:#fff;line-height:1.3;font-family:Georgia,serif;">${titulo}</h1>
             </td>
           </tr>
