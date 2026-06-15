@@ -1,15 +1,20 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { Resend } from 'resend'
-import { initializeApp, getApps, cert } from 'firebase-admin/app'
-import { getAuth } from 'firebase-admin/auth'
 import { buildConfirmacionEmail, type EmailData } from './emailTemplate.js'
 
-if (!getApps().length) {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT ?? '{}')
-  initializeApp({ credential: cert(serviceAccount) })
-}
-
 const resend = new Resend(process.env.RESEND_API_KEY)
+
+async function verifyFirebaseToken(idToken: string): Promise<boolean> {
+  const res = await fetch(
+    `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${process.env.FIREBASE_API_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken }),
+    }
+  )
+  return res.ok
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).end()
@@ -18,11 +23,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (!idToken || !email) return res.status(400).json({ error: 'Missing fields' })
 
-  try {
-    await getAuth().verifyIdToken(idToken)
-  } catch {
-    return res.status(401).json({ error: 'Invalid token' })
-  }
+  const valid = await verifyFirebaseToken(idToken)
+  if (!valid) return res.status(401).json({ error: 'Invalid token' })
 
   try {
     await resend.emails.send({
