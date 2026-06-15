@@ -317,6 +317,31 @@ export function ActividadPage() {
     setInscripcionError('')
     try {
       await inscribirse(actividad.id, user.uid, user.email ?? '', user.displayName ?? '')
+      // Fire-and-forget: enviar email de confirmación
+      user.getIdToken().then(idToken => {
+        const conjunto = conjuntos.find(c => c.id === actividad.conjuntoId)
+        const fechaStr = new Date(actividad.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
+          weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+        })
+        fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            idToken,
+            email: user.email ?? '',
+            nombre: user.displayName ?? 'participante',
+            titulo: actividad.titulo,
+            fecha: fechaStr,
+            hora: actividad.hora,
+            duracion: actividad.duracion,
+            puntoEncuentro: actividad.puntoEncuentro,
+            organizador: actividad.organizador,
+            contacto: actividad.contacto,
+            conjuntoNombre: conjunto?.nombre,
+            conjuntoIsla: conjunto?.isla,
+          }),
+        }).catch(() => { /* silencioso — inscripción ya completada */ })
+      }).catch(() => { /* silencioso */ })
     } catch (err) {
       if (err instanceof SinPlazasError) {
         setInscripcionError('Ya no quedan plazas disponibles.')
