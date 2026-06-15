@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import type React from 'react'
 import { Link } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useIsDesktop } from '../hooks/useIsDesktop'
 import type { Actividad, Dificultad } from '../data/actividades'
 import type { Conjunto } from '../data/conjuntos'
 import { TEMATICAS, TEMATICA_COLORS, type Tematica } from '../data/tematicas'
 import { ISLAS, DIFICULTADES } from '../data/islas'
 import { useDataContext } from '../contexts/DataContext'
 import {
-  addActividad, cancelActividad, reactivarActividad,
+  addActividad, updateActividad, cancelActividad, reactivarActividad,
   addConjunto, updateConjunto,
   getInscritos, seedFirestore,
   type InscritoData,
@@ -221,6 +224,24 @@ const defaultActividadForm: ActividadForm = {
 
 const DEFAULT_IMAGE = 'https://upload.wikimedia.org/wikipedia/commons/4/40/Convento_de_San_Buenaventura_-_Betancuria_-_Fuerteventura.jpg'
 
+function actividadToForm(a: Actividad): ActividadForm {
+  return {
+    titulo: a.titulo,
+    conjuntoId: String(a.conjuntoId),
+    tematica: a.tematica,
+    fecha: a.fecha,
+    hora: a.hora ?? '',
+    duracion: a.duracion ?? '',
+    dificultad: a.dificultad,
+    plazas: String(a.plazas),
+    organizador: a.organizador ?? '',
+    contacto: a.contacto ?? '',
+    puntoEncuentro: a.puntoEncuentro ?? '',
+    descripcion: a.descripcion,
+    imagen: a.imagen === DEFAULT_IMAGE ? '' : a.imagen,
+  }
+}
+
 type ActividadErrors = Partial<Record<keyof ActividadForm, string>>
 
 export function validateActividad(form: ActividadForm): ActividadErrors {
@@ -255,30 +276,148 @@ export function validateActividad(form: ActividadForm): ActividadErrors {
   return e
 }
 
+const MAX_FECHAS = 5
+
+function MultiDatePicker({ selected, onChange }: {
+  selected: string[]
+  onChange: (dates: string[]) => void
+}) {
+  const today = new Date().toISOString().split('T')[0]
+  const [view, setView] = useState(() => {
+    const d = new Date()
+    return { year: d.getFullYear(), month: d.getMonth() }
+  })
+
+  const { year, month } = view
+  const startPad  = (new Date(year, month, 1).getDay() + 6) % 7
+  const daysCount = new Date(year, month + 1, 0).getDate()
+
+  const prevMonth = () => setView(v =>
+    v.month === 0 ? { year: v.year - 1, month: 11 } : { ...v, month: v.month - 1 }
+  )
+  const nextMonth = () => setView(v =>
+    v.month === 11 ? { year: v.year + 1, month: 0 } : { ...v, month: v.month + 1 }
+  )
+
+  const toggle = (dateStr: string) => {
+    if (selected.includes(dateStr)) {
+      onChange(selected.filter(d => d !== dateStr))
+    } else if (selected.length < MAX_FECHAS) {
+      onChange([...selected, dateStr].sort())
+    }
+  }
+
+  const monthLabel = new Date(year, month, 1)
+    .toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+
+  return (
+    <div className="flex flex-col gap-3 select-none rounded-xl border border-stone-200 p-4" style={labelStyle}>
+      {/* Navegación mes */}
+      <div className="flex items-center justify-between">
+        <button type="button" onClick={prevMonth}
+          className="w-7 h-7 flex items-center justify-center rounded-lg text-stone-400 hover:bg-stone-100 transition-colors cursor-pointer"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 18l-6-6 6-6" /></svg>
+        </button>
+        <span className="text-[11px] tracking-widest uppercase text-stone-500 capitalize">{monthLabel}</span>
+        <button type="button" onClick={nextMonth}
+          className="w-7 h-7 flex items-center justify-center rounded-lg text-stone-400 hover:bg-stone-100 transition-colors cursor-pointer"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 18l6-6-6-6" /></svg>
+        </button>
+      </div>
+
+      {/* Cabecera días */}
+      <div className="grid grid-cols-7">
+        {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(d => (
+          <div key={d} className="text-center text-[10px] text-stone-300 py-1">{d}</div>
+        ))}
+      </div>
+
+      {/* Grid de días */}
+      <div className="grid grid-cols-7 gap-y-1">
+        {Array(startPad).fill(null).map((_, i) => <div key={`e${i}`} />)}
+        {Array.from({ length: daysCount }, (_, i) => i + 1).map(day => {
+          const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+          const isPast     = dateStr < today
+          const isSelected = selected.includes(dateStr)
+          const isFull     = !isSelected && selected.length >= MAX_FECHAS
+          const disabled   = isPast || isFull
+          return (
+            <button
+              key={day}
+              type="button"
+              disabled={disabled}
+              onClick={() => toggle(dateStr)}
+              className={`mx-auto w-8 h-8 rounded-full text-[12px] transition-colors
+                ${isSelected
+                  ? 'text-white'
+                  : isPast
+                    ? 'text-stone-200 cursor-default'
+                    : isFull
+                      ? 'text-stone-300 cursor-default'
+                      : 'text-stone-700 hover:bg-stone-100 cursor-pointer'
+                }`}
+              style={isSelected ? { backgroundColor: '#595d8d' } : {}}
+            >
+              {day}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Contador + preview */}
+      <div className="flex items-center justify-between pt-2 border-t border-stone-100 text-[10px]">
+        <span className="text-stone-400">{selected.length} / {MAX_FECHAS} fechas</span>
+        {selected.length === MAX_FECHAS && (
+          <span className="text-amber-500">Máximo alcanzado</span>
+        )}
+      </div>
+      {selected.length > 0 && (
+        <p className="text-[11px] text-stone-500 leading-relaxed">
+          {selected.map(d =>
+            new Date(d + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })
+          ).join(' · ')}
+        </p>
+      )}
+    </div>
+  )
+}
+
 function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
   const [form, setForm] = useState<ActividadForm>(defaultActividadForm)
   const [errors, setErrors] = useState<ActividadErrors>({})
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
   const [saveError, setSaveError] = useState('')
+  const [modo, setModo] = useState<'unica' | 'multiple'>('unica')
+  const [fechas, setFechas] = useState<string[]>([])
 
   const set = (key: keyof ActividadForm) => (v: string) => {
     setForm(f => ({ ...f, [key]: v }))
     setErrors(e => ({ ...e, [key]: undefined }))
   }
 
+  const switchModo = (m: 'unica' | 'multiple') => {
+    setModo(m)
+    setFechas([])
+    setErrors(e => ({ ...e, fecha: undefined }))
+  }
+
   const handleSave = async () => {
-    const errs = validateActividad(form)
+    const fechaRef = modo === 'unica' ? form.fecha : (fechas[0] ?? '')
+    const errs = validateActividad({ ...form, fecha: fechaRef })
+    if (modo === 'multiple' && fechas.length === 0) errs.fecha = 'Selecciona al menos una fecha'
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
+
     setSaving(true)
     setSaveError('')
     try {
       const plazas = Number(form.plazas)
-      await addActividad({
+      const base = {
         titulo: form.titulo,
         conjuntoId: Number(form.conjuntoId),
         tematica: form.tematica as Tematica,
-        fecha: form.fecha,
         hora: form.hora,
         duracion: form.duracion,
         dificultad: form.dificultad as Dificultad,
@@ -289,8 +428,15 @@ function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
         puntoEncuentro: form.puntoEncuentro,
         descripcion: form.descripcion,
         imagen: form.imagen || DEFAULT_IMAGE,
-      })
+      }
+      if (modo === 'unica') {
+        await addActividad({ ...base, fecha: form.fecha })
+      } else {
+        const serieId = Math.random().toString(36).slice(2, 10)
+        await Promise.all(fechas.map(f => addActividad({ ...base, fecha: f, serieId })))
+      }
       setForm(defaultActividadForm)
+      setFechas([])
       setErrors({})
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
@@ -336,21 +482,58 @@ function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <FieldLabel>Fecha *</FieldLabel>
-              <Input value={form.fecha} onChange={set('fecha')} type="date" error={!!errors.fecha} />
+          {/* Toggle modo fecha */}
+          <div className="flex gap-2">
+            {(['unica', 'multiple'] as const).map(m => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => switchModo(m)}
+                className={`px-3 py-1 rounded-full text-[10px] tracking-widest uppercase transition-colors border cursor-pointer ${
+                  modo === m ? 'text-white border-transparent' : 'text-stone-400 border-stone-200 hover:border-stone-400'
+                }`}
+                style={modo === m ? { backgroundColor: '#595d8d' } : {}}
+              >
+                {m === 'unica' ? 'Fecha única' : 'Fechas múltiples'}
+              </button>
+            ))}
+          </div>
+
+          {modo === 'unica' ? (
+            <div className="grid grid-cols-3 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <FieldLabel>Fecha *</FieldLabel>
+                <Input value={form.fecha} onChange={set('fecha')} type="date" error={!!errors.fecha} />
+                <FieldError msg={errors.fecha} />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <FieldLabel>Hora</FieldLabel>
+                <Input value={form.hora} onChange={set('hora')} type="time" />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <FieldLabel>Duración</FieldLabel>
+                <Input value={form.duracion} onChange={set('duracion')} placeholder="2h 30min" />
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <FieldLabel>Hora</FieldLabel>
+                  <Input value={form.hora} onChange={set('hora')} type="time" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <FieldLabel>Duración</FieldLabel>
+                  <Input value={form.duracion} onChange={set('duracion')} placeholder="2h 30min" />
+                </div>
+              </div>
+              <MultiDatePicker
+                selected={fechas}
+                onChange={f => { setFechas(f); setErrors(e => ({ ...e, fecha: undefined })) }}
+              />
               <FieldError msg={errors.fecha} />
             </div>
-            <div className="flex flex-col gap-1.5">
-              <FieldLabel>Hora</FieldLabel>
-              <Input value={form.hora} onChange={set('hora')} type="time" />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <FieldLabel>Duración</FieldLabel>
-              <Input value={form.duracion} onChange={set('duracion')} placeholder="2h 30min" />
-            </div>
-          </div>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
@@ -401,12 +584,261 @@ function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
             <FieldError msg={errors.imagen} />
           </div>
 
-          <SaveButton loading={saving} success={success} onClick={handleSave} label="Crear actividad" />
+          <SaveButton
+            loading={saving}
+            success={success}
+            onClick={handleSave}
+            label={modo === 'multiple' && fechas.length > 0
+              ? `Crear ${fechas.length} evento${fechas.length !== 1 ? 's' : ''}`
+              : 'Crear actividad'
+            }
+          />
           {saveError && <p className="text-[10px] text-red-500 text-center">{saveError}</p>}
         </div>
       </SectionCard>
 
     </div>
+  )
+}
+
+// ── Edit Actividad Drawer ─────────────────────────────────────────────────────
+
+function EditActividadDrawer({
+  actividad,
+  conjuntos,
+  onClose,
+}: {
+  actividad: Actividad | null
+  conjuntos: Conjunto[]
+  onClose: () => void
+}) {
+  const isDesktop = useIsDesktop()
+  const inscritos = actividad ? actividad.plazas - actividad.plazasDisponibles : 0
+
+  const [form, setForm] = useState<ActividadForm>(defaultActividadForm)
+  const [errors, setErrors] = useState<ActividadErrors>({})
+  const [saving, setSaving] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [saveError, setSaveError] = useState('')
+
+  useEffect(() => {
+    if (actividad) {
+      setForm(actividadToForm(actividad))
+      setErrors({})
+      setSaveError('')
+      setSuccess(false)
+    }
+  }, [actividad?.id])
+
+  const set = (key: keyof ActividadForm) => (v: string) => {
+    setForm(f => ({ ...f, [key]: v }))
+    setErrors(e => ({ ...e, [key]: undefined }))
+  }
+
+  const handleSave = async () => {
+    if (!actividad) return
+    const errs = validateActividad(form)
+    const newPlazas = Number(form.plazas)
+    if (!errs.plazas && newPlazas < inscritos) {
+      errs.plazas = `Mínimo ${inscritos} (hay ${inscritos} inscrito${inscritos !== 1 ? 's' : ''})`
+    }
+    if (Object.keys(errs).length > 0) { setErrors(errs); return }
+    setSaving(true)
+    setSaveError('')
+    try {
+      await updateActividad(actividad.id, {
+        titulo: form.titulo,
+        conjuntoId: Number(form.conjuntoId),
+        tematica: form.tematica as Tematica,
+        fecha: form.fecha,
+        hora: form.hora,
+        duracion: form.duracion,
+        dificultad: form.dificultad as Dificultad,
+        plazas: newPlazas,
+        plazasDisponibles: newPlazas - inscritos,
+        organizador: form.organizador,
+        contacto: form.contacto,
+        puntoEncuentro: form.puntoEncuentro,
+        descripcion: form.descripcion,
+        imagen: form.imagen || DEFAULT_IMAGE,
+      })
+      setSuccess(true)
+      setTimeout(() => { setSuccess(false); onClose() }, 1500)
+    } catch {
+      setSaveError('Error al guardar. Inténtalo de nuevo.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const cardVariants = isDesktop
+    ? { initial: { x: '100%' }, animate: { x: 0 }, exit: { x: '100%' } }
+    : { initial: { y: '100%' }, animate: { y: 0 }, exit: { y: '100%' } }
+
+  return createPortal(
+    <AnimatePresence>
+      {actividad && (
+        <motion.div
+          className="fixed inset-0 z-[9998] bg-black/30"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+        >
+          <motion.div
+            className="
+              bg-stone-50 flex flex-col overflow-hidden
+              fixed bottom-0 left-0 right-0 rounded-t-3xl max-h-[92svh]
+              sm:top-0 sm:bottom-auto sm:left-auto sm:right-0
+              sm:w-[440px] sm:rounded-none sm:rounded-l-2xl sm:h-full sm:max-h-full
+            "
+            variants={cardVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={isDesktop
+              ? { duration: 0.2, ease: 'easeOut' }
+              : { type: 'spring', damping: 30, stiffness: 300 }
+            }
+            drag={isDesktop ? false : 'y'}
+            dragConstraints={isDesktop ? undefined : { top: 0 }}
+            dragElastic={isDesktop ? undefined : { top: 0 }}
+            onDragEnd={isDesktop ? undefined : (_, info) => { if (info.offset.y > 80) onClose() }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Handle mobile */}
+            {!isDesktop && (
+              <div className="flex justify-center pt-3 pb-1 shrink-0 cursor-grab active:cursor-grabbing">
+                <div className="w-10 h-1 rounded-full bg-stone-200" />
+              </div>
+            )}
+
+            {/* Scrollable content */}
+            <div className="overflow-y-auto flex-1 px-8 py-7 flex flex-col gap-5" style={labelStyle}>
+
+              {/* Header */}
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-[10px] tracking-[0.25em] uppercase text-stone-400 mb-1">Editando evento</p>
+                  <p className="text-sm text-stone-800 leading-snug">{actividad.titulo}</p>
+                  {inscritos > 0 && (
+                    <p className="text-[11px] text-amber-500 mt-1">
+                      {inscritos} inscrito{inscritos !== 1 ? 's' : ''} · plazas no reducibles por debajo de este número
+                    </p>
+                  )}
+                </div>
+                <button
+                  onClick={onClose}
+                  className="shrink-0 w-7 h-7 rounded-full bg-stone-200 hover:bg-stone-300 flex items-center justify-center text-stone-400 transition-colors cursor-pointer"
+                  aria-label="Cerrar"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                    <path d="M18 6 6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="w-full h-px bg-stone-200" />
+
+              {/* Form fields */}
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <FieldLabel>Título *</FieldLabel>
+                  <Input value={form.titulo} onChange={set('titulo')} error={!!errors.titulo} />
+                  <FieldError msg={errors.titulo} />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <FieldLabel>Conjunto *</FieldLabel>
+                    <Select value={form.conjuntoId} onChange={set('conjuntoId')} error={!!errors.conjuntoId}>
+                      <option value="">Seleccionar</option>
+                      {conjuntos.map(c => (
+                        <option key={c.id} value={c.id}>
+                          {c.nombre.replace('Conjunto Histórico de ', '')}
+                        </option>
+                      ))}
+                    </Select>
+                    <FieldError msg={errors.conjuntoId} />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <FieldLabel>Temática *</FieldLabel>
+                    <Select value={form.tematica} onChange={set('tematica')} error={!!errors.tematica}>
+                      <option value="">Seleccionar</option>
+                      {TEMATICAS.map(t => <option key={t} value={t}>{t}</option>)}
+                    </Select>
+                    <FieldError msg={errors.tematica} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <FieldLabel>Fecha *</FieldLabel>
+                    <Input value={form.fecha} onChange={set('fecha')} type="date" error={!!errors.fecha} />
+                    <FieldError msg={errors.fecha} />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <FieldLabel>Hora</FieldLabel>
+                    <Input value={form.hora} onChange={set('hora')} type="time" />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <FieldLabel>Duración</FieldLabel>
+                    <Input value={form.duracion} onChange={set('duracion')} placeholder="2h 30min" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <FieldLabel>Plazas *</FieldLabel>
+                    <Input value={form.plazas} onChange={set('plazas')} type="number" error={!!errors.plazas} />
+                    <FieldError msg={errors.plazas} />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <FieldLabel>Dificultad</FieldLabel>
+                    <Select value={form.dificultad} onChange={set('dificultad')}>
+                      {DIFICULTADES.map(d => <option key={d} value={d}>{d}</option>)}
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <FieldLabel>Organizador</FieldLabel>
+                    <Input value={form.organizador} onChange={set('organizador')} placeholder="Entidad" />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <FieldLabel>Contacto</FieldLabel>
+                    <Input value={form.contacto} onChange={set('contacto')} placeholder="email o 6XXXXXXXX" error={!!errors.contacto} />
+                    <FieldError msg={errors.contacto} />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <FieldLabel>Punto de encuentro</FieldLabel>
+                  <Input value={form.puntoEncuentro} onChange={set('puntoEncuentro')} placeholder="Lugar exacto de inicio" />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <FieldLabel>Descripción *</FieldLabel>
+                  <Textarea value={form.descripcion} onChange={set('descripcion')} rows={4} />
+                  <FieldError msg={errors.descripcion} />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <FieldLabel>Imagen URL</FieldLabel>
+                  <Input value={form.imagen} onChange={set('imagen')} placeholder="https://..." error={!!errors.imagen} />
+                  <FieldError msg={errors.imagen} />
+                </div>
+
+                <SaveButton loading={saving} success={success} onClick={handleSave} label="Guardar cambios" />
+                {saveError && <p className="text-[10px] text-red-500 text-center">{saveError}</p>}
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body
   )
 }
 
@@ -416,9 +848,10 @@ type ActivityCardProps = {
   actividad: Actividad
   selected: boolean
   onClick: () => void
+  onEdit: () => void
 }
 
-function ActivityCard({ actividad, selected, onClick }: ActivityCardProps) {
+function ActivityCard({ actividad, selected, onClick, onEdit }: ActivityCardProps) {
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [acting, setActing] = useState(false)
   const [actingError, setActingError] = useState('')
@@ -511,16 +944,8 @@ function ActivityCard({ actividad, selected, onClick }: ActivityCardProps) {
       )}
 
       {/* Acción inferior */}
-      <div className="px-4 pt-2 pb-3 border-t border-stone-100">
-        {isCancelada ? (
-          <button
-            onClick={handleReactivar}
-            disabled={acting}
-            className="text-[10px] tracking-widest uppercase text-stone-300 transition-colors cursor-pointer disabled:opacity-40 hover:text-[#50664d]"
-          >
-            {acting ? '...' : 'Reactivar evento'}
-          </button>
-        ) : confirmCancel ? (
+      <div className="px-4 pt-2 pb-3 border-t border-stone-100 flex items-center justify-between gap-3">
+        {confirmCancel ? (
           <div className="flex gap-2 items-center">
             <button
               onClick={e => { e.stopPropagation(); setConfirmCancel(false) }}
@@ -537,25 +962,44 @@ function ActivityCard({ actividad, selected, onClick }: ActivityCardProps) {
             </button>
           </div>
         ) : (
-          <button
-            onClick={e => { e.stopPropagation(); setConfirmCancel(true) }}
-            className="text-[10px] tracking-widest uppercase text-stone-300 hover:text-red-400 transition-colors cursor-pointer"
-          >
-            Cancelar evento
-          </button>
+          <>
+            <button
+              onClick={e => { e.stopPropagation(); onEdit() }}
+              className="text-[10px] tracking-widest uppercase text-stone-300 hover:text-[#595d8d] transition-colors cursor-pointer"
+            >
+              Editar
+            </button>
+            {isCancelada ? (
+              <button
+                onClick={handleReactivar}
+                disabled={acting}
+                className="text-[10px] tracking-widest uppercase text-stone-300 transition-colors cursor-pointer disabled:opacity-40 hover:text-[#50664d]"
+              >
+                {acting ? '...' : 'Reactivar'}
+              </button>
+            ) : (
+              <button
+                onClick={e => { e.stopPropagation(); setConfirmCancel(true) }}
+                className="text-[10px] tracking-widest uppercase text-stone-300 hover:text-red-400 transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>
   )
 }
 
-function ControlAsistentes({ actividades }: { actividades: Actividad[] }) {
+function ControlAsistentes({ actividades, conjuntos }: { actividades: Actividad[]; conjuntos: Conjunto[] }) {
   const today    = new Date().toISOString().slice(0, 10)
   const proximas = actividades.filter(a => a.fecha >= today && !a.cancelada).sort((a, b) => a.fecha.localeCompare(b.fecha))
   const pasadas  = actividades.filter(a => a.fecha <  today || !!a.cancelada).sort((a, b) => b.fecha.localeCompare(a.fecha))
 
   const [showPasadas,      setShowPasadas]      = useState(false)
   const [selectedId,       setSelectedId]       = useState<number | null>(null)
+  const [editingId,        setEditingId]        = useState<number | null>(null)
   const [inscritos,        setInscritos]        = useState<InscritoData[]>([])
   const [loadingInscritos, setLoadingInscritos] = useState(false)
   const [fetchError,       setFetchError]       = useState<string | null>(null)
@@ -563,6 +1007,7 @@ function ControlAsistentes({ actividades }: { actividades: Actividad[] }) {
 
   const visible            = showPasadas ? pasadas : proximas
   const selectedActividad  = actividades.find(a => a.id === selectedId)
+  const editingActividad   = actividades.find(a => a.id === editingId)
   const selectedCount      = selectedActividad
     ? selectedActividad.plazas - selectedActividad.plazasDisponibles
     : 0
@@ -592,8 +1037,15 @@ function ControlAsistentes({ actividades }: { actividades: Actividad[] }) {
     fetchInscritos(selectedId, selectedCount)
   }, [selectedId, selectedCount])
 
-  const handleSelect = (id: number) =>
+  const handleSelect = (id: number) => {
+    setEditingId(null)
     setSelectedId(prev => prev === id ? null : id)
+  }
+
+  const handleEdit = (id: number) => {
+    setSelectedId(null)
+    setEditingId(prev => prev === id ? null : id)
+  }
 
   const tabs = [
     { label: `Próximas (${proximas.length})`, active: !showPasadas, onClick: () => setShowPasadas(false) },
@@ -603,7 +1055,13 @@ function ControlAsistentes({ actividades }: { actividades: Actividad[] }) {
   return (
     <div className="flex flex-col gap-6">
 
-      {/* Panel de inscritos — arriba, visible al seleccionar un evento */}
+      <EditActividadDrawer
+        actividad={editingActividad ?? null}
+        conjuntos={conjuntos}
+        onClose={() => setEditingId(null)}
+      />
+
+      {/* Panel de inscritos */}
       {selectedActividad && (
         <div className="bg-white rounded-2xl border border-stone-100 p-6" style={labelStyle}>
           <div className="flex items-start justify-between mb-5">
@@ -654,7 +1112,7 @@ function ControlAsistentes({ actividades }: { actividades: Actividad[] }) {
               className={`px-3 py-1 rounded-full text-[10px] tracking-widest uppercase transition-colors border cursor-pointer ${
                 t.active ? 'text-white border-transparent' : 'text-stone-400 border-stone-200 hover:border-stone-400'
               }`}
-          style={t.active ? { backgroundColor: '#595d8d' } : {}}
+              style={t.active ? { backgroundColor: '#595d8d' } : {}}
             >
               {t.label}
             </button>
@@ -671,6 +1129,7 @@ function ControlAsistentes({ actividades }: { actividades: Actividad[] }) {
                 actividad={a}
                 selected={a.id === selectedId}
                 onClick={() => handleSelect(a.id)}
+                onEdit={() => handleEdit(a.id)}
               />
             ))}
           </div>
@@ -1183,7 +1642,7 @@ export function AdminPage() {
 
           {section === 'conjuntos'  && <GestionConjuntos conjuntos={conjuntos} />}
           {section === 'actividad'  && <AltaActividad conjuntos={conjuntos} />}
-          {section === 'asistentes' && <ControlAsistentes actividades={actividades} />}
+          {section === 'asistentes' && <ControlAsistentes actividades={actividades} conjuntos={conjuntos} />}
 
         </div>
       </div>
