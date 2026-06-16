@@ -33,7 +33,7 @@ import { useDataContext } from '../contexts/DataContext'
 import {
   addActividad, updateActividad, cancelActividad, reactivarActividad,
   addConjunto, updateConjunto,
-  getInscritos, seedFirestore,
+  getInscritos,
   type InscritoData,
 } from '../lib/db'
 
@@ -1719,7 +1719,11 @@ export function AdminPage() {
 
         <div className="flex-1 px-6 sm:px-8 py-8">
 
-          {!dataLoading && actividades.length === 0 && <SeedBanner />}
+          {!dataLoading && actividades.length === 0 && (
+            <p className="text-xs text-stone-400 text-center py-8" style={{ fontFamily: "'Open Sans', sans-serif" }}>
+              No hay actividades. Crea la primera desde "Nueva actividad".
+            </p>
+          )}
 
           {section === 'conjuntos'  && <GestionConjuntos conjuntos={conjuntos} />}
           {section === 'actividad'  && <AltaActividad conjuntos={conjuntos} />}
