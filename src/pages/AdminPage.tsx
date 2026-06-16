@@ -189,45 +189,6 @@ function isValidContacto(v: string): boolean {
   return /^[6-9]\d{8}$/.test(clean)
 }
 
-// ── Seed Banner ───────────────────────────────────────────────────────────────
-
-function SeedBanner() {
-  const [seeding, setSeeding] = useState(false)
-  const [done, setDone] = useState(false)
-
-  const handleSeed = async () => {
-    setSeeding(true)
-    try {
-      await seedFirestore()
-      setDone(true)
-    } finally {
-      setSeeding(false)
-    }
-  }
-
-  return (
-    <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-6 py-5 flex flex-col sm:flex-row sm:items-center gap-4" style={labelStyle}>
-      <div className="flex-1">
-        <p className="text-[10px] tracking-widest uppercase text-amber-600 mb-1">Base de datos vacía</p>
-        <p className="text-sm text-amber-800">
-          {done
-            ? 'Base de datos inicializada. Los datos ya están disponibles.'
-            : 'Inicializa Firestore con los 26 actividades y 9 conjuntos del catálogo base.'}
-        </p>
-      </div>
-      {!done && (
-        <button
-          onClick={handleSeed}
-          disabled={seeding}
-          className="shrink-0 px-5 py-2.5 rounded-xl bg-amber-600 text-white text-[11px] tracking-widest uppercase hover:bg-amber-700 transition-colors disabled:opacity-40 cursor-pointer"
-        >
-          {seeding ? '...' : 'Inicializar datos'}
-        </button>
-      )}
-    </div>
-  )
-}
-
 // ── Alta de Actividad ─────────────────────────────────────────────────────────
 
 type ActividadForm = {
