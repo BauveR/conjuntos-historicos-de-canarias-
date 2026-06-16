@@ -25,7 +25,7 @@ export function Hero() {
     >
       <div className="absolute inset-0">
         <Grainient
-          color1="#cd6a26"
+          color1="#9c4835"
           color2="#b19e7b"
           color3="#595d8d"
           timeSpeed={0.22}
@@ -51,7 +51,7 @@ export function Hero() {
       </div>
       <div className="absolute left-1/2 top-[52%] sm:top-[54%] -translate-x-1/2 -translate-y-1/2 w-[55%] h-[88px] sm:w-full sm:h-64 max-w-2xl pointer-events-none z-[5]">
         <Strands
-          colors={["#f9f5f0", "#cd6a26", "#595d8d"]}
+          colors={["#f9f5f0", "#9c4835", "#595d8d"]}
           count={1}
           speed={0.4}
           amplitude={0.2}
