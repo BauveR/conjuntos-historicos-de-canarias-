@@ -3,6 +3,7 @@ import { Routes, Route, useLocation, useNavigationType } from 'react-router-dom'
 import type { Location } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Navbar } from './components/Navbar'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { Home } from './pages/Home'
 import { AuthPage } from './pages/AuthPage'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
@@ -27,6 +28,7 @@ export default function App() {
   const background = location.state?.background as Location | undefined
 
   return (
+    <ErrorBoundary>
     <AuthProvider>
       <DataProvider>
       <MapUIProvider>
@@ -71,5 +73,6 @@ export default function App() {
       </MapUIProvider>
       </DataProvider>
     </AuthProvider>
+    </ErrorBoundary>
   )
 }
