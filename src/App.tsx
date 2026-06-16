@@ -4,6 +4,7 @@ import type { Location } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Navbar } from './components/Navbar'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { CookieBanner } from './components/CookieBanner'
 import { Home } from './pages/Home'
 import { AuthPage } from './pages/AuthPage'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
@@ -18,6 +19,7 @@ const ProfilePage    = lazy(() => import('./pages/ProfilePage').then(m    => ({ 
 const AdminPage      = lazy(() => import('./pages/AdminPage').then(m      => ({ default: m.AdminPage      })))
 const PasaportePage  = lazy(() => import('./pages/PasaportePage').then(m  => ({ default: m.PasaportePage  })))
 const ContactoPage   = lazy(() => import('./pages/ContactoPage').then(m   => ({ default: m.ContactoPage   })))
+const PrivacidadPage = lazy(() => import('./pages/PrivacidadPage').then(m => ({ default: m.PrivacidadPage })))
 const ActividadModal = lazy(() => import('./components/map/ActividadModal').then(m => ({ default: m.ActividadModal })))
 const AuthModal      = lazy(() => import('./components/auth/AuthModal').then(m     => ({ default: m.AuthModal     })))
 
@@ -53,6 +55,7 @@ export default function App() {
                 <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
                 <Route path="/pasaporte" element={<PasaportePage />} />
                 <Route path="/contacto" element={<ContactoPage />} />
+                <Route path="/privacidad" element={<PrivacidadPage />} />
               </Routes>
             </Suspense>
           </motion.div>
@@ -70,6 +73,7 @@ export default function App() {
             </Suspense>
           )}
         </AnimatePresence>
+        <CookieBanner />
       </MapUIProvider>
       </DataProvider>
     </AuthProvider>
