@@ -1,39 +1,82 @@
-import { CanariasAnimation } from './components/CanariasAnimation'
+import { lazy, Suspense } from 'react'
+import { Routes, Route, useLocation, useNavigationType } from 'react-router-dom'
+import type { Location } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Navbar } from './components/Navbar'
+import { ErrorBoundary } from './components/ErrorBoundary'
+import { CookieBanner } from './components/CookieBanner'
+import { Home } from './pages/Home'
+import { AuthPage } from './pages/AuthPage'
+import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import { DataProvider } from './contexts/DataContext'
+import { MapUIProvider } from './contexts/MapUIContext'
+import { AuthProvider } from './contexts/AuthContext'
+import { pageVariants } from './utils/pageTransition'
 import './App.css'
 
+const ActividadPage  = lazy(() => import('./pages/ActividadPage').then(m  => ({ default: m.ActividadPage  })))
+const ProfilePage    = lazy(() => import('./pages/ProfilePage').then(m    => ({ default: m.ProfilePage    })))
+const AdminPage      = lazy(() => import('./pages/AdminPage').then(m      => ({ default: m.AdminPage      })))
+const PasaportePage  = lazy(() => import('./pages/PasaportePage').then(m  => ({ default: m.PasaportePage  })))
+const ContactoPage   = lazy(() => import('./pages/ContactoPage').then(m   => ({ default: m.ContactoPage   })))
+const PrivacidadPage = lazy(() => import('./pages/PrivacidadPage').then(m => ({ default: m.PrivacidadPage })))
+const ActividadModal = lazy(() => import('./components/map/ActividadModal').then(m => ({ default: m.ActividadModal })))
+const AuthModal      = lazy(() => import('./components/auth/AuthModal').then(m     => ({ default: m.AuthModal     })))
+
 export default function App() {
+  const location = useLocation()
+  const navType = useNavigationType()
+  const isBack = navType === 'POP'
+  const background = location.state?.background as Location | undefined
+
   return (
-    <main
-      className="min-h-svh w-full flex flex-col items-center justify-center gap-8 px-4 py-12"
-      style={{ background: 'linear-gradient(to bottom, #c36414, #d6a103)' }}
-    >
-      <div className="w-full max-w-[360px] sm:max-w-xl md:max-w-2xl lg:max-w-4xl mb-4 sm:-mb-8 md:-mb-6">
-        <CanariasAnimation className="w-full h-auto" />
-      </div>
+    <ErrorBoundary>
+    <AuthProvider>
+      <DataProvider>
+      <MapUIProvider>
+        <Navbar />
 
-      <div className="flex flex-col items-center gap-12 text-center w-full max-w-3xl px-2">
-        <h1
-          className="text-[4.8vw] sm:text-[4.2vw] md:text-[4.2vw] lg:text-6xl font-thin text-white tracking-tight uppercase whitespace-nowrap"
-          style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}
-        >
-          Conjuntos Históricos de Canarias
-        </h1>
+        {/* Main content — renders background location when modal is open */}
+        <AnimatePresence>
+          <motion.div
+            key={(background ?? location).pathname}
+            custom={isBack}
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+          >
+            <Suspense fallback={null}>
+              <Routes location={background ?? location}>
+                <Route path="/" element={<Home />} />
+                <Route path="/actividades/:id" element={<ActividadPage />} />
+                <Route path="/login" element={<AuthPage />} />
+                <Route path="/perfil" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
+                <Route path="/pasaporte" element={<PasaportePage />} />
+                <Route path="/contacto" element={<ContactoPage />} />
+                <Route path="/privacidad" element={<PrivacidadPage />} />
+              </Routes>
+            </Suspense>
+          </motion.div>
+        </AnimatePresence>
 
-        <div className="flex flex-col gap-0 md:gap-1 mt-16" style={{ fontFamily: "'Open Sans', sans-serif" }}>
-          <p className="text-white/80 text-sm sm:text-base md:text-lg leading-relaxed">
-            Estamos construyendo algo especial.
-          </p>
-          <p className="text-white/80 text-[3vw] sm:text-base md:text-lg leading-relaxed whitespace-nowrap">
-            Pronto podrás explorar el patrimonio histórico de las islas.
-          </p>
-        </div>
-
-        <div className="w-16 h-px bg-white/30 -my-8" aria-hidden="true" />
-
-        <p className="text-white/60 text-[3vw] sm:text-sm md:text-base font-bold" style={{ fontFamily: "'Open Sans', sans-serif" }}>
-          Sitio web en construcción — próximamente disponible
-        </p>
-      </div>
-    </main>
+        {/* Modal overlay — shown when navigated with background state */}
+        <AnimatePresence>
+          {background && (
+            <Suspense fallback={null}>
+              <Routes key="modal">
+                <Route path="/actividades/:id" element={<ActividadModal />} />
+                <Route path="/login" element={<AuthModal />} />
+                <Route path="*" element={null} />
+              </Routes>
+            </Suspense>
+          )}
+        </AnimatePresence>
+        <CookieBanner />
+      </MapUIProvider>
+      </DataProvider>
+    </AuthProvider>
+    </ErrorBoundary>
   )
 }

@@ -1,0 +1,63 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuth()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // ── Users ─────────────────────────────────────────────────────────────────
+    match /users/{uid} {
+      // El propio usuario lee su doc (fetchRole); admin puede leer cualquiera
+      allow read: if request.auth.uid == uid || isAdmin();
+
+      // ensureUserDoc crea el doc en primer login; role solo puede ser 'user'
+      allow create: if request.auth.uid == uid
+        && request.resource.data.role == 'user';
+
+      // Solo admin puede modificar (p.ej. cambiar role a 'admin')
+      allow update: if isAdmin();
+
+      match /inscripciones/{actividadId} {
+        allow read, write: if request.auth.uid == uid || isAdmin();
+      }
+    }
+
+    // ── Actividades ───────────────────────────────────────────────────────────
+    match /actividades/{actividadId} {
+      // Catálogo público
+      allow read: if true;
+
+      // Solo admin crea o borra actividades
+      allow create, delete: if isAdmin();
+
+      // Admin actualiza cualquier campo; usuario autenticado SOLO plazasDisponibles
+      // (cubre inscribirse y liberarPlaza vía runTransaction)
+      allow update: if isAdmin()
+        || (isAuth()
+            && request.resource.data.diff(resource.data)
+                .affectedKeys().hasOnly(['plazasDisponibles'])
+            && request.resource.data.plazasDisponibles >= 0
+            && request.resource.data.plazasDisponibles <= resource.data.plazas);
+
+      match /inscritos/{uid} {
+        // Admin ve la lista completa; el propio uid necesita leer su doc en liberarPlaza
+        allow read: if isAdmin() || request.auth.uid == uid;
+
+        // El propio uid escribe/borra su inscrito; admin puede borrar (limpieza)
+        allow write: if request.auth.uid == uid || isAdmin();
+      }
+    }
+
+    // ── Conjuntos ─────────────────────────────────────────────────────────────
+    match /conjuntos/{conjuntoId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
