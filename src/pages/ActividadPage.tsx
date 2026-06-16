@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Navigate, useNavigate, useLocation, Link } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 import { TEMATICA_COLORS } from '../data/tematicas'
 import { DifficultyDots } from '../components/actividades/DifficultyDots'
 import { useAuth } from '../contexts/AuthContext'
@@ -9,6 +10,79 @@ import type { Actividad } from '../data/actividades'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 const serifStyle = { fontFamily: "'Playfair Display', serif" }
+
+// ── InscripcionSuccessPopup ───────────────────────────────────────────────────
+
+function InscripcionSuccessPopup({ titulo, onClose }: { titulo: string; onClose: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[300] flex items-center justify-center p-6"
+      style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}
+      onClick={onClose}
+    >
+      <style>{`
+        @keyframes chc-circle { to { stroke-dashoffset: 0; } }
+        @keyframes chc-check  { to { stroke-dashoffset: 0; } }
+      `}</style>
+      <motion.div
+        initial={{ scale: 0.88, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.88, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 280, damping: 22 }}
+        className="rounded-3xl max-w-sm w-full flex flex-col items-center gap-6 px-8 py-10"
+        style={{ backgroundColor: '#50664d' }}
+        onClick={e => e.stopPropagation()}
+      >
+        <span
+          className="text-[10px] tracking-[0.25em] uppercase text-center"
+          style={{ ...labelStyle, color: 'rgba(255,255,255,0.55)' }}
+        >
+          Conjuntos Históricos de Canarias
+        </span>
+
+        <svg width="96" height="96" viewBox="0 0 96 96" fill="none">
+          <circle cx="48" cy="48" r="44" stroke="rgba(255,255,255,0.15)" strokeWidth="2" />
+          <circle
+            cx="48" cy="48" r="44"
+            stroke="white" strokeWidth="2" strokeLinecap="round"
+            strokeDasharray="277" strokeDashoffset="277"
+            transform="rotate(-90 48 48)"
+            style={{ animation: 'chc-circle 0.65s ease forwards' }}
+          />
+          <path
+            d="M28 48 L42 62 L70 30"
+            stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"
+            strokeDasharray="65" strokeDashoffset="65"
+            style={{ animation: 'chc-check 0.4s ease 0.55s forwards' }}
+          />
+        </svg>
+
+        <div className="flex flex-col items-center gap-2 text-center">
+          <span
+            className="text-[10px] tracking-[0.2em] uppercase"
+            style={{ ...labelStyle, color: 'rgba(255,255,255,0.65)' }}
+          >
+            Inscripción confirmada
+          </span>
+          <p className="text-white text-lg leading-snug" style={serifStyle}>
+            {titulo}
+          </p>
+        </div>
+
+        <button
+          onClick={onClose}
+          className="mt-1 px-6 py-2.5 rounded-full text-[10px] tracking-widest uppercase cursor-pointer transition-colors hover:bg-white/20"
+          style={{ ...labelStyle, backgroundColor: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.75)' }}
+        >
+          Cerrar
+        </button>
+      </motion.div>
+    </motion.div>
+  )
+}
 
 // ── BookingWidget ─────────────────────────────────────────────────────────────
 
@@ -290,6 +364,51 @@ export function ActividadPage() {
   const [inscripcionError, setInscripcionError] = useState('')
   const [confirmando, setConfirmando] = useState(false)
   const [liberando, setLiberando] = useState(false)
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false)
+
+  // Auto-inscripción tras login: si el usuario acaba de autenticarse y hay una inscripción pendiente
+  useEffect(() => {
+    if (!user || !actividad || inscrito) return
+    const pending = sessionStorage.getItem('pendingInscripcion')
+    if (pending !== String(actividad.id)) return
+    sessionStorage.removeItem('pendingInscripcion')
+
+    setInscribiendo(true)
+    setInscripcionError('')
+    inscribirse(actividad.id, user.uid, user.email ?? '', user.displayName ?? '')
+      .then(() => {
+        setShowSuccessPopup(true)
+        user.getIdToken().then(idToken => {
+          const conjunto = conjuntos.find(c => c.id === actividad.conjuntoId)
+          const fechaStr = new Date(actividad.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
+            weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+          })
+          fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              idToken,
+              titulo: actividad.titulo,
+              fecha: fechaStr,
+              hora: actividad.hora,
+              duracion: actividad.duracion,
+              puntoEncuentro: actividad.puntoEncuentro,
+              organizador: actividad.organizador,
+              contacto: actividad.contacto,
+              conjuntoNombre: conjunto?.nombre,
+              conjuntoIsla: conjunto?.isla,
+            }),
+          }).catch(() => {})
+        }).catch(() => {})
+      })
+      .catch(err => {
+        if (err instanceof SinPlazasError) setInscripcionError('Ya no quedan plazas disponibles.')
+        else if (err instanceof EventoCanceladoError) setInscripcionError('Este evento ha sido cancelado.')
+        else setInscripcionError('Error al procesar la inscripción. Inténtalo de nuevo.')
+      })
+      .finally(() => setInscribiendo(false))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid, actividad?.id])
 
   const esPasada    = actividad ? actividad.fecha < new Date().toISOString().split('T')[0] : false
   const esCancelada = !!actividad?.cancelada
@@ -309,6 +428,7 @@ export function ActividadPage() {
 
   const handleInscribirse = async () => {
     if (!user) {
+      if (actividad) sessionStorage.setItem('pendingInscripcion', String(actividad.id))
       navigate('/login', { state: { background: location } })
       return
     }
@@ -456,6 +576,15 @@ export function ActividadPage() {
 
   // ── Vista principal ──────────────────────────────────────────────────────────
   return (
+    <>
+    <AnimatePresence>
+      {showSuccessPopup && (
+        <InscripcionSuccessPopup
+          titulo={actividad.titulo}
+          onClose={() => setShowSuccessPopup(false)}
+        />
+      )}
+    </AnimatePresence>
     <main className={`${isModal ? 'pt-6' : 'pt-16 min-h-screen'} bg-white`}>
       <div className="max-w-5xl mx-auto px-6 sm:px-8">
 
@@ -516,5 +645,6 @@ export function ActividadPage() {
         </div>
       </div>
     </main>
+    </>
   )
 }
