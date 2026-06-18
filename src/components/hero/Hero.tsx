@@ -21,8 +21,9 @@ export function Hero() {
   return (
     <section
       ref={sectionRef}
-      className="relative h-[80vh] flex justify-center px-2 sm:px-16"
+      className="relative h-[80vh] overflow-hidden flex justify-center px-2 sm:px-16"
     >
+      {/* fondo */}
       <div className="absolute inset-0">
         <Grainient
           color1="#9c4835"
@@ -49,28 +50,36 @@ export function Hero() {
           zoom={0.9}
         />
       </div>
-      <div className="absolute left-1/2 top-[52%] sm:top-[54%] -translate-x-1/2 -translate-y-1/2 w-[55%] h-[88px] sm:w-full sm:h-64 max-w-2xl pointer-events-none z-[5]">
-        <Strands
-          colors={["#f9f5f0", "#9c4835", "#595d8d"]}
-          count={1}
-          speed={0.4}
-          amplitude={0.2}
-          waviness={1}
-          thickness={0.5}
-          glow={0.7}
-          taper={1.5}
-          spread={0}
-          intensity={0.6}
-          saturation={1.5}
-          opacity={1}
-          scale={2.6}
-        />
-      </div>
-      <div className="relative z-10 my-auto flex flex-col items-center w-full sm:w-fit gap-6">
-        <SkylineCanvas svg={rawMonumental} prefix="sm" className="w-full sm:w-[560px] md:w-[700px] lg:w-[960px]" />
+
+      {/* único padre de todos los elementos visibles */}
+      <div className="relative z-10 my-auto flex flex-col items-center w-full max-w-[900px] gap-6">
+
+        {/* rayo — absolute dentro del padre, z negativo para quedar detrás del contenido */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[-1]">
+          <div className="w-[55%] h-[88px] sm:w-full sm:h-64 max-w-2xl translate-y-6">
+            <Strands
+              colors={["#f9f5f0", "#9c4835", "#595d8d"]}
+              count={1}
+              speed={0.4}
+              amplitude={0.2}
+              waviness={1}
+              thickness={0.5}
+              glow={0.7}
+              taper={1.5}
+              spread={0}
+              intensity={0.6}
+              saturation={1.5}
+              opacity={1}
+              scale={2.6}
+            />
+          </div>
+        </div>
+
+        <SkylineCanvas svg={rawMonumental} prefix="sm" className="w-full" />
+
         <motion.h1
           style={{ scale, opacity, fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 400", color: '#f9f5f0' }}
-          className="text-sm sm:text-xl md:text-2xl lg:text-3xl font-normal uppercase tracking-widest mt-6 text-center"
+          className="text-sm sm:text-xl md:text-2xl lg:text-3xl font-normal uppercase tracking-widest text-center"
         >
           <SplitText
             text="Conjuntos Históricos de Canarias"
@@ -86,10 +95,12 @@ export function Hero() {
             textAlign="center"
           />
         </motion.h1>
-        <SkylineCanvas svg={rawPopular} prefix="sp" className="w-full sm:w-[560px] md:w-[700px] lg:w-[960px]" />
+
+        <SkylineCanvas svg={rawPopular} prefix="sp" className="w-full" />
+
         <a
           href="/#actividades"
-          className="px-6 py-2.5 rounded-full text-[11px] tracking-widest uppercase text-white transition-opacity hover:opacity-80"
+          className="px-6 py-2.5 rounded-full text-[11px] tracking-widest uppercase text-white transition-opacity hover:opacity-80 whitespace-nowrap"
           style={{ backgroundColor: '#595d8d', fontFamily: "'Open Sans', sans-serif" }}
         >
           Explorar actividades
