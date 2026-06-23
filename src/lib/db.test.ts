@@ -5,23 +5,26 @@ import type { Transaction } from 'firebase/firestore'
 
 vi.mock('../firebase', () => ({ db: {} }))
 
-const mockRunTransaction = vi.fn()
+const mockRunTransaction  = vi.fn()
 const mockServerTimestamp = vi.fn(() => ({ _type: 'serverTimestamp' }))
-const mockIncrement = vi.fn((n: number) => n)
-const mockDoc = vi.fn((_db: unknown, ...segments: string[]) => segments.join('/'))
+const mockIncrement       = vi.fn((n: number) => n)
+const mockDoc             = vi.fn((_db: unknown, ...segments: string[]) => segments.join('/'))
+const mockDeleteDoc       = vi.fn()
+const mockGetDocs         = vi.fn()
+const mockCollection      = vi.fn((_db: unknown, ...segments: string[]) => segments.join('/'))
 
 vi.mock('firebase/firestore', () => ({
-  runTransaction: (...args: unknown[]) => mockRunTransaction(...args),
+  runTransaction:  (...args: unknown[]) => mockRunTransaction(...args),
   serverTimestamp: () => mockServerTimestamp(),
-  increment: (n: number) => mockIncrement(n),
-  doc: (_db: unknown, ...segments: string[]) => mockDoc(_db, ...segments),
-  collection: vi.fn(),
-  getDocs: vi.fn(),
-  onSnapshot: vi.fn(),
-  setDoc: vi.fn(),
-  updateDoc: vi.fn(),
-  deleteDoc: vi.fn(),
-  writeBatch: vi.fn(),
+  increment:       (n: number) => mockIncrement(n),
+  doc:             (_db: unknown, ...segments: string[]) => mockDoc(_db, ...segments),
+  collection:      (_db: unknown, ...segments: string[]) => mockCollection(_db, ...segments),
+  getDocs:         (...args: unknown[]) => mockGetDocs(...args),
+  onSnapshot:      vi.fn(),
+  setDoc:          vi.fn(),
+  updateDoc:       vi.fn(),
+  deleteDoc:       (...args: unknown[]) => mockDeleteDoc(...args),
+  writeBatch:      vi.fn(),
 }))
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -47,7 +50,7 @@ function runTxWith(tx: Transaction) {
 
 // ── Import after mocks ────────────────────────────────────────────────────────
 
-const { inscribirse, liberarPlaza, SinPlazasError, YaLiberadaError, EventoCanceladoError } =
+const { inscribirse, liberarPlaza, eliminarActividad, SinPlazasError, YaLiberadaError, EventoCanceladoError } =
   await import('./db')
 
 // ── inscribirse ───────────────────────────────────────────────────────────────
@@ -209,5 +212,53 @@ describe('liberarPlaza', () => {
 
     const updateCall = tx.update.mock.calls[0]
     expect(updateCall[1]).toMatchObject({ plazasDisponibles: 20 })
+  })
+})
+
+// ── eliminarActividad ─────────────────────────────────────────────────────────
+
+describe('eliminarActividad', () => {
+  beforeEach(() => {
+    mockDeleteDoc.mockReset()
+    mockGetDocs.mockReset()
+    mockDoc.mockImplementation((_db, ...s) => s.join('/'))
+    mockCollection.mockImplementation((_db, ...s) => s.join('/'))
+  })
+
+  it('sin inscritos: solo borra el documento de la actividad', async () => {
+    mockGetDocs.mockResolvedValue({ docs: [] })
+
+    await eliminarActividad(1)
+
+    expect(mockDeleteDoc).toHaveBeenCalledTimes(1)
+    expect(mockDeleteDoc).toHaveBeenCalledWith('actividades/1')
+  })
+
+  it('con un inscrito: borra inscripcion de usuario, doc inscrito y actividad', async () => {
+    const inscritoRef = 'actividades/1/inscritos/uid-a'
+    mockGetDocs.mockResolvedValue({ docs: [{ id: 'uid-a', ref: inscritoRef }] })
+
+    await eliminarActividad(1)
+
+    expect(mockDeleteDoc).toHaveBeenCalledTimes(3)
+    expect(mockDeleteDoc).toHaveBeenCalledWith('users/uid-a/inscripciones/1')
+    expect(mockDeleteDoc).toHaveBeenCalledWith(inscritoRef)
+    expect(mockDeleteDoc).toHaveBeenCalledWith('actividades/1')
+  })
+
+  it('con varios inscritos: borra todos los docs en el orden correcto', async () => {
+    const docs = [
+      { id: 'uid-a', ref: 'actividades/1/inscritos/uid-a' },
+      { id: 'uid-b', ref: 'actividades/1/inscritos/uid-b' },
+    ]
+    mockGetDocs.mockResolvedValue({ docs })
+
+    await eliminarActividad(1)
+
+    // 2 inscripciones de usuario + 2 docs de inscritos + 1 actividad
+    expect(mockDeleteDoc).toHaveBeenCalledTimes(5)
+    expect(mockDeleteDoc).toHaveBeenCalledWith('users/uid-a/inscripciones/1')
+    expect(mockDeleteDoc).toHaveBeenCalledWith('users/uid-b/inscripciones/1')
+    expect(mockDeleteDoc).toHaveBeenCalledWith('actividades/1')
   })
 })

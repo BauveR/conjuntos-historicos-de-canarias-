@@ -1,5 +1,5 @@
 import {
-  collection, doc, setDoc, updateDoc, getDocs,
+  collection, doc, setDoc, updateDoc, getDocs, deleteDoc,
   onSnapshot, writeBatch, runTransaction, increment, serverTimestamp,
   type Unsubscribe,
 } from 'firebase/firestore'
@@ -132,6 +132,15 @@ export async function cancelActividad(id: number): Promise<void> {
 
 export async function reactivarActividad(id: number): Promise<void> {
   await updateDoc(doc(db, 'actividades', String(id)), { cancelada: false })
+}
+
+export async function eliminarActividad(id: number): Promise<void> {
+  const inscritosSnap = await getDocs(collection(db, 'actividades', String(id), 'inscritos'))
+  for (const inscrito of inscritosSnap.docs) {
+    await deleteDoc(doc(db, 'users', inscrito.id, 'inscripciones', String(id)))
+    await deleteDoc(inscrito.ref)
+  }
+  await deleteDoc(doc(db, 'actividades', String(id)))
 }
 
 export async function getInscritos(actividadId: number): Promise<InscritoData[]> {

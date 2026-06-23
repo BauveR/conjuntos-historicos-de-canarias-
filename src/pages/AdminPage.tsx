@@ -31,7 +31,7 @@ import { TEMATICAS, TEMATICA_COLORS, type Tematica } from '../data/tematicas'
 import { ISLAS, DIFICULTADES } from '../data/islas'
 import { useDataContext } from '../contexts/DataContext'
 import {
-  addActividad, updateActividad, cancelActividad, reactivarActividad,
+  addActividad, updateActividad, cancelActividad, reactivarActividad, eliminarActividad,
   addConjunto, updateConjunto,
   getInscritos,
   type InscritoData,
@@ -865,6 +865,7 @@ type ActivityCardProps = {
 
 function ActivityCard({ actividad, selected, onClick, onEdit }: ActivityCardProps) {
   const [confirmCancel, setConfirmCancel] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const [acting, setActing] = useState(false)
   const [actingError, setActingError] = useState('')
 
@@ -891,6 +892,15 @@ function ActivityCard({ actividad, selected, onClick, onEdit }: ActivityCardProp
     try { await reactivarActividad(actividad.id) }
     catch { setActingError('Error al reactivar. Inténtalo de nuevo.') }
     finally { setActing(false) }
+  }
+
+  const handleEliminar = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setActing(true)
+    setActingError('')
+    try { await eliminarActividad(actividad.id) }
+    catch { setActingError('Error al eliminar. Inténtalo de nuevo.') }
+    finally { setActing(false); setConfirmDelete(false) }
   }
 
   const plazasLibres = actividad.plazasDisponibles
@@ -973,6 +983,22 @@ function ActivityCard({ actividad, selected, onClick, onEdit }: ActivityCardProp
               {acting ? '...' : 'Sí, cancelar'}
             </button>
           </div>
+        ) : confirmDelete ? (
+          <div className="flex gap-2 items-center">
+            <button
+              onClick={e => { e.stopPropagation(); setConfirmDelete(false) }}
+              className="text-[10px] text-stone-400 hover:text-stone-600 cursor-pointer"
+            >
+              No
+            </button>
+            <button
+              onClick={handleEliminar}
+              disabled={acting}
+              className="px-3 py-1 rounded-lg bg-red-700 text-white text-[10px] tracking-widest uppercase hover:bg-red-800 disabled:opacity-40 cursor-pointer"
+            >
+              {acting ? '...' : 'Sí, eliminar'}
+            </button>
+          </div>
         ) : (
           <>
             <button
@@ -982,13 +1008,21 @@ function ActivityCard({ actividad, selected, onClick, onEdit }: ActivityCardProp
               Editar
             </button>
             {isCancelada ? (
-              <button
-                onClick={handleReactivar}
-                disabled={acting}
-                className="text-[10px] tracking-widest uppercase text-stone-300 transition-colors cursor-pointer disabled:opacity-40 hover:text-[#50664d]"
-              >
-                {acting ? '...' : 'Reactivar'}
-              </button>
+              <div className="flex gap-3 items-center">
+                <button
+                  onClick={handleReactivar}
+                  disabled={acting}
+                  className="text-[10px] tracking-widest uppercase text-stone-300 transition-colors cursor-pointer disabled:opacity-40 hover:text-[#50664d]"
+                >
+                  {acting ? '...' : 'Reactivar'}
+                </button>
+                <button
+                  onClick={e => { e.stopPropagation(); setConfirmDelete(true) }}
+                  className="text-[10px] tracking-widest uppercase text-stone-300 hover:text-red-600 transition-colors cursor-pointer"
+                >
+                  Eliminar
+                </button>
+              </div>
             ) : (
               <button
                 onClick={e => { e.stopPropagation(); setConfirmCancel(true) }}
