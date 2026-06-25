@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
-import { motion, AnimatePresence, useDragControls, type Transition } from 'framer-motion'
+import { motion, AnimatePresence, type Transition } from 'framer-motion'
 import type { Conjunto } from '../../data/conjuntos'
 import { TEMATICA_COLORS } from '../../data/tematicas'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
@@ -21,7 +21,7 @@ export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
   const isDesktop = useIsDesktop()
   const { actividades: todasActividades } = useDataContext()
   const [bibOpen, setBibOpen] = useState(false)
-  const dragControls = useDragControls()
+  const [atTop, setAtTop] = useState(true)
 
   if (!conjunto) return null
 
@@ -53,9 +53,7 @@ export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
             animate="animate"
             exit="exit"
             transition={isDesktop ? desktopTransition : mobileTransition}
-            drag={isDesktop ? false : 'y'}
-            dragControls={isDesktop ? undefined : dragControls}
-            dragListener={false}
+            drag={isDesktop ? false : atTop ? 'y' : false}
             dragConstraints={isDesktop ? undefined : { top: 0 }}
             dragElastic={isDesktop ? undefined : { top: 0 }}
             onDragEnd={isDesktop ? undefined : (_, info) => { if (info.offset.y > 80) onClose() }}
@@ -63,10 +61,7 @@ export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
           >
             {/* Handle — solo mobile */}
             {!isDesktop && (
-              <div
-                className="flex justify-center pt-3 pb-1 shrink-0 cursor-grab active:cursor-grabbing"
-                onPointerDown={(e) => dragControls.start(e)}
-              >
+              <div className="flex justify-center pt-3 pb-1 shrink-0 cursor-grab active:cursor-grabbing">
                 <div className="w-10 h-1 rounded-full bg-stone-200" />
               </div>
             )}
@@ -215,7 +210,10 @@ export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
             </div>
 
             {/* ── MOBILE: scroll único — imagen + contenido ── */}
-            <div className="sm:hidden overflow-y-auto flex-1 overscroll-contain">
+            <div
+              className="sm:hidden overflow-y-auto flex-1 overscroll-contain"
+              onScroll={e => setAtTop(e.currentTarget.scrollTop === 0)}
+            >
 
               {/* Imagen — scrollea con el contenido */}
               <div className="w-full aspect-video">
