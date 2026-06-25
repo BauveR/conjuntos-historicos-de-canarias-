@@ -66,13 +66,22 @@ export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
             drag={isDesktop ? false : atTop ? 'y' : false}
             dragConstraints={isDesktop ? undefined : { top: 0 }}
             dragElastic={isDesktop ? undefined : { top: 0 }}
-            onDragEnd={isDesktop ? undefined : (_, info) => { if (info.offset.y > 80) onClose() }}
+            onDragEnd={isDesktop ? undefined : (_, info) => { if (info.offset.y > 50 || info.velocity.y > 400) onClose() }}
             onClick={e => e.stopPropagation()}
           >
-            {/* Handle — solo mobile */}
+            {/* Handle + botón cierre — solo mobile */}
             {!isDesktop && (
-              <div className="flex justify-center pt-3 pb-1 shrink-0 cursor-grab active:cursor-grabbing">
+              <div className="relative flex justify-center py-4 shrink-0 cursor-grab active:cursor-grabbing">
                 <div className="w-10 h-1 rounded-full bg-stone-200" />
+                <button
+                  onClick={e => { e.stopPropagation(); onClose() }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-full bg-stone-100 hover:bg-stone-200 transition-colors cursor-pointer"
+                  aria-label="Cerrar"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                    <path d="M18 6 6 18M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
             )}
 
