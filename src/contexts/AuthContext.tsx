@@ -69,7 +69,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser)
-      setLoading(false)
       if (firebaseUser) {
         const role = await (pendingRole.current ?? fetchRole(firebaseUser.uid))
         pendingRole.current = null
@@ -77,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setUserRole(null)
       }
+      setLoading(false)
     })
     return unsub
   }, [])

@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { sendPasswordResetEmail } from 'firebase/auth'
+import { auth } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
@@ -9,9 +11,10 @@ const AUTH_ERRORS: Record<string, string> = {
   'auth/wrong-password':        'Contraseña incorrecta',
   'auth/invalid-credential':    'Email o contraseña incorrectos',
   'auth/email-already-in-use':  'Este email ya está registrado',
-  'auth/weak-password':         'La contraseña debe tener al menos 6 caracteres',
+  'auth/weak-password':         'La contraseña debe tener al menos 8 caracteres',
   'auth/invalid-email':         'Email inválido',
   'auth/popup-closed-by-user':  '',
+  'auth/too-many-requests':     'Demasiados intentos. Espera unos minutos.',
 }
 
 function parseError(err: unknown): string {
@@ -19,7 +22,7 @@ function parseError(err: unknown): string {
   return AUTH_ERRORS[code] ?? 'Algo salió mal, intenta de nuevo'
 }
 
-type View = 'login' | 'register'
+type View = 'login' | 'register' | 'reset'
 
 type Props = { isModal?: boolean }
 
@@ -37,6 +40,7 @@ export function AuthPage({ isModal = false }: Props) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
 
   const handleSuccess = (role: string) => {
     if (returnTo) {
@@ -51,6 +55,10 @@ export function AuthPage({ isModal = false }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    if (view === 'register' && password.length < 8) {
+      setError('La contraseña debe tener al menos 8 caracteres')
+      return
+    }
     setBusy(true)
     try {
       if (view === 'login') {
@@ -67,6 +75,25 @@ export function AuthPage({ isModal = false }: Props) {
     }
   }
 
+  const handleReset = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setBusy(true)
+    try {
+      await sendPasswordResetEmail(auth, email)
+      setResetSent(true)
+    } catch (err) {
+      const code = (err as { code?: string }).code ?? ''
+      if (code === 'auth/user-not-found') {
+        setResetSent(true)
+      } else {
+        setError(parseError(err))
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const handleGoogle = async () => {
     setError('')
     setBusy(true)
@@ -78,6 +105,94 @@ export function AuthPage({ isModal = false }: Props) {
     } finally {
       setBusy(false)
     }
+  }
+
+  if (view === 'reset') {
+    return (
+      <div
+        className={`flex flex-col gap-6 px-8 py-8 ${isModal ? '' : 'max-w-sm mx-auto pt-32'}`}
+        style={labelStyle}
+      >
+        <div className="flex flex-col gap-1">
+          <h2
+            className="text-2xl font-thin text-stone-900 uppercase tracking-tight"
+            style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}
+          >
+            Recuperar contraseña
+          </h2>
+          <p className="text-xs text-stone-400 tracking-wide">
+            Te enviaremos un enlace para restablecer tu contraseña
+          </p>
+        </div>
+
+        {resetSent ? (
+          <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-3">
+              <p className="text-sm font-medium text-stone-800">
+                Si existe una cuenta con ese email, recibirás un enlace para restablecer tu contraseña.
+              </p>
+              <ul className="flex flex-col gap-1.5">
+                <li className="text-xs text-stone-400 flex gap-2">
+                  <span>·</span>
+                  <span>El enlace llegará en unos minutos. Revisa también tu carpeta de spam.</span>
+                </li>
+                <li className="text-xs text-stone-400 flex gap-2">
+                  <span>·</span>
+                  <span>Al hacer clic, podrás escribir tu nueva contraseña directamente.</span>
+                </li>
+                <li className="text-xs text-stone-400 flex gap-2">
+                  <span>·</span>
+                  <span>El enlace es de un solo uso y caduca en 1 hora.</span>
+                </li>
+                <li className="text-xs text-stone-400 flex gap-2">
+                  <span>·</span>
+                  <span>Una vez cambiada, vuelve aquí e inicia sesión con tu nueva contraseña.</span>
+                </li>
+              </ul>
+            </div>
+            <button
+              type="button"
+              onClick={() => { setView('login'); setResetSent(false); setError('') }}
+              className="text-[11px] tracking-widest uppercase text-stone-400 hover:text-stone-700 transition-colors cursor-pointer text-left"
+            >
+              ← Volver al inicio de sesión
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleReset} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] tracking-widest uppercase text-stone-400">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                placeholder="tu@email.com"
+                className="border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
+              />
+            </div>
+
+            {error && <p className="text-xs text-red-500">{error}</p>}
+
+            <button
+              type="submit"
+              disabled={busy}
+              className="w-full py-3.5 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {busy ? '...' : 'Enviar enlace'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => { setView('login'); setError('') }}
+              className="text-[11px] tracking-widest uppercase text-stone-400 hover:text-stone-700 transition-colors cursor-pointer text-left"
+            >
+              ← Volver al inicio de sesión
+            </button>
+          </form>
+        )}
+      </div>
+    )
   }
 
   return (
@@ -128,6 +243,7 @@ export function AuthPage({ isModal = false }: Props) {
               value={name}
               onChange={e => setName(e.target.value)}
               required
+              maxLength={60}
               placeholder="Tu nombre completo"
               className="border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
             />
@@ -147,7 +263,18 @@ export function AuthPage({ isModal = false }: Props) {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-[10px] tracking-widest uppercase text-stone-400">Contraseña</label>
+          <div className="flex items-center justify-between">
+            <label className="text-[10px] tracking-widest uppercase text-stone-400">Contraseña</label>
+            {view === 'login' && (
+              <button
+                type="button"
+                onClick={() => { setView('reset'); setError(''); setResetSent(false) }}
+                className="text-[10px] text-stone-400 hover:text-stone-600 underline underline-offset-2 transition-colors cursor-pointer"
+              >
+                ¿Olvidaste tu contraseña?
+              </button>
+            )}
+          </div>
           <input
             type="password"
             value={password}

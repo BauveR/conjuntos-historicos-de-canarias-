@@ -261,4 +261,25 @@ describe('eliminarActividad', () => {
     expect(mockDeleteDoc).toHaveBeenCalledWith('users/uid-b/inscripciones/1')
     expect(mockDeleteDoc).toHaveBeenCalledWith('actividades/1')
   })
+
+  it('lee la subcollección correcta de Firestore', async () => {
+    mockGetDocs.mockResolvedValue({ docs: [] })
+
+    await eliminarActividad(42)
+
+    expect(mockCollection).toHaveBeenCalledWith(expect.anything(), 'actividades', '42', 'inscritos')
+  })
+
+  it('la actividad se borra siempre la última', async () => {
+    const docs = [
+      { id: 'uid-a', ref: 'actividades/1/inscritos/uid-a' },
+      { id: 'uid-b', ref: 'actividades/1/inscritos/uid-b' },
+    ]
+    mockGetDocs.mockResolvedValue({ docs })
+
+    await eliminarActividad(1)
+
+    const calls = mockDeleteDoc.mock.calls.map((c: unknown[]) => c[0])
+    expect(calls[calls.length - 1]).toBe('actividades/1')
+  })
 })

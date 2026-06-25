@@ -8,6 +8,7 @@ function escapeHtml(str: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
 }
 
 async function verifyFirebaseToken(idToken: string): Promise<{ email: string; name: string } | null> {
@@ -27,6 +28,11 @@ async function verifyFirebaseToken(idToken: string): Promise<{ email: string; na
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  res.setHeader('Access-Control-Allow-Origin', 'https://conjuntoshistoricosdecanarias.com')
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+
+  if (req.method === 'OPTIONS') return res.status(204).end()
   if (req.method !== 'POST') return res.status(405).end()
 
   const resendKey = process.env.RESEND_API_KEY
@@ -42,7 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Sanitizar todos los campos del body antes de interpolar en HTML
   const emailData: EmailData = {
-    nombre: tokenUser.name,
+    nombre: escapeHtml(tokenUser.name),
     titulo: escapeHtml(rawEmailData.titulo ?? ''),
     fecha: escapeHtml(rawEmailData.fecha ?? ''),
     hora: rawEmailData.hora ? escapeHtml(rawEmailData.hora) : undefined,
