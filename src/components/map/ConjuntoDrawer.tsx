@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence, type Transition } from 'framer-motion'
@@ -22,6 +22,20 @@ export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
   const { actividades: todasActividades } = useDataContext()
   const [bibOpen, setBibOpen] = useState(false)
   const [atTop, setAtTop] = useState(true)
+
+  useEffect(() => {
+    if (!open) return
+    const scrollY = window.scrollY
+    document.body.style.position = 'fixed'
+    document.body.style.top    = `-${scrollY}px`
+    document.body.style.width  = '100%'
+    return () => {
+      document.body.style.position = ''
+      document.body.style.top      = ''
+      document.body.style.width    = ''
+      window.scrollTo(0, scrollY)
+    }
+  }, [open])
 
   if (!conjunto) return null
 
