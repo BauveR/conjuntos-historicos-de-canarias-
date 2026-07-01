@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { TEMATICAS, type Tematica } from '../../data/tematicas'
+import type { Tematica } from '../../data/tematicas'
 import type { Dificultad } from '../../data/actividades'
 import { CONJUNTOS } from '../../data/conjuntos'
 import { ISLAS, DIFICULTADES } from '../../data/islas'
 import { formatMes } from './FilterSheet'
+import { useDataContext } from '../../contexts/DataContext'
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
 type Props = {
@@ -26,6 +27,7 @@ export function FilterBar({
   tematica, isla, conjuntoId, mes, dificultad, mesesDisponibles,
   onTematica, onIsla, onConjunto, onMes, onDificultad, onOpenSheet,
 }: Props) {
+  const { tematicas } = useDataContext()
   const [panelOpen, setPanelOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
 
@@ -141,7 +143,7 @@ export function FilterBar({
 
                 <FilterColumn
                   title="Temática"
-                  options={[{ value: null, label: 'Todas' }, ...TEMATICAS.map(t => ({ value: t, label: t }))]}
+                  options={[{ value: null, label: 'Todas' }, ...tematicas.map(t => ({ value: t.nombre, label: t.nombre }))]}
                   selected={tematica}
                   onSelect={v => onTematica(v as Tematica | null)}
                 />

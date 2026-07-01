@@ -2,7 +2,6 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, type Transition } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import type { Tematica } from '../../data/tematicas'
-import { TEMATICAS } from '../../data/tematicas'
 import type { Dificultad } from '../../data/actividades'
 import { ISLAS, DIFICULTADES } from '../../data/islas'
 import { useDataContext } from '../../contexts/DataContext'
@@ -50,7 +49,7 @@ const mobileTransition: Transition = { type: 'spring', damping: 30, stiffness: 3
 
 export function FilterSheet({ open, initialSection, onClose, filters, mesesDisponibles, onApply }: Props) {
   const isDesktop = useIsDesktop()
-  const { conjuntos } = useDataContext()
+  const { conjuntos, tematicas } = useDataContext()
   const [temp, setTemp] = useState<FilterState>(filters)
   const [openSection, setOpenSection] = useState<Section | null>(null)
 
@@ -137,7 +136,7 @@ export function FilterSheet({ open, initialSection, onClose, filters, mesesDispo
             <div className="flex-1 overflow-y-auto px-6">
               <AccordionSection label="Temática" isOpen={openSection === 'tematica'} hasValue={!!temp.tematica} onToggle={() => toggle('tematica')}>
                 <OptionRow label="Todas" selected={!temp.tematica} onSelect={() => pick.tematica(null)} />
-                {TEMATICAS.map(t => <OptionRow key={t} label={t} selected={temp.tematica === t} onSelect={() => pick.tematica(t)} />)}
+                {tematicas.map(t => <OptionRow key={t.nombre} label={t.nombre} selected={temp.tematica === t.nombre} onSelect={() => pick.tematica(t.nombre)} />)}
               </AccordionSection>
 
               <AccordionSection label="Isla" isOpen={openSection === 'isla'} hasValue={!!temp.isla} onToggle={() => toggle('isla')}>

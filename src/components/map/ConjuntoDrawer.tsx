@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence, type Transition } from 'framer-motion'
 import type { Conjunto } from '../../data/conjuntos'
-import { TEMATICA_COLORS } from '../../data/tematicas'
+import { getTematicaColor } from '../../data/tematicas'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
 import { useDataContext } from '../../contexts/DataContext'
 
@@ -19,7 +19,7 @@ const mobileTransition: Transition = { type: 'spring', damping: 30, stiffness: 3
 
 export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
   const isDesktop = useIsDesktop()
-  const { actividades: todasActividades } = useDataContext()
+  const { actividades: todasActividades, tematicas } = useDataContext()
   const [bibOpen, setBibOpen] = useState(false)
   const [atTop, setAtTop] = useState(true)
 
@@ -160,7 +160,7 @@ export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
                       </div>
                       <span
                         className="px-2 py-0.5 rounded-full text-[9px] tracking-widest uppercase text-white font-bold w-fit"
-                        style={{ backgroundColor: TEMATICA_COLORS[act!.tematica] }}
+                        style={{ backgroundColor: getTematicaColor(act!.tematica, tematicas) }}
                       >
                         {act!.tematica}
                       </span>
@@ -298,7 +298,7 @@ export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
                       </div>
                       <span
                         className="px-2 py-0.5 rounded-full text-[9px] tracking-widest uppercase text-white font-bold w-fit"
-                        style={{ backgroundColor: TEMATICA_COLORS[act!.tematica] }}
+                        style={{ backgroundColor: getTematicaColor(act!.tematica, tematicas) }}
                       >
                         {act!.tematica}
                       </span>

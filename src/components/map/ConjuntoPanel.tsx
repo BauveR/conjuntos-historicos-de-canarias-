@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import type { Conjunto } from '../../data/conjuntos'
-import { TEMATICA_COLORS } from '../../data/tematicas'
+import { getTematicaColor } from '../../data/tematicas'
 import { HandTap } from '../HandTap'
 import { useDataContext } from '../../contexts/DataContext'
 
@@ -15,7 +15,7 @@ type Props = {
 
 export function ConjuntoPanel({ conjunto, onClose }: Props) {
   const location = useLocation()
-  const { actividades: todasActividades } = useDataContext()
+  const { actividades: todasActividades, tematicas } = useDataContext()
   const [bibOpen, setBibOpen] = useState(false)
   const actividades = conjunto
     ? todasActividades.filter(a => a.conjuntoId === conjunto.id)
@@ -115,7 +115,7 @@ export function ConjuntoPanel({ conjunto, onClose }: Props) {
               </div>
               <span
                 className="px-2 py-0.5 rounded-full text-[9px] tracking-widest uppercase text-white font-bold w-fit"
-                style={{ backgroundColor: TEMATICA_COLORS[act!.tematica] }}
+                style={{ backgroundColor: getTematicaColor(act!.tematica, tematicas) }}
               >
                 {act!.tematica}
               </span>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Navigate, useNavigate, useLocation, Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { TEMATICA_COLORS } from '../data/tematicas'
+import { getTematicaColor, type TematicaData } from '../data/tematicas'
 import { DifficultyDots } from '../components/actividades/DifficultyDots'
 import { useAuth } from '../contexts/AuthContext'
 import { useDataContext } from '../contexts/DataContext'
@@ -88,6 +88,7 @@ function InscripcionSuccessPopup({ titulo, onClose }: { titulo: string; onClose:
 
 type BookingWidgetProps = {
   actividad: Actividad
+  tematicas: TematicaData[]
   fecha: string
   pct: number
   inscrito: boolean
@@ -104,7 +105,7 @@ type BookingWidgetProps = {
 }
 
 export function BookingWidget({
-  actividad, fecha, pct,
+  actividad, tematicas, fecha, pct,
   inscrito, esPasada, esCancelada,
   inscribiendo, inscripcionError,
   confirmando, setConfirmando,
@@ -204,7 +205,7 @@ export function BookingWidget({
             </div>
             <span
               className="w-fit px-2.5 py-0.5 rounded-full text-[9px] tracking-widest uppercase text-white font-bold"
-              style={{ backgroundColor: TEMATICA_COLORS[actividad.tematica] }}
+              style={{ backgroundColor: getTematicaColor(actividad.tematica, tematicas) }}
             >
               {actividad.tematica}
             </span>
@@ -356,7 +357,7 @@ export function ActividadPage() {
   const isModal = !!location.state?.background
   const fromPerfil = location.state?.from === 'perfil'
   const { user, inscripcionIds } = useAuth()
-  const { actividades, conjuntos, dataLoading } = useDataContext()
+  const { actividades, conjuntos, tematicas, dataLoading } = useDataContext()
   const actividad = actividades.find(a => a.id === Number(id))
 
   const inscrito = !!actividad && inscripcionIds.includes(actividad.id)
@@ -486,7 +487,7 @@ export function ActividadPage() {
   const pct = Math.round((plazasOcupadas / actividad.plazas) * 100)
 
   const widgetProps = {
-    actividad, fecha, pct,
+    actividad, tematicas, fecha, pct,
     inscrito, esPasada, esCancelada,
     inscribiendo, inscripcionError,
     confirmando, setConfirmando,
@@ -503,7 +504,7 @@ export function ActividadPage() {
         <div className="px-6 pt-6 pb-4 flex flex-col gap-2">
           <span
             className="w-fit px-2.5 py-0.5 rounded-full text-[9px] tracking-widest uppercase text-white font-bold"
-            style={{ backgroundColor: TEMATICA_COLORS[actividad.tematica] }}
+            style={{ backgroundColor: getTematicaColor(actividad.tematica, tematicas) }}
           >
             {actividad.tematica}
           </span>
@@ -611,7 +612,7 @@ export function ActividadPage() {
             <div className="flex flex-col gap-3">
               <span
                 className="w-fit px-3 py-1 text-white font-bold text-[10px] tracking-widest uppercase rounded-full"
-                style={{ ...labelStyle, backgroundColor: TEMATICA_COLORS[actividad.tematica] }}
+                style={{ ...labelStyle, backgroundColor: getTematicaColor(actividad.tematica, tematicas) }}
               >
                 {actividad.tematica}
               </span>

@@ -7,8 +7,10 @@ import {
 import { db } from '../firebase'
 import type { Actividad } from '../data/actividades'
 import type { Conjunto } from '../data/conjuntos'
+import type { TematicaData } from '../data/tematicas'
 import { ACTIVIDADES } from '../data/actividades'
 import { CONJUNTOS } from '../data/conjuntos'
+import { TEMATICAS_SEED, TEMATICA_COLORS_SEED } from '../data/tematicas'
 
 export type InscritoData = {
   uid: string
@@ -33,6 +35,20 @@ export function subscribeConjuntos(cb: (data: Conjunto[]) => void): Unsubscribe 
     items.sort((a, b) => a.id - b.id)
     cb(items)
   })
+}
+
+export function subscribeTematicas(cb: (data: TematicaData[]) => void): Unsubscribe {
+  return onSnapshot(
+    collection(db, 'tematicas'),
+    snap => {
+      const items = snap.docs.map(d => ({ ...d.data(), nombre: d.id } as TematicaData))
+      items.sort((a, b) => a.nombre.localeCompare(b.nombre))
+      cb(items)
+    },
+    // Degradación con gracia: si la colección aún no existe o las rules no están
+    // desplegadas, no debe bloquear dataLoading (y con él, ActividadPage) para siempre.
+    () => cb([]),
+  )
 }
 
 // ── Inscription ───────────────────────────────────────────────────────────────
@@ -173,18 +189,43 @@ export async function updateConjunto(
   await updateDoc(doc(db, 'conjuntos', String(id)), data as Record<string, unknown>)
 }
 
+// ── Temáticas CRUD ────────────────────────────────────────────────────────────
+
+export async function addTematica(nombre: string, color: string): Promise<void> {
+  await setDoc(doc(db, 'tematicas', nombre), { nombre, color })
+}
+
+export async function deleteTematica(nombre: string): Promise<void> {
+  await deleteDoc(doc(db, 'tematicas', nombre))
+}
+
 // ── Seed ─────────────────────────────────────────────────────────────────────
 
 export async function seedFirestore(): Promise<void> {
-  const snap = await getDocs(collection(db, 'actividades'))
-  if (!snap.empty) return
+  const [actSnap, temSnap] = await Promise.all([
+    getDocs(collection(db, 'actividades')),
+    getDocs(collection(db, 'tematicas')),
+  ])
 
   const batch = writeBatch(db)
-  for (const c of CONJUNTOS) {
-    batch.set(doc(db, 'conjuntos', String(c.id)), { ...c })
+  let hasWrites = false
+
+  if (actSnap.empty) {
+    hasWrites = true
+    for (const c of CONJUNTOS) {
+      batch.set(doc(db, 'conjuntos', String(c.id)), { ...c })
+    }
+    for (const a of ACTIVIDADES) {
+      batch.set(doc(db, 'actividades', String(a.id)), { ...a, plazasDisponibles: a.plazas })
+    }
   }
-  for (const a of ACTIVIDADES) {
-    batch.set(doc(db, 'actividades', String(a.id)), { ...a, plazasDisponibles: a.plazas })
+
+  if (temSnap.empty) {
+    hasWrites = true
+    for (const nombre of TEMATICAS_SEED) {
+      batch.set(doc(db, 'tematicas', nombre), { nombre, color: TEMATICA_COLORS_SEED[nombre] })
+    }
   }
-  await batch.commit()
+
+  if (hasWrites) await batch.commit()
 }

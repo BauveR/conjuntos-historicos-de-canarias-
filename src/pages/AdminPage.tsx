@@ -27,12 +27,13 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import type { Actividad, Dificultad } from '../data/actividades'
 import type { Conjunto } from '../data/conjuntos'
-import { TEMATICAS, TEMATICA_COLORS, type Tematica } from '../data/tematicas'
+import { TEMATICA_COLOR_PALETTE, getTematicaColor, type Tematica, type TematicaData } from '../data/tematicas'
 import { ISLAS, DIFICULTADES } from '../data/islas'
 import { useDataContext } from '../contexts/DataContext'
 import {
   addActividad, updateActividad, cancelActividad, reactivarActividad, eliminarActividad,
   addConjunto, updateConjunto,
+  addTematica, deleteTematica,
   getInscritos,
   type InscritoData,
 } from '../lib/db'
@@ -366,7 +367,7 @@ function MultiDatePicker({ selected, onChange }: {
   )
 }
 
-function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
+function AltaActividad({ conjuntos, tematicas }: { conjuntos: Conjunto[]; tematicas: TematicaData[] }) {
   const [form, setForm] = useState<ActividadForm>(defaultActividadForm)
   const [errors, setErrors] = useState<ActividadErrors>({})
   const [saving, setSaving] = useState(false)
@@ -458,7 +459,7 @@ function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
               <FieldLabel>Temática *</FieldLabel>
               <Select value={form.tematica} onChange={set('tematica')} error={!!errors.tematica}>
                 <option value="">Seleccionar</option>
-                {TEMATICAS.map(t => <option key={t} value={t}>{t}</option>)}
+                {tematicas.map(t => <option key={t.nombre} value={t.nombre}>{t.nombre}</option>)}
               </Select>
               <FieldError msg={errors.tematica} />
             </div>
@@ -603,10 +604,12 @@ function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
 function EditActividadDrawer({
   actividad,
   conjuntos,
+  tematicas,
   onClose,
 }: {
   actividad: Actividad | null
   conjuntos: Conjunto[]
+  tematicas: TematicaData[]
   onClose: () => void
 }) {
   const isDesktop = useIsDesktop()
@@ -762,7 +765,7 @@ function EditActividadDrawer({
                     <FieldLabel>Temática *</FieldLabel>
                     <Select value={form.tematica} onChange={set('tematica')} error={!!errors.tematica}>
                       <option value="">Seleccionar</option>
-                      {TEMATICAS.map(t => <option key={t} value={t}>{t}</option>)}
+                      {tematicas.map(t => <option key={t.nombre} value={t.nombre}>{t.nombre}</option>)}
                     </Select>
                     <FieldError msg={errors.tematica} />
                   </div>
@@ -858,12 +861,13 @@ function EditActividadDrawer({
 
 type ActivityCardProps = {
   actividad: Actividad
+  tematicas: TematicaData[]
   selected: boolean
   onClick: () => void
   onEdit: () => void
 }
 
-function ActivityCard({ actividad, selected, onClick, onEdit }: ActivityCardProps) {
+function ActivityCard({ actividad, tematicas, selected, onClick, onEdit }: ActivityCardProps) {
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [acting, setActing] = useState(false)
@@ -921,7 +925,7 @@ function ActivityCard({ actividad, selected, onClick, onEdit }: ActivityCardProp
         {/* Tematica badge */}
         <span
           className="inline-block mb-2 px-2 py-0.5 rounded-full text-[9px] tracking-widest uppercase text-white font-medium"
-          style={{ backgroundColor: isCancelada ? '#d6d3d1' : TEMATICA_COLORS[actividad.tematica] }}
+          style={{ backgroundColor: isCancelada ? '#d6d3d1' : getTematicaColor(actividad.tematica, tematicas) }}
         >
           {actividad.tematica}
         </span>
@@ -1038,7 +1042,7 @@ function ActivityCard({ actividad, selected, onClick, onEdit }: ActivityCardProp
   )
 }
 
-function ControlAsistentes({ actividades, conjuntos }: { actividades: Actividad[]; conjuntos: Conjunto[] }) {
+function ControlAsistentes({ actividades, conjuntos, tematicas }: { actividades: Actividad[]; conjuntos: Conjunto[]; tematicas: TematicaData[] }) {
   const today    = new Date().toISOString().slice(0, 10)
   const proximas = actividades.filter(a => a.fecha >= today && !a.cancelada).sort((a, b) => a.fecha.localeCompare(b.fecha))
   const pasadas  = actividades.filter(a => a.fecha <  today || !!a.cancelada).sort((a, b) => b.fecha.localeCompare(a.fecha))
@@ -1104,6 +1108,7 @@ function ControlAsistentes({ actividades, conjuntos }: { actividades: Actividad[
       <EditActividadDrawer
         actividad={editingActividad ?? null}
         conjuntos={conjuntos}
+        tematicas={tematicas}
         onClose={() => setEditingId(null)}
       />
 
@@ -1173,6 +1178,7 @@ function ControlAsistentes({ actividades, conjuntos }: { actividades: Actividad[
               <ActivityCard
                 key={a.id}
                 actividad={a}
+                tematicas={tematicas}
                 selected={a.id === selectedId}
                 onClick={() => handleSelect(a.id)}
                 onEdit={() => handleEdit(a.id)}
@@ -1582,6 +1588,111 @@ function GestionConjuntos({ conjuntos }: { conjuntos: Conjunto[] }) {
   )
 }
 
+// ── Gestión de Temáticas ──────────────────────────────────────────────────────
+
+function GestionTematicas({ tematicas }: { tematicas: TematicaData[] }) {
+  const [nombre, setNombre] = useState('')
+  const [color, setColor] = useState<string>(TEMATICA_COLOR_PALETTE[0])
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [deletingNombre, setDeletingNombre] = useState<string | null>(null)
+
+  const handleAdd = async () => {
+    const trimmed = nombre.trim()
+    if (!trimmed) { setError('Escribe un nombre'); return }
+    if (tematicas.some(t => t.nombre.toLowerCase() === trimmed.toLowerCase())) {
+      setError('Ya existe una temática con ese nombre')
+      return
+    }
+    setSaving(true)
+    setError('')
+    try {
+      await addTematica(trimmed, color)
+      setNombre('')
+      setColor(TEMATICA_COLOR_PALETTE[0])
+    } catch {
+      setError('Error al crear la temática. Inténtalo de nuevo.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async (t: string) => {
+    setDeletingNombre(t)
+    try { await deleteTematica(t) }
+    finally { setDeletingNombre(null) }
+  }
+
+  return (
+    <SectionCard title="Gestionar temáticas">
+      <div className="flex flex-col gap-5">
+        <div className="flex flex-wrap gap-2">
+          {tematicas.length === 0 ? (
+            <p className="text-sm text-stone-300">Sin temáticas. Añade la primera abajo.</p>
+          ) : (
+            tematicas.map(t => (
+              <span
+                key={t.nombre}
+                className="flex items-center gap-2 pl-3 pr-1.5 py-1 rounded-full text-[10px] tracking-widest uppercase text-white font-medium"
+                style={{ backgroundColor: t.color }}
+              >
+                {t.nombre}
+                <button
+                  type="button"
+                  onClick={() => handleDelete(t.nombre)}
+                  disabled={deletingNombre === t.nombre}
+                  className="w-4 h-4 rounded-full bg-black/15 hover:bg-black/30 flex items-center justify-center transition-colors disabled:opacity-40 cursor-pointer"
+                  aria-label={`Eliminar ${t.nombre}`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                    <path d="M18 6 6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </span>
+            ))
+          )}
+        </div>
+
+        <div className="w-full h-px bg-stone-100" />
+
+        <div className="flex flex-col gap-2.5">
+          <FieldLabel>Nueva temática</FieldLabel>
+          <div className="flex gap-2">
+            <Input
+              value={nombre}
+              onChange={v => { setNombre(v); setError('') }}
+              placeholder="Nombre de la temática"
+              className="flex-1"
+            />
+            <button
+              type="button"
+              onClick={handleAdd}
+              disabled={saving}
+              className="shrink-0 px-4 rounded-xl text-[11px] tracking-widest uppercase text-white transition-opacity disabled:opacity-40 cursor-pointer hover:opacity-90"
+              style={{ backgroundColor: '#595d8d' }}
+            >
+              {saving ? '...' : 'Añadir'}
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {TEMATICA_COLOR_PALETTE.map(c => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setColor(c)}
+                aria-label={`Elegir color ${c}`}
+                className={`w-6 h-6 rounded-full cursor-pointer transition-transform ${color === c ? 'scale-110 ring-2 ring-offset-2 ring-stone-400' : ''}`}
+                style={{ backgroundColor: c }}
+              />
+            ))}
+          </div>
+          {error && <p className="text-[10px] text-red-500">{error}</p>}
+        </div>
+      </div>
+    </SectionCard>
+  )
+}
+
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 
 function Sidebar({ section, setSection }: { section: AdminSection; setSection: (s: AdminSection) => void }) {
@@ -1693,7 +1804,7 @@ function ContentHeader({ item }: { item: NavItem }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function AdminPage() {
-  const { actividades, conjuntos, dataLoading } = useDataContext()
+  const { actividades, conjuntos, tematicas, dataLoading } = useDataContext()
   const [section, setSection] = useState<AdminSection>('conjuntos')
 
   const currentNav = NAV_ITEMS.find(n => n.key === section)!
@@ -1721,8 +1832,13 @@ export function AdminPage() {
           )}
 
           {section === 'conjuntos'  && <GestionConjuntos conjuntos={conjuntos} />}
-          {section === 'actividad'  && <AltaActividad conjuntos={conjuntos} />}
-          {section === 'asistentes' && <ControlAsistentes actividades={actividades} conjuntos={conjuntos} />}
+          {section === 'actividad'  && (
+            <div className="flex flex-col gap-6">
+              <AltaActividad conjuntos={conjuntos} tematicas={tematicas} />
+              <GestionTematicas tematicas={tematicas} />
+            </div>
+          )}
+          {section === 'asistentes' && <ControlAsistentes actividades={actividades} conjuntos={conjuntos} tematicas={tematicas} />}
 
         </div>
       </div>

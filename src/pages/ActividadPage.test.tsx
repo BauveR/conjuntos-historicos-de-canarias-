@@ -32,6 +32,7 @@ const baseActividad: Actividad = {
 
 const baseProps = {
   actividad: baseActividad,
+  tematicas: [{ nombre: 'Arquitectura', color: '#DAB36D' }],
   fecha: 'lunes, 1 de enero de 2030',
   pct: 50,
   inscrito: false,

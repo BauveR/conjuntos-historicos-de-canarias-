@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import type { Actividad } from '../../data/actividades'
-import { TEMATICA_COLORS } from '../../data/tematicas'
+import { getTematicaColor } from '../../data/tematicas'
 import { useDataContext } from '../../contexts/DataContext'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
@@ -14,7 +14,7 @@ type Props = {
 
 export function ProfileCardCompact({ actividad, inactiva = false, onLiberar }: Props) {
   const location = useLocation()
-  const { conjuntos } = useDataContext()
+  const { conjuntos, tematicas } = useDataContext()
   const conjunto = conjuntos.find(c => c.id === actividad.conjuntoId)
   const [confirmando, setConfirmando] = useState(false)
   const [liberando, setLiberando] = useState(false)
@@ -62,7 +62,7 @@ export function ProfileCardCompact({ actividad, inactiva = false, onLiberar }: P
       <div className="flex flex-col gap-1 min-w-0 flex-1">
         <span
           className="w-fit px-2 py-0.5 rounded-full text-[9px] tracking-widest uppercase text-white font-bold"
-          style={{ backgroundColor: TEMATICA_COLORS[actividad.tematica] }}
+          style={{ backgroundColor: getTematicaColor(actividad.tematica, tematicas) }}
         >
           {actividad.tematica}
         </span>
