@@ -3,6 +3,7 @@ import { useParams, Navigate, useNavigate, useLocation, Link } from 'react-route
 import { AnimatePresence, motion } from 'framer-motion'
 import { TEMATICA_COLORS } from '../data/tematicas'
 import { DifficultyDots } from '../components/actividades/DifficultyDots'
+import { ShareButton } from '../components/actividades/ShareButton'
 import { useAuth } from '../contexts/AuthContext'
 import { useDataContext } from '../contexts/DataContext'
 import { inscribirse, liberarPlaza, SinPlazasError, YaLiberadaError, EventoCanceladoError } from '../lib/db'
@@ -359,6 +360,14 @@ export function ActividadPage() {
   const { actividades, conjuntos, dataLoading } = useDataContext()
   const actividad = actividades.find(a => a.id === Number(id))
 
+  useEffect(() => {
+    if (!actividad) return
+    const prevTitle = document.title
+    document.title = `${actividad.titulo} · Conjuntos Históricos de Canarias`
+    return () => { document.title = prevTitle }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [actividad?.titulo])
+
   const inscrito = !!actividad && inscripcionIds.includes(actividad.id)
   const [inscribiendo, setInscribiendo] = useState(false)
   const [inscripcionError, setInscripcionError] = useState('')
@@ -609,12 +618,19 @@ export function ActividadPage() {
           {/* Left */}
           <div className="flex flex-col gap-8 min-w-0">
             <div className="flex flex-col gap-3">
-              <span
-                className="w-fit px-3 py-1 text-white font-bold text-[10px] tracking-widest uppercase rounded-full"
-                style={{ ...labelStyle, backgroundColor: TEMATICA_COLORS[actividad.tematica] }}
-              >
-                {actividad.tematica}
-              </span>
+              <div className="flex items-center justify-between gap-3">
+                <span
+                  className="w-fit px-3 py-1 text-white font-bold text-[10px] tracking-widest uppercase rounded-full"
+                  style={{ ...labelStyle, backgroundColor: TEMATICA_COLORS[actividad.tematica] }}
+                >
+                  {actividad.tematica}
+                </span>
+                <ShareButton
+                  url={`https://conjuntoshistoricosdecanarias.com/actividades/${actividad.id}`}
+                  title={actividad.titulo}
+                  text={`${fecha}${conjunto ? ` · ${conjunto.nombre}, ${conjunto.isla}` : ''}`}
+                />
+              </div>
               <h1 className="text-3xl sm:text-4xl font-light text-stone-900 leading-snug" style={serifStyle}>
                 {actividad.titulo}
               </h1>
