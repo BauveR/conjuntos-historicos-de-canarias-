@@ -102,7 +102,7 @@ function Input({ value, onChange, type = 'text', placeholder, className = '', er
       value={value}
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
-      className={`w-full border rounded-xl px-3 py-2 text-sm text-stone-800 bg-white focus:outline-none transition-colors placeholder:text-stone-300 ${
+      className={`w-full border rounded-xl px-3 py-2 text-sm text-stone-800 bg-white focus:outline-none transition-colors placeholder:text-stone-500 ${
         error ? 'border-red-300 focus:border-red-400' : 'border-stone-200 focus:border-[#595d8d]'
       } ${className}`}
     />
@@ -1276,7 +1276,7 @@ function ControlAsistentes({ actividades, conjuntos }: { actividades: Actividad[
               <svg
                 xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-300 pointer-events-none"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 pointer-events-none"
               >
                 <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
               </svg>
@@ -1285,12 +1285,12 @@ function ControlAsistentes({ actividades, conjuntos }: { actividades: Actividad[
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Buscar por título, conjunto o isla…"
-                className="w-full border border-stone-200 rounded-xl pl-8 pr-8 py-2 text-sm text-stone-800 bg-white focus:outline-none focus:border-stone-400 transition-colors placeholder:text-stone-300"
+                className="w-full border border-stone-200 rounded-xl pl-8 pr-8 py-2 text-sm text-stone-800 bg-white focus:outline-none focus:border-stone-400 transition-colors placeholder:text-stone-500"
               />
               {query && (
                 <button
                   onClick={() => setQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-300 hover:text-stone-500 transition-colors cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-500 hover:text-stone-700 transition-colors cursor-pointer"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                     <path d="M18 6 6 18M6 6l12 12" />
@@ -1446,7 +1446,7 @@ function ConjuntoRow({ conjunto }: { conjunto: Conjunto }) {
         <svg
           xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
           fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
-          className={`text-stone-300 shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`}
+          className={`text-stone-500 shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`}
         >
           <path d="M6 9l6 6 6-6" />
         </svg>
@@ -1684,7 +1684,7 @@ function GestionConjuntos({ conjuntos }: { conjuntos: Conjunto[] }) {
             <svg
               xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
               fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-300 pointer-events-none"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 pointer-events-none"
             >
               <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
             </svg>
@@ -1693,12 +1693,12 @@ function GestionConjuntos({ conjuntos }: { conjuntos: Conjunto[] }) {
               value={query}
               onChange={e => setQuery(e.target.value)}
               placeholder="Buscar por nombre, municipio o isla…"
-              className="w-full border border-stone-200 rounded-xl pl-8 pr-8 py-2 text-sm text-stone-800 bg-white focus:outline-none focus:border-stone-400 transition-colors placeholder:text-stone-300"
+              className="w-full border border-stone-200 rounded-xl pl-8 pr-8 py-2 text-sm text-stone-800 bg-white focus:outline-none focus:border-stone-400 transition-colors placeholder:text-stone-500"
             />
             {query && (
               <button
                 onClick={() => setQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-300 hover:text-stone-500 transition-colors cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-500 hover:text-stone-700 transition-colors cursor-pointer"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                   <path d="M18 6 6 18M6 6l12 12" />
