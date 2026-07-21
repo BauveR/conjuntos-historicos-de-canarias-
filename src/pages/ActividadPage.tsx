@@ -8,7 +8,7 @@ import { DifficultyDots } from '../components/actividades/DifficultyDots'
 import { ShareButton } from '../components/actividades/ShareButton'
 import { useAuth } from '../contexts/AuthContext'
 import { useDataContext } from '../contexts/DataContext'
-import { inscribirse, liberarPlaza, SinPlazasError, YaLiberadaError, EventoCanceladoError } from '../lib/db'
+import { inscribirse, liberarPlaza, SinPlazasError, YaLiberadaError, EventoCanceladoError, InscripcionNoAbiertaError } from '../lib/db'
 import { isValidTelefono } from '../utils/validators'
 import type { Actividad } from '../data/actividades'
 
@@ -97,6 +97,7 @@ type BookingWidgetProps = {
   inscrito: boolean
   esPasada: boolean
   esCancelada: boolean
+  noAbierto: boolean
   isLoggedIn: boolean
   inscribiendo: boolean
   inscripcionError: string
@@ -117,7 +118,7 @@ type BookingWidgetProps = {
 
 export function BookingWidget({
   actividad, fecha, pct,
-  inscrito, esPasada, esCancelada, isLoggedIn,
+  inscrito, esPasada, esCancelada, noAbierto, isLoggedIn,
   inscribiendo, inscripcionError,
   confirmando, setConfirmando,
   liberando, onLiberar, onRequestLogin,
@@ -345,6 +346,12 @@ export function BookingWidget({
         <p className="text-[11px] text-red-500" style={labelStyle}>{inscripcionError}</p>
       )}
 
+      {noAbierto && actividad.fechaAperturaInscripciones && (
+        <p className="text-[11px] text-stone-500" style={labelStyle}>
+          Las inscripciones abren el {new Date(actividad.fechaAperturaInscripciones + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+        </p>
+      )}
+
       {mostrandoTelefono ? (
         <div className="flex flex-col gap-2">
           <label className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>
@@ -382,12 +389,12 @@ export function BookingWidget({
         </div>
       ) : (
         <button
-          disabled={actividad.plazasDisponibles === 0 || inscribiendo || esPasada}
+          disabled={actividad.plazasDisponibles === 0 || inscribiendo || esPasada || noAbierto}
           onClick={() => { if (!isLoggedIn) onRequestLogin(); else setMostrandoTelefono(true) }}
           className={`w-full ${compact ? 'py-3' : 'py-3.5'} rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer`}
           style={labelStyle}
         >
-          {inscribiendo ? '...' : esPasada ? 'Actividad finalizada' : actividad.plazasDisponibles === 0 ? 'Sin plazas disponibles' : 'Inscribirme'}
+          {inscribiendo ? '...' : esPasada ? 'Actividad finalizada' : noAbierto ? 'Inscripciones aún no abiertas' : actividad.plazasDisponibles === 0 ? 'Sin plazas disponibles' : 'Inscribirme'}
         </button>
       )}
 
@@ -441,8 +448,10 @@ export function ActividadPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.uid])
 
-  const esPasada    = actividad ? actividad.fecha < new Date().toISOString().split('T')[0] : false
+  const today = new Date().toISOString().split('T')[0]
+  const esPasada    = actividad ? actividad.fecha < today : false
   const esCancelada = !!actividad?.cancelada
+  const noAbierto   = !!actividad?.fechaAperturaInscripciones && actividad.fechaAperturaInscripciones > today
 
   const handleLiberar = async () => {
     if (!user || !actividad) return
@@ -509,6 +518,8 @@ export function ActividadPage() {
         setInscripcionError('Ya no quedan plazas disponibles.')
       } else if (err instanceof EventoCanceladoError) {
         setInscripcionError('Este evento ha sido cancelado.')
+      } else if (err instanceof InscripcionNoAbiertaError) {
+        setInscripcionError('Las inscripciones todavía no están abiertas para esta actividad.')
       } else {
         setInscripcionError('Error al procesar la inscripción. Inténtalo de nuevo.')
       }
@@ -529,7 +540,7 @@ export function ActividadPage() {
 
   const widgetProps = {
     actividad, fecha, pct,
-    inscrito, esPasada, esCancelada,
+    inscrito, esPasada, esCancelada, noAbierto,
     isLoggedIn: !!user,
     inscribiendo, inscripcionError,
     confirmando, setConfirmando,

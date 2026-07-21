@@ -52,8 +52,16 @@ service cloud.firestore {
         // Admin ve la lista completa; el propio uid necesita leer su doc en liberarPlaza
         allow read: if isAdmin() || request.auth.uid == uid;
 
-        // El propio uid escribe/borra su inscrito; admin puede borrar (limpieza)
-        allow write: if request.auth.uid == uid || isAdmin();
+        // Crear inscripción: el propio uid, y solo si ya abrieron las inscripciones
+        // (aperturaTs es el respaldo real en servidor de fechaAperturaInscripciones;
+        // el check en inscribirse() ya filtra esto antes, esto es la garantía dura)
+        allow create: if isAdmin()
+          || (request.auth.uid == uid
+              && (get(/databases/$(database)/documents/actividades/$(actividadId)).data.aperturaTs == null
+                  || request.time >= get(/databases/$(database)/documents/actividades/$(actividadId)).data.aperturaTs));
+
+        // Actualizar/borrar (liberarPlaza, limpieza admin): sin restricción de fecha
+        allow update, delete: if request.auth.uid == uid || isAdmin();
       }
     }
 

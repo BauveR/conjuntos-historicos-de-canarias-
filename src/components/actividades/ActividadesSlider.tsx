@@ -4,9 +4,17 @@ import { ActividadCard } from './ActividadCard'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
-type Props = { actividades: Actividad[] }
+type Props = {
+  actividades: Actividad[]
+  labelSingular?: string
+  labelPlural?: string
+}
 
-export function ActividadesSlider({ actividades }: Props) {
+export function ActividadesSlider({
+  actividades,
+  labelSingular = 'actividad disponible',
+  labelPlural = 'actividades disponibles',
+}: Props) {
   const [mode, setMode] = useState<'slider' | 'grid'>('slider')
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -21,7 +29,7 @@ export function ActividadesSlider({ actividades }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <p className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>
-          {actividades.length} {actividades.length === 1 ? 'actividad disponible' : 'actividades disponibles'}
+          {actividades.length} {actividades.length === 1 ? labelSingular : labelPlural}
         </p>
         {actividades.length > 3 && (
           <button

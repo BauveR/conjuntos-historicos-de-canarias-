@@ -195,13 +195,14 @@ type ActividadForm = {
   titulo: string; conjuntoId: string; tematica: string; fecha: string
   hora: string; duracion: string; dificultad: string; plazas: string
   organizador: string; contacto: string; puntoEncuentro: string
-  descripcion: string; imagen: string
+  descripcion: string; imagen: string; fechaAperturaInscripciones: string
 }
 
 const defaultActividadForm: ActividadForm = {
   titulo: '', conjuntoId: '', tematica: '', fecha: '', hora: '',
   duracion: '', dificultad: 'Fácil', plazas: '', organizador: '',
   contacto: '', puntoEncuentro: '', descripcion: '', imagen: '',
+  fechaAperturaInscripciones: '',
 }
 
 const DEFAULT_IMAGE = 'https://upload.wikimedia.org/wikipedia/commons/4/40/Convento_de_San_Buenaventura_-_Betancuria_-_Fuerteventura.jpg'
@@ -221,6 +222,7 @@ function actividadToForm(a: Actividad): ActividadForm {
     puntoEncuentro: a.puntoEncuentro ?? '',
     descripcion: a.descripcion,
     imagen: a.imagen === DEFAULT_IMAGE ? '' : a.imagen,
+    fechaAperturaInscripciones: a.fechaAperturaInscripciones ?? '',
   }
 }
 
@@ -238,6 +240,9 @@ export function validateActividad(form: ActividadForm): ActividadErrors {
 
   if (!form.fecha) e.fecha = 'Obligatoria'
   else if (form.fecha < today) e.fecha = 'La fecha no puede ser anterior a hoy'
+
+  if (form.fechaAperturaInscripciones && form.fecha && form.fechaAperturaInscripciones > form.fecha)
+    e.fechaAperturaInscripciones = 'No puede ser posterior a la fecha del evento'
 
   if (!form.plazas) e.plazas = 'Obligatorio'
   else {
@@ -410,6 +415,7 @@ function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
         puntoEncuentro: form.puntoEncuentro,
         descripcion: form.descripcion,
         imagen: form.imagen || DEFAULT_IMAGE,
+        ...(form.fechaAperturaInscripciones ? { fechaAperturaInscripciones: form.fechaAperturaInscripciones } : {}),
       }
       if (modo === 'unica') {
         await addActividad({ ...base, fecha: form.fecha })
@@ -516,6 +522,18 @@ function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
               <FieldError msg={errors.fecha} />
             </div>
           )}
+
+          <div className="flex flex-col gap-1.5">
+            <FieldLabel>Apertura de inscripciones</FieldLabel>
+            <Input
+              value={form.fechaAperturaInscripciones}
+              onChange={set('fechaAperturaInscripciones')}
+              type="date"
+              error={!!errors.fechaAperturaInscripciones}
+            />
+            <FieldError msg={errors.fechaAperturaInscripciones} />
+            <p className="text-[10px] text-stone-400">Vacío = inscripciones abiertas desde ya. El evento se publica igual.</p>
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
@@ -658,6 +676,7 @@ function EditActividadDrawer({
         puntoEncuentro: form.puntoEncuentro,
         descripcion: form.descripcion,
         imagen: form.imagen || DEFAULT_IMAGE,
+        fechaAperturaInscripciones: form.fechaAperturaInscripciones,
       })
       setSuccess(true)
       setTimeout(() => { setSuccess(false); onClose() }, 1500)
@@ -782,6 +801,18 @@ function EditActividadDrawer({
                     <FieldLabel>Duración</FieldLabel>
                     <Input value={form.duracion} onChange={set('duracion')} placeholder="2h 30min" />
                   </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <FieldLabel>Apertura de inscripciones</FieldLabel>
+                  <Input
+                    value={form.fechaAperturaInscripciones}
+                    onChange={set('fechaAperturaInscripciones')}
+                    type="date"
+                    error={!!errors.fechaAperturaInscripciones}
+                  />
+                  <FieldError msg={errors.fechaAperturaInscripciones} />
+                  <p className="text-[10px] text-stone-400">Vacío = inscripciones abiertas desde ya.</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">

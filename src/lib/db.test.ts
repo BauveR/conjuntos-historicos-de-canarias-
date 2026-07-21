@@ -50,7 +50,7 @@ function runTxWith(tx: Transaction) {
 
 // ── Import after mocks ────────────────────────────────────────────────────────
 
-const { inscribirse, liberarPlaza, eliminarActividad, SinPlazasError, YaLiberadaError, EventoCanceladoError } =
+const { inscribirse, liberarPlaza, eliminarActividad, SinPlazasError, YaLiberadaError, EventoCanceladoError, InscripcionNoAbiertaError } =
   await import('./db')
 
 // ── inscribirse ───────────────────────────────────────────────────────────────
@@ -97,7 +97,35 @@ describe('inscribirse', () => {
       .rejects.toBeInstanceOf(EventoCanceladoError)
 
     expect(tx.set).not.toHaveBeenCalled()
+  })
+
+  it('lanza InscripcionNoAbiertaError si la apertura de inscripciones es futura', async () => {
+    const futura = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+    const tx = makeTx({
+      'actividades/1':              { plazas: 20, plazasDisponibles: 10, fechaAperturaInscripciones: futura },
+      'users/uid-a/inscripciones/1': null,
+    })
+    runTxWith(tx)
+
+    await expect(inscribirse(1, 'uid-a', 'a@test.es', 'Usuario A', '611222333'))
+      .rejects.toBeInstanceOf(InscripcionNoAbiertaError)
+
+    expect(tx.set).not.toHaveBeenCalled()
     expect(tx.update).not.toHaveBeenCalled()
+  })
+
+  it('permite inscribirse si la apertura de inscripciones ya pasó', async () => {
+    const pasada = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+    const tx = makeTx({
+      'actividades/1':              { plazas: 20, plazasDisponibles: 10, fechaAperturaInscripciones: pasada },
+      'users/uid-a/inscripciones/1': null,
+    })
+    runTxWith(tx)
+
+    await inscribirse(1, 'uid-a', 'a@test.es', 'Usuario A', '611222333')
+
+    expect(tx.set).toHaveBeenCalled()
+    expect(tx.update).toHaveBeenCalledTimes(1)
   })
 
   it('no escribe nada si el usuario ya está inscrito', async () => {

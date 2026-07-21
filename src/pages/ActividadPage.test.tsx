@@ -37,6 +37,7 @@ const baseProps = {
   inscrito: false,
   esPasada: false,
   esCancelada: false,
+  noAbierto: false,
   isLoggedIn: true,
   inscribiendo: false,
   inscripcionError: '',

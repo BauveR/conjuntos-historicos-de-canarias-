@@ -26,6 +26,11 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
     month: 'short',
   })
   const badge = plazasBadge(actividad.plazasDisponibles, actividad.plazas)
+  const today = new Date().toISOString().slice(0, 10)
+  const esProximamente = !!actividad.fechaAperturaInscripciones && actividad.fechaAperturaInscripciones > today
+  const fechaApertura = esProximamente
+    ? new Date(actividad.fechaAperturaInscripciones + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+    : null
 
   return (
     <Link
@@ -55,8 +60,15 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
         >
           {actividad.tematica}
         </span>
-        {/* Badge plazas */}
-        {badge && (
+        {/* Badge plazas / próximamente */}
+        {esProximamente ? (
+          <span
+            className="absolute top-3 right-3 px-3 py-1 font-bold text-[10px] tracking-widest uppercase rounded-full text-white"
+            style={{ ...labelStyle, backgroundColor: '#595d8d' }}
+          >
+            Abre el {fechaApertura}
+          </span>
+        ) : badge && (
           <span
             className="absolute top-3 right-3 px-3 py-1 font-bold text-[10px] tracking-widest uppercase rounded-full text-white"
             style={{ ...labelStyle, backgroundColor: '#cd6a26' }}
@@ -89,7 +101,9 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
         <DifficultyDots dificultad={actividad.dificultad} />
 
         <p className="text-[11px] text-stone-400" style={labelStyle}>
-          {actividad.plazasDisponibles} de {actividad.plazas} plazas disponibles
+          {esProximamente
+            ? `Inscripciones desde el ${fechaApertura}`
+            : `${actividad.plazasDisponibles} de ${actividad.plazas} plazas disponibles`}
         </p>
 
         <span

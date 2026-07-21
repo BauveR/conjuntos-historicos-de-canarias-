@@ -46,6 +46,10 @@ export class EventoCanceladoError extends Error {
   constructor() { super('EVENTO_CANCELADO') }
 }
 
+export class InscripcionNoAbiertaError extends Error {
+  constructor() { super('INSCRIPCION_NO_ABIERTA') }
+}
+
 export async function inscribirse(
   actividadId: number,
   uid: string,
@@ -69,6 +73,8 @@ export async function inscribirse(
     const data = actSnap.data()
     if (data?.cancelada) throw new EventoCanceladoError()
     if ((data?.plazasDisponibles ?? 0) <= 0) throw new SinPlazasError()
+    const apertura = data?.fechaAperturaInscripciones as string | undefined
+    if (apertura && apertura > new Date().toISOString().slice(0, 10)) throw new InscripcionNoAbiertaError()
 
     tx.set(inscripcionRef, { inscritoEn: serverTimestamp() })
     tx.set(inscritoRef, { inscritoEn: serverTimestamp(), email, displayName, telefono })
@@ -119,16 +125,31 @@ function randomId(): number {
   return crypto.getRandomValues(new Uint32Array(1))[0]
 }
 
+// `aperturaTs` es un Timestamp derivado de `fechaAperturaInscripciones`, mantenido
+// solo para que las Firestore rules puedan comparar contra `request.time` — el resto
+// de la app no lo lee ni lo escribe directamente, siempre usa el string.
+function toAperturaTs(fecha?: string): Date | null {
+  return fecha ? new Date(fecha + 'T00:00:00') : null
+}
+
 export async function addActividad(data: Omit<Actividad, 'id'>): Promise<void> {
   const id = randomId()
-  await setDoc(doc(db, 'actividades', String(id)), { ...data, id })
+  await setDoc(doc(db, 'actividades', String(id)), {
+    ...data,
+    id,
+    aperturaTs: toAperturaTs(data.fechaAperturaInscripciones),
+  })
 }
 
 export async function updateActividad(
   id: number,
   data: Partial<Omit<Actividad, 'id'>>,
 ): Promise<void> {
-  await updateDoc(doc(db, 'actividades', String(id)), data as Record<string, unknown>)
+  const payload: Record<string, unknown> = { ...data }
+  if ('fechaAperturaInscripciones' in data) {
+    payload.aperturaTs = toAperturaTs(data.fechaAperturaInscripciones)
+  }
+  await updateDoc(doc(db, 'actividades', String(id)), payload)
 }
 
 export async function cancelActividad(id: number): Promise<void> {
@@ -189,7 +210,11 @@ export async function seedFirestore(): Promise<void> {
     batch.set(doc(db, 'conjuntos', String(c.id)), { ...c })
   }
   for (const a of ACTIVIDADES) {
-    batch.set(doc(db, 'actividades', String(a.id)), { ...a, plazasDisponibles: a.plazas })
+    batch.set(doc(db, 'actividades', String(a.id)), {
+      ...a,
+      plazasDisponibles: a.plazas,
+      aperturaTs: toAperturaTs(a.fechaAperturaInscripciones),
+    })
   }
   await batch.commit()
 }

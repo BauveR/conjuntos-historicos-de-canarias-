@@ -16,6 +16,7 @@ const base = {
   puntoEncuentro: '',
   descripcion: 'Recorrido completo por el recinto histórico con guía especializado.',
   imagen: '',
+  fechaAperturaInscripciones: '',
 }
 
 describe('validateActividad', () => {

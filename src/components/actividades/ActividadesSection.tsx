@@ -51,9 +51,13 @@ export function ActividadesSection() {
     })
   }, [actividades, conjuntos, tematica, isla, conjuntoId, mes, dificultad])
 
-  const disponibles = actividadesFiltradas.filter(a => !a.cancelada && a.plazasDisponibles > 0 && a.fecha >= today)
-  const inactivas   = actividadesFiltradas.filter(a => !a.cancelada && (a.plazasDisponibles === 0 || a.fecha < today))
-  const canceladas  = actividadesFiltradas.filter(a => !!a.cancelada)
+  const esProximamente = (a: typeof actividadesFiltradas[number]) =>
+    !!a.fechaAperturaInscripciones && a.fechaAperturaInscripciones > today
+
+  const disponibles  = actividadesFiltradas.filter(a => !a.cancelada && !esProximamente(a) && a.plazasDisponibles > 0 && a.fecha >= today)
+  const proximamente = actividadesFiltradas.filter(a => !a.cancelada && esProximamente(a) && a.fecha >= today)
+  const inactivas     = actividadesFiltradas.filter(a => !a.cancelada && !esProximamente(a) && (a.plazasDisponibles === 0 || a.fecha < today))
+  const canceladas    = actividadesFiltradas.filter(a => !!a.cancelada)
 
   const currentFilters: FilterState = { tematica, isla, conjuntoId, mes, dificultad }
 
@@ -113,6 +117,15 @@ export function ActividadesSection() {
           transition={{ duration: 0.65 }}
         >
           <ActividadesSlider actividades={disponibles} />
+          {proximamente.length > 0 && (
+            <div className="mt-10">
+              <ActividadesSlider
+                actividades={proximamente}
+                labelSingular="actividad próximamente"
+                labelPlural="actividades próximamente"
+              />
+            </div>
+          )}
           <ActividadesInactivas actividades={[...inactivas, ...canceladas]} />
         </motion.div>
       )}
