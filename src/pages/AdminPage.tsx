@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 
 declare global {
   interface Window {
@@ -31,6 +31,8 @@ import { TEMATICAS, TEMATICA_COLORS, type Tematica } from '../data/tematicas'
 import { ISLAS, DIFICULTADES } from '../data/islas'
 import { useDataContext } from '../contexts/DataContext'
 import { isValidTelefono } from '../utils/validators'
+import { downloadCsv, toTsv } from '../utils/csv'
+import { formatMes } from '../components/actividades/FilterSheet'
 import {
   addActividad, updateActividad, cancelActividad, reactivarActividad, eliminarActividad,
   addConjunto, updateConjunto,
@@ -1081,8 +1083,26 @@ function ControlAsistentes({ actividades, conjuntos }: { actividades: Actividad[
   const [loadingInscritos, setLoadingInscritos] = useState(false)
   const [fetchError,       setFetchError]       = useState<string | null>(null)
   const [fetchedAt,        setFetchedAt]        = useState<{ id: number; count: number } | null>(null)
+  const [query,            setQuery]            = useState('')
+  const [mesFiltro,        setMesFiltro]        = useState('')
+  const [copiado,          setCopiado]          = useState(false)
 
-  const visible            = showPasadas ? pasadas : proximas
+  const mesesDisponibles = useMemo(() => {
+    const set = new Set(actividades.map(a => a.fecha.slice(0, 7)))
+    return Array.from(set).sort()
+  }, [actividades])
+
+  const matchesFiltro = (a: Actividad) => {
+    if (mesFiltro && !a.fecha.startsWith(mesFiltro)) return false
+    if (!query.trim()) return true
+    const q = query.trim().toLowerCase()
+    const conjunto = conjuntos.find(c => c.id === a.conjuntoId)
+    return a.titulo.toLowerCase().includes(q)
+      || (conjunto?.nombre.toLowerCase().includes(q) ?? false)
+      || (conjunto?.isla.toLowerCase().includes(q) ?? false)
+  }
+
+  const visible            = (showPasadas ? pasadas : proximas).filter(matchesFiltro)
   const selectedActividad  = actividades.find(a => a.id === selectedId)
   const editingActividad   = actividades.find(a => a.id === editingId)
   const selectedCount      = selectedActividad
@@ -1124,6 +1144,30 @@ function ControlAsistentes({ actividades, conjuntos }: { actividades: Actividad[
     setEditingId(prev => prev === id ? null : id)
   }
 
+  const inscritosRows = (): string[][] => [
+    ['Nombre', 'Email', 'Teléfono', 'Inscrito el'],
+    ...inscritos.map(i => [
+      i.displayName || '',
+      i.email,
+      i.telefono || '',
+      i.inscritoEn ? i.inscritoEn.toLocaleDateString('es-ES') : '',
+    ]),
+  ]
+
+  const handleDescargarCsv = () => {
+    if (!selectedActividad) return
+    const slug = selectedActividad.titulo.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+    downloadCsv(`inscritos-${slug}.csv`, inscritosRows())
+  }
+
+  const handleCopiar = async () => {
+    try {
+      await navigator.clipboard.writeText(toTsv(inscritosRows()))
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 2000)
+    } catch { /* clipboard no disponible */ }
+  }
+
   const tabs = [
     { label: `Próximas (${proximas.length})`, active: !showPasadas, onClick: () => setShowPasadas(false) },
     { label: `Pasadas (${pasadas.length})`,   active: showPasadas,  onClick: () => setShowPasadas(true)  },
@@ -1141,23 +1185,41 @@ function ControlAsistentes({ actividades, conjuntos }: { actividades: Actividad[
       {/* Panel de inscritos */}
       {selectedActividad && (
         <div className="bg-white rounded-2xl border border-stone-100 p-6" style={labelStyle}>
-          <div className="flex items-start justify-between mb-5">
-            <div className="min-w-0 flex-1 mr-4">
+          <div className="flex items-start justify-between mb-5 gap-3">
+            <div className="min-w-0 flex-1">
               <p className="text-[10px] tracking-widest uppercase text-stone-400 mb-1">Inscritos</p>
               <p className="text-sm text-stone-800 truncate">{selectedActividad.titulo}</p>
               <p className="text-[11px] text-stone-400 mt-0.5 capitalize">
                 {selectedFecha} · {selectedCount} {selectedCount === 1 ? 'inscrito' : 'inscritos'}
               </p>
             </div>
-            <button
-              onClick={() => setSelectedId(null)}
-              className="shrink-0 w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-400 transition-colors cursor-pointer"
-              aria-label="Cerrar"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                <path d="M18 6 6 18M6 6l12 12" />
-              </svg>
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              {inscritos.length > 0 && (
+                <>
+                  <button
+                    onClick={handleCopiar}
+                    className="px-3 py-1.5 rounded-full border border-stone-200 text-[10px] tracking-widest uppercase text-stone-500 hover:border-stone-400 hover:text-stone-800 transition-colors cursor-pointer whitespace-nowrap"
+                  >
+                    {copiado ? 'Copiado ✓' : 'Copiar'}
+                  </button>
+                  <button
+                    onClick={handleDescargarCsv}
+                    className="px-3 py-1.5 rounded-full border border-stone-200 text-[10px] tracking-widest uppercase text-stone-500 hover:border-stone-400 hover:text-stone-800 transition-colors cursor-pointer whitespace-nowrap"
+                  >
+                    Descargar CSV
+                  </button>
+                </>
+              )}
+              <button
+                onClick={() => setSelectedId(null)}
+                className="shrink-0 w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-400 transition-colors cursor-pointer"
+                aria-label="Cerrar"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           {loadingInscritos ? (
@@ -1167,14 +1229,25 @@ function ControlAsistentes({ actividades, conjuntos }: { actividades: Actividad[
           ) : inscritos.length === 0 ? (
             <p className="text-[11px] text-stone-300 py-2">Sin inscritos aún</p>
           ) : (
-            <div className="divide-y divide-stone-50">
-              {inscritos.map(i => (
-                <div key={i.uid} className="flex items-center gap-4 py-2.5 min-w-0">
-                  <span className="text-sm text-stone-700 truncate flex-1">{i.displayName || '—'}</span>
-                  <span className="text-[11px] text-stone-400 truncate shrink-0 max-w-[30%]">{i.email}</span>
-                  <span className="text-[11px] text-stone-400 truncate shrink-0 max-w-[20%]">{i.telefono || '—'}</span>
-                </div>
-              ))}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="text-[10px] tracking-widest uppercase text-stone-400 border-b border-stone-100">
+                    <th className="font-normal py-2 pr-4">Nombre</th>
+                    <th className="font-normal py-2 pr-4">Email</th>
+                    <th className="font-normal py-2">Teléfono</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-50">
+                  {inscritos.map(i => (
+                    <tr key={i.uid}>
+                      <td className="py-2.5 pr-4 text-sm text-stone-700 whitespace-nowrap">{i.displayName || '—'}</td>
+                      <td className="py-2.5 pr-4 text-[11px] text-stone-400 whitespace-nowrap">{i.email}</td>
+                      <td className="py-2.5 text-[11px] text-stone-400 whitespace-nowrap">{i.telefono || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
@@ -1196,6 +1269,45 @@ function ControlAsistentes({ actividades, conjuntos }: { actividades: Actividad[
             </button>
           ))}
         </div>
+
+        {actividades.length > 0 && (
+          <div className="flex flex-col sm:flex-row gap-3 mb-5">
+            <div className="relative flex-1">
+              <svg
+                xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-300 pointer-events-none"
+              >
+                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+              </svg>
+              <input
+                type="text"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder="Buscar por título, conjunto o isla…"
+                className="w-full border border-stone-200 rounded-xl pl-8 pr-8 py-2 text-sm text-stone-800 bg-white focus:outline-none focus:border-stone-400 transition-colors placeholder:text-stone-300"
+              />
+              {query && (
+                <button
+                  onClick={() => setQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-300 hover:text-stone-500 transition-colors cursor-pointer"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                    <path d="M18 6 6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+            {mesesDisponibles.length > 0 && (
+              <div className="sm:w-56 shrink-0">
+                <Select value={mesFiltro} onChange={setMesFiltro}>
+                  <option value="">Todos los meses</option>
+                  {mesesDisponibles.map(m => <option key={m} value={m}>{formatMes(m)}</option>)}
+                </Select>
+              </div>
+            )}
+          </div>
+        )}
 
         {visible.length === 0 ? (
           <p className="text-sm text-stone-300 py-4 text-center">Sin actividades</p>
