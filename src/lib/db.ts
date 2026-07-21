@@ -14,6 +14,7 @@ export type InscritoData = {
   uid: string
   email: string
   displayName: string
+  telefono: string
   inscritoEn: Date | null
 }
 
@@ -50,10 +51,12 @@ export async function inscribirse(
   uid: string,
   email: string,
   displayName: string,
+  telefono: string,
 ): Promise<void> {
   const actividadRef   = doc(db, 'actividades', String(actividadId))
   const inscripcionRef = doc(db, 'users', uid, 'inscripciones', String(actividadId))
   const inscritoRef    = doc(db, 'actividades', String(actividadId), 'inscritos', uid)
+  const userRef         = doc(db, 'users', uid)
 
   await runTransaction(db, async tx => {
     const [actSnap, inscripcionSnap] = await Promise.all([
@@ -68,7 +71,8 @@ export async function inscribirse(
     if ((data?.plazasDisponibles ?? 0) <= 0) throw new SinPlazasError()
 
     tx.set(inscripcionRef, { inscritoEn: serverTimestamp() })
-    tx.set(inscritoRef, { inscritoEn: serverTimestamp(), email, displayName })
+    tx.set(inscritoRef, { inscritoEn: serverTimestamp(), email, displayName, telefono })
+    tx.set(userRef, { telefono }, { merge: true })
     tx.update(actividadRef, { plazasDisponibles: increment(-1) })
   })
 }
@@ -154,6 +158,7 @@ export async function getInscritos(actividadId: number): Promise<InscritoData[]>
       uid: d.id,
       email: data.email ?? '',
       displayName: data.displayName ?? '',
+      telefono: data.telefono ?? '',
       inscritoEn: data.inscritoEn?.toDate?.() ?? null,
     }
   })

@@ -20,8 +20,11 @@ service cloud.firestore {
       allow create: if request.auth.uid == uid
         && request.resource.data.role == 'user';
 
-      // Solo admin puede modificar (p.ej. cambiar role a 'admin')
-      allow update: if isAdmin();
+      // Admin puede modificar cualquier campo (p.ej. cambiar role a 'admin');
+      // el propio usuario SOLO puede actualizar su teléfono de contacto
+      allow update: if isAdmin()
+        || (request.auth.uid == uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['telefono']));
 
       match /inscripciones/{actividadId} {
         allow read, write: if request.auth.uid == uid || isAdmin();

@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useParams, Navigate, useNavigate, useLocation, Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from '../firebase'
 import { TEMATICA_COLORS } from '../data/tematicas'
 import { DifficultyDots } from '../components/actividades/DifficultyDots'
 import { ShareButton } from '../components/actividades/ShareButton'
 import { useAuth } from '../contexts/AuthContext'
 import { useDataContext } from '../contexts/DataContext'
 import { inscribirse, liberarPlaza, SinPlazasError, YaLiberadaError, EventoCanceladoError } from '../lib/db'
+import { isValidTelefono } from '../utils/validators'
 import type { Actividad } from '../data/actividades'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
@@ -94,22 +97,33 @@ type BookingWidgetProps = {
   inscrito: boolean
   esPasada: boolean
   esCancelada: boolean
+  isLoggedIn: boolean
   inscribiendo: boolean
   inscripcionError: string
   confirmando: boolean
   setConfirmando: (v: boolean) => void
   liberando: boolean
-  onInscribirse: () => void
   onLiberar: () => void
+  onRequestLogin: () => void
+  mostrandoTelefono: boolean
+  setMostrandoTelefono: (v: boolean) => void
+  telefono: string
+  onTelefonoChange: (v: string) => void
+  telefonoError: string
+  onConfirmarInscripcion: () => void
+  onCancelarTelefono: () => void
   compact?: boolean
 }
 
 export function BookingWidget({
   actividad, fecha, pct,
-  inscrito, esPasada, esCancelada,
+  inscrito, esPasada, esCancelada, isLoggedIn,
   inscribiendo, inscripcionError,
   confirmando, setConfirmando,
-  liberando, onInscribirse, onLiberar,
+  liberando, onLiberar, onRequestLogin,
+  mostrandoTelefono, setMostrandoTelefono,
+  telefono, onTelefonoChange, telefonoError,
+  onConfirmarInscripcion, onCancelarTelefono,
   compact = false,
 }: BookingWidgetProps) {
 
@@ -331,14 +345,51 @@ export function BookingWidget({
         <p className="text-[11px] text-red-500" style={labelStyle}>{inscripcionError}</p>
       )}
 
-      <button
-        disabled={actividad.plazasDisponibles === 0 || inscribiendo || esPasada}
-        onClick={onInscribirse}
-        className={`w-full ${compact ? 'py-3' : 'py-3.5'} rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer`}
-        style={labelStyle}
-      >
-        {inscribiendo ? '...' : esPasada ? 'Actividad finalizada' : actividad.plazasDisponibles === 0 ? 'Sin plazas disponibles' : 'Inscribirme'}
-      </button>
+      {mostrandoTelefono ? (
+        <div className="flex flex-col gap-2">
+          <label className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>
+            Teléfono de contacto
+          </label>
+          <input
+            type="tel"
+            value={telefono}
+            onChange={e => onTelefonoChange(e.target.value)}
+            placeholder="612345678 o +34612345678"
+            className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-sm text-stone-800 focus:outline-none focus:border-stone-400 transition-colors"
+            style={labelStyle}
+          />
+          {telefonoError && (
+            <p className="text-[11px] text-red-500" style={labelStyle}>{telefonoError}</p>
+          )}
+          <div className="flex gap-2">
+            <button
+              onClick={onConfirmarInscripcion}
+              disabled={inscribiendo}
+              className="flex-1 py-3 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors disabled:opacity-40 cursor-pointer"
+              style={labelStyle}
+            >
+              {inscribiendo ? '...' : 'Confirmar y continuar'}
+            </button>
+            <button
+              onClick={onCancelarTelefono}
+              disabled={inscribiendo}
+              className="flex-1 py-3 rounded-xl border border-stone-200 text-stone-500 text-[11px] tracking-widest uppercase hover:bg-stone-50 transition-colors disabled:opacity-40 cursor-pointer"
+              style={labelStyle}
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          disabled={actividad.plazasDisponibles === 0 || inscribiendo || esPasada}
+          onClick={() => { if (!isLoggedIn) onRequestLogin(); else setMostrandoTelefono(true) }}
+          className={`w-full ${compact ? 'py-3' : 'py-3.5'} rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer`}
+          style={labelStyle}
+        >
+          {inscribiendo ? '...' : esPasada ? 'Actividad finalizada' : actividad.plazasDisponibles === 0 ? 'Sin plazas disponibles' : 'Inscribirme'}
+        </button>
+      )}
 
       <p className="text-[10px] text-stone-400 text-center" style={labelStyle}>
         Inscripción gratuita · Se requiere confirmación
@@ -374,50 +425,21 @@ export function ActividadPage() {
   const [confirmando, setConfirmando] = useState(false)
   const [liberando, setLiberando] = useState(false)
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
+  const [mostrandoTelefono, setMostrandoTelefono] = useState(false)
+  const [telefono, setTelefono] = useState('')
+  const [telefonoError, setTelefonoError] = useState('')
 
-  // Auto-inscripción tras login: si el usuario acaba de autenticarse y hay una inscripción pendiente
+  // Precarga el teléfono guardado en el perfil (si existe) para no pedirlo de cero cada vez
   useEffect(() => {
-    if (!user || !actividad || inscrito) return
-    const pending = sessionStorage.getItem('pendingInscripcion')
-    if (pending !== String(actividad.id)) return
-    sessionStorage.removeItem('pendingInscripcion')
-
-    setInscribiendo(true)
-    setInscripcionError('')
-    inscribirse(actividad.id, user.uid, user.email ?? '', user.displayName ?? '')
-      .then(() => {
-        setShowSuccessPopup(true)
-        user.getIdToken().then(idToken => {
-          const conjunto = conjuntos.find(c => c.id === actividad.conjuntoId)
-          const fechaStr = new Date(actividad.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
-            weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-          })
-          fetch('/api/send-email', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              idToken,
-              titulo: actividad.titulo,
-              fecha: fechaStr,
-              hora: actividad.hora,
-              duracion: actividad.duracion,
-              puntoEncuentro: actividad.puntoEncuentro,
-              organizador: actividad.organizador,
-              contacto: actividad.contacto,
-              conjuntoNombre: conjunto?.nombre,
-              conjuntoIsla: conjunto?.isla,
-            }),
-          }).catch(() => {})
-        }).catch(() => {})
+    if (!user) return
+    getDoc(doc(db, 'users', user.uid))
+      .then(snap => {
+        const guardado = snap.data()?.telefono
+        if (typeof guardado === 'string' && guardado) setTelefono(guardado)
       })
-      .catch(err => {
-        if (err instanceof SinPlazasError) setInscripcionError('Ya no quedan plazas disponibles.')
-        else if (err instanceof EventoCanceladoError) setInscripcionError('Este evento ha sido cancelado.')
-        else setInscripcionError('Error al procesar la inscripción. Inténtalo de nuevo.')
-      })
-      .finally(() => setInscribiendo(false))
+      .catch(() => {})
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.uid, actividad?.id])
+  }, [user?.uid])
 
   const esPasada    = actividad ? actividad.fecha < new Date().toISOString().split('T')[0] : false
   const esCancelada = !!actividad?.cancelada
@@ -435,17 +457,28 @@ export function ActividadPage() {
     }
   }
 
-  const handleInscribirse = async () => {
-    if (!user) {
-      if (actividad) sessionStorage.setItem('pendingInscripcion', String(actividad.id))
-      navigate('/login', { state: { background: location } })
+  const handleRequestLogin = () => {
+    navigate('/login', { state: { background: location } })
+  }
+
+  const handleCancelarTelefono = () => {
+    setMostrandoTelefono(false)
+    setTelefonoError('')
+  }
+
+  const handleConfirmarInscripcion = async () => {
+    if (!user || !actividad) return
+    if (!isValidTelefono(telefono)) {
+      setTelefonoError('Introduce un teléfono válido (España o formato internacional +XX...)')
       return
     }
-    if (!actividad) return
     setInscribiendo(true)
     setInscripcionError('')
+    setTelefonoError('')
     try {
-      await inscribirse(actividad.id, user.uid, user.email ?? '', user.displayName ?? '')
+      await inscribirse(actividad.id, user.uid, user.email ?? '', user.displayName ?? '', telefono)
+      setMostrandoTelefono(false)
+      setShowSuccessPopup(true)
       // Fire-and-forget: enviar email de confirmación
       user.getIdToken().then(idToken => {
         const conjunto = conjuntos.find(c => c.id === actividad.conjuntoId)
@@ -497,11 +530,18 @@ export function ActividadPage() {
   const widgetProps = {
     actividad, fecha, pct,
     inscrito, esPasada, esCancelada,
+    isLoggedIn: !!user,
     inscribiendo, inscripcionError,
     confirmando, setConfirmando,
     liberando,
-    onInscribirse: handleInscribirse,
     onLiberar: handleLiberar,
+    onRequestLogin: handleRequestLogin,
+    mostrandoTelefono, setMostrandoTelefono,
+    telefono,
+    onTelefonoChange: (v: string) => { setTelefono(v); setTelefonoError('') },
+    telefonoError,
+    onConfirmarInscripcion: handleConfirmarInscripcion,
+    onCancelarTelefono: handleCancelarTelefono,
   }
 
   // ── Vista fromPerfil (modal estrecho) ───────────────────────────────────────

@@ -68,7 +68,7 @@ describe('inscribirse', () => {
     })
     runTxWith(tx)
 
-    await expect(inscribirse(1, 'uid-a', 'a@test.es', 'Usuario A'))
+    await expect(inscribirse(1, 'uid-a', 'a@test.es', 'Usuario A', '611222333'))
       .rejects.toBeInstanceOf(SinPlazasError)
 
     expect(tx.set).not.toHaveBeenCalled()
@@ -82,7 +82,7 @@ describe('inscribirse', () => {
     })
     runTxWith(tx)
 
-    await expect(inscribirse(1, 'uid-a', 'a@test.es', 'Usuario A'))
+    await expect(inscribirse(1, 'uid-a', 'a@test.es', 'Usuario A', '611222333'))
       .rejects.toBeInstanceOf(SinPlazasError)
   })
 
@@ -93,7 +93,7 @@ describe('inscribirse', () => {
     })
     runTxWith(tx)
 
-    await expect(inscribirse(1, 'uid-a', 'a@test.es', 'Usuario A'))
+    await expect(inscribirse(1, 'uid-a', 'a@test.es', 'Usuario A', '611222333'))
       .rejects.toBeInstanceOf(EventoCanceladoError)
 
     expect(tx.set).not.toHaveBeenCalled()
@@ -107,7 +107,7 @@ describe('inscribirse', () => {
     })
     runTxWith(tx)
 
-    await inscribirse(1, 'uid-a', 'a@test.es', 'Usuario A')
+    await inscribirse(1, 'uid-a', 'a@test.es', 'Usuario A', '611222333')
 
     expect(tx.set).not.toHaveBeenCalled()
     expect(tx.update).not.toHaveBeenCalled()
@@ -120,9 +120,9 @@ describe('inscribirse', () => {
     })
     runTxWith(tx)
 
-    await inscribirse(1, 'uid-a', 'a@test.es', 'Usuario A')
+    await inscribirse(1, 'uid-a', 'a@test.es', 'Usuario A', '611222333')
 
-    expect(tx.set).toHaveBeenCalledTimes(2)
+    expect(tx.set).toHaveBeenCalledTimes(3)
     expect(tx.update).toHaveBeenCalledTimes(1)
 
     const updateCall = tx.update.mock.calls[0]
@@ -136,7 +136,7 @@ describe('inscribirse', () => {
     })
     runTxWith(tx)
 
-    await inscribirse(1, 'uid-b', 'b@test.es', 'Usuario B')
+    await inscribirse(1, 'uid-b', 'b@test.es', 'Usuario B', '622333444')
 
     const setPaths = tx.set.mock.calls.map((c: unknown[]) => c[0])
     expect(setPaths).toContain('users/uid-b/inscripciones/1')

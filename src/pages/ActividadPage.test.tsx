@@ -37,13 +37,21 @@ const baseProps = {
   inscrito: false,
   esPasada: false,
   esCancelada: false,
+  isLoggedIn: true,
   inscribiendo: false,
   inscripcionError: '',
   confirmando: false,
   setConfirmando: vi.fn(),
   liberando: false,
-  onInscribirse: vi.fn(),
   onLiberar: vi.fn(),
+  onRequestLogin: vi.fn(),
+  mostrandoTelefono: false,
+  setMostrandoTelefono: vi.fn(),
+  telefono: '',
+  onTelefonoChange: vi.fn(),
+  telefonoError: '',
+  onConfirmarInscripcion: vi.fn(),
+  onCancelarTelefono: vi.fn(),
 }
 
 function renderWidget(props: Partial<typeof baseProps> & { compact?: boolean } = {}) {
@@ -68,8 +76,9 @@ describe('BookingWidget — evento cancelado', () => {
 
 describe('BookingWidget — formulario de inscripción', () => {
   beforeEach(() => {
-    baseProps.onInscribirse.mockClear()
     baseProps.setConfirmando.mockClear()
+    baseProps.onRequestLogin.mockClear()
+    baseProps.setMostrandoTelefono.mockClear()
   })
 
   it('muestra el botón Inscribirme por defecto', () => {
@@ -77,11 +86,20 @@ describe('BookingWidget — formulario de inscripción', () => {
     expect(screen.getByRole('button', { name: /inscribirme/i })).toBeInTheDocument()
   })
 
-  it('llama onInscribirse al hacer click', () => {
-    const onInscribirse = vi.fn()
-    renderWidget({ onInscribirse })
+  it('abre el paso de teléfono al hacer click si hay sesión', () => {
+    const setMostrandoTelefono = vi.fn()
+    renderWidget({ isLoggedIn: true, setMostrandoTelefono })
     fireEvent.click(screen.getByRole('button', { name: /inscribirme/i }))
-    expect(onInscribirse).toHaveBeenCalledTimes(1)
+    expect(setMostrandoTelefono).toHaveBeenCalledWith(true)
+  })
+
+  it('pide login al hacer click si no hay sesión', () => {
+    const onRequestLogin = vi.fn()
+    const setMostrandoTelefono = vi.fn()
+    renderWidget({ isLoggedIn: false, onRequestLogin, setMostrandoTelefono })
+    fireEvent.click(screen.getByRole('button', { name: /inscribirme/i }))
+    expect(onRequestLogin).toHaveBeenCalledTimes(1)
+    expect(setMostrandoTelefono).not.toHaveBeenCalled()
   })
 
   it('deshabilita el botón cuando no hay plazas', () => {
@@ -107,6 +125,45 @@ describe('BookingWidget — formulario de inscripción', () => {
   it('muestra el error de inscripción', () => {
     renderWidget({ inscripcionError: 'Ya no quedan plazas disponibles.' })
     expect(screen.getByText('Ya no quedan plazas disponibles.')).toBeInTheDocument()
+  })
+})
+
+describe('BookingWidget — paso de teléfono', () => {
+  beforeEach(() => {
+    baseProps.onConfirmarInscripcion.mockClear()
+    baseProps.onCancelarTelefono.mockClear()
+    baseProps.onTelefonoChange.mockClear()
+  })
+
+  it('muestra el input de teléfono cuando mostrandoTelefono es true', () => {
+    renderWidget({ mostrandoTelefono: true })
+    expect(screen.getByRole('button', { name: /confirmar y continuar/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^inscribirme$/i })).not.toBeInTheDocument()
+  })
+
+  it('llama onConfirmarInscripcion al pulsar Confirmar y continuar', () => {
+    const onConfirmarInscripcion = vi.fn()
+    renderWidget({ mostrandoTelefono: true, onConfirmarInscripcion })
+    fireEvent.click(screen.getByRole('button', { name: /confirmar y continuar/i }))
+    expect(onConfirmarInscripcion).toHaveBeenCalledTimes(1)
+  })
+
+  it('llama onCancelarTelefono al pulsar Cancelar', () => {
+    const onCancelarTelefono = vi.fn()
+    renderWidget({ mostrandoTelefono: true, onCancelarTelefono })
+    fireEvent.click(screen.getByRole('button', { name: /cancelar/i }))
+    expect(onCancelarTelefono).toHaveBeenCalledTimes(1)
+  })
+
+  it('muestra el error de teléfono', () => {
+    renderWidget({ mostrandoTelefono: true, telefonoError: 'Introduce un teléfono válido' })
+    expect(screen.getByText('Introduce un teléfono válido')).toBeInTheDocument()
+  })
+
+  it('deshabilita los botones mientras inscribiendo', () => {
+    renderWidget({ mostrandoTelefono: true, inscribiendo: true })
+    expect(screen.getByRole('button', { name: /\.\.\./i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /cancelar/i })).toBeDisabled()
   })
 })
 

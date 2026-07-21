@@ -30,6 +30,7 @@ import type { Conjunto } from '../data/conjuntos'
 import { TEMATICAS, TEMATICA_COLORS, type Tematica } from '../data/tematicas'
 import { ISLAS, DIFICULTADES } from '../data/islas'
 import { useDataContext } from '../contexts/DataContext'
+import { isValidTelefono } from '../utils/validators'
 import {
   addActividad, updateActividad, cancelActividad, reactivarActividad, eliminarActividad,
   addConjunto, updateConjunto,
@@ -184,9 +185,8 @@ function isValidUrl(v: string): boolean {
 }
 
 function isValidContacto(v: string): boolean {
-  const clean = v.replace(/[\s.\-()]/g, '')
   if (v.includes('@')) return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim())
-  return /^[6-9]\d{8}$/.test(clean)
+  return isValidTelefono(v)
 }
 
 // ── Alta de Actividad ─────────────────────────────────────────────────────────
@@ -1140,7 +1140,8 @@ function ControlAsistentes({ actividades, conjuntos }: { actividades: Actividad[
               {inscritos.map(i => (
                 <div key={i.uid} className="flex items-center gap-4 py-2.5 min-w-0">
                   <span className="text-sm text-stone-700 truncate flex-1">{i.displayName || '—'}</span>
-                  <span className="text-[11px] text-stone-400 truncate shrink-0 max-w-[45%]">{i.email}</span>
+                  <span className="text-[11px] text-stone-400 truncate shrink-0 max-w-[30%]">{i.email}</span>
+                  <span className="text-[11px] text-stone-400 truncate shrink-0 max-w-[20%]">{i.telefono || '—'}</span>
                 </div>
               ))}
             </div>
