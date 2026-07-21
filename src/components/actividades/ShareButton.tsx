@@ -13,9 +13,14 @@ export function ShareButton({ url, title, text }: Props) {
 
   const handleShare = async () => {
     if (navigator.share) {
-      try { await navigator.share({ title, text, url }) }
-      catch { /* usuario canceló el share sheet */ }
-      return
+      try {
+        await navigator.share({ title, text, url })
+        return
+      } catch (err) {
+        // El usuario canceló el share sheet a propósito — no hacer nada más
+        if (err instanceof Error && err.name === 'AbortError') return
+        // Cualquier otro fallo (bug del navegador, contexto no soportado, etc.) cae a copiar el enlace
+      }
     }
     try {
       await navigator.clipboard.writeText(url)
