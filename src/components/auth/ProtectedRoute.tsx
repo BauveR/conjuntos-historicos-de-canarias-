@@ -14,7 +14,7 @@ export function ProtectedRoute({ children, requiredRole }: Props) {
 
   if (loading) return (
     <div className="min-h-screen bg-white flex items-center justify-center">
-      <p className="text-[10px] tracking-widest uppercase text-stone-300" style={{ fontFamily: "'Open Sans', sans-serif" }}>
+      <p className="text-[10px] tracking-widest uppercase text-stone-500" style={{ fontFamily: "'Open Sans', sans-serif" }}>
         Cargando...
       </p>
     </div>

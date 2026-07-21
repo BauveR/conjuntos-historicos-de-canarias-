@@ -107,7 +107,7 @@ export function ProfileCardCompact({ actividad, inactiva = false, onLiberar }: P
           ) : (
             <button
               onClick={() => setConfirmando(true)}
-              className="mt-1 w-fit text-[10px] tracking-widest uppercase text-stone-300 hover:text-red-400 transition-colors cursor-pointer"
+              className="mt-1 w-fit text-[10px] tracking-widest uppercase text-stone-500 hover:text-red-400 transition-colors cursor-pointer"
             >
               Liberar plaza
             </button>

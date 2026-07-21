@@ -229,7 +229,7 @@ export function AuthPage({ isModal = false }: Props) {
       {/* Divider */}
       <div className="flex items-center gap-3">
         <div className="flex-1 h-px bg-stone-100" />
-        <span className="text-[11px] text-stone-300 tracking-widest uppercase">o</span>
+        <span className="text-[11px] text-stone-400 tracking-widest uppercase">o</span>
         <div className="flex-1 h-px bg-stone-100" />
       </div>
 

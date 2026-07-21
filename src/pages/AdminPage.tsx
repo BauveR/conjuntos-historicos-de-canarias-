@@ -319,7 +319,7 @@ function MultiDatePicker({ selected, onChange }: {
       {/* Cabecera días */}
       <div className="grid grid-cols-7">
         {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(d => (
-          <div key={d} className="text-center text-[10px] text-stone-300 py-1">{d}</div>
+          <div key={d} className="text-center text-[10px] text-stone-400 py-1">{d}</div>
         ))}
       </div>
 
@@ -342,9 +342,9 @@ function MultiDatePicker({ selected, onChange }: {
                 ${isSelected
                   ? 'text-white'
                   : isPast
-                    ? 'text-stone-200 cursor-default'
+                    ? 'text-stone-400 cursor-default'
                     : isFull
-                      ? 'text-stone-300 cursor-default'
+                      ? 'text-stone-500 cursor-default'
                       : 'text-stone-700 hover:bg-stone-100 cursor-pointer'
                 }`}
               style={isSelected ? { backgroundColor: '#595d8d' } : {}}
@@ -1036,7 +1036,7 @@ function ActivityCard({ actividad, selected, onClick, onEdit }: ActivityCardProp
           <>
             <button
               onClick={e => { e.stopPropagation(); onEdit() }}
-              className="text-[10px] tracking-widest uppercase text-stone-300 hover:text-[#595d8d] transition-colors cursor-pointer"
+              className="text-[10px] tracking-widest uppercase text-stone-500 hover:text-[#595d8d] transition-colors cursor-pointer"
             >
               Editar
             </button>
@@ -1045,13 +1045,13 @@ function ActivityCard({ actividad, selected, onClick, onEdit }: ActivityCardProp
                 <button
                   onClick={handleReactivar}
                   disabled={acting}
-                  className="text-[10px] tracking-widest uppercase text-stone-300 transition-colors cursor-pointer disabled:opacity-40 hover:text-[#50664d]"
+                  className="text-[10px] tracking-widest uppercase text-stone-500 transition-colors cursor-pointer disabled:opacity-40 hover:text-[#50664d]"
                 >
                   {acting ? '...' : 'Reactivar'}
                 </button>
                 <button
                   onClick={e => { e.stopPropagation(); setConfirmDelete(true) }}
-                  className="text-[10px] tracking-widest uppercase text-stone-300 hover:text-red-600 transition-colors cursor-pointer"
+                  className="text-[10px] tracking-widest uppercase text-stone-500 hover:text-red-600 transition-colors cursor-pointer"
                 >
                   Eliminar
                 </button>
@@ -1059,7 +1059,7 @@ function ActivityCard({ actividad, selected, onClick, onEdit }: ActivityCardProp
             ) : (
               <button
                 onClick={e => { e.stopPropagation(); setConfirmCancel(true) }}
-                className="text-[10px] tracking-widest uppercase text-stone-300 hover:text-red-400 transition-colors cursor-pointer"
+                className="text-[10px] tracking-widest uppercase text-stone-500 hover:text-red-400 transition-colors cursor-pointer"
               >
                 Cancelar
               </button>
@@ -1227,7 +1227,7 @@ function ControlAsistentes({ actividades, conjuntos }: { actividades: Actividad[
           ) : fetchError ? (
             <p className="text-[11px] text-red-400 py-2">{fetchError}</p>
           ) : inscritos.length === 0 ? (
-            <p className="text-[11px] text-stone-300 py-2">Sin inscritos aún</p>
+            <p className="text-[11px] text-stone-500 py-2">Sin inscritos aún</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
@@ -1310,7 +1310,7 @@ function ControlAsistentes({ actividades, conjuntos }: { actividades: Actividad[
         )}
 
         {visible.length === 0 ? (
-          <p className="text-sm text-stone-300 py-4 text-center">Sin actividades</p>
+          <p className="text-sm text-stone-500 py-4 text-center">Sin actividades</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {visible.map(a => (
@@ -1710,9 +1710,9 @@ function GestionConjuntos({ conjuntos }: { conjuntos: Conjunto[] }) {
 
         <div>
           {conjuntos.length === 0 ? (
-            <p className="text-sm text-stone-300 py-4 text-center">Sin conjuntos. Inicializa la base de datos.</p>
+            <p className="text-sm text-stone-500 py-4 text-center">Sin conjuntos. Inicializa la base de datos.</p>
           ) : filtered.length === 0 ? (
-            <p className="text-sm text-stone-300 py-4 text-center">Sin resultados para «{query}»</p>
+            <p className="text-sm text-stone-500 py-4 text-center">Sin resultados para «{query}»</p>
           ) : (
             filtered.map(c => <ConjuntoRow key={c.id} conjunto={c} />)
           )}

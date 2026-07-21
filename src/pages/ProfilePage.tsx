@@ -79,7 +79,7 @@ function GridCardWrapper({ actividadId, uid, inactiva }: GridCardProps) {
         ) : (
           <button
             onClick={() => setConfirmando(true)}
-            className="px-1 w-fit text-[10px] tracking-widest uppercase text-stone-300 hover:text-red-400 transition-colors cursor-pointer"
+            className="px-1 w-fit text-[10px] tracking-widest uppercase text-stone-500 hover:text-red-400 transition-colors cursor-pointer"
             style={labelStyle}
           >
             Liberar plaza
@@ -179,7 +179,7 @@ export function ProfilePage() {
 
         {inscripcionesLoading ? (
           <div className="py-20 flex items-center justify-center">
-            <p className="text-sm text-stone-300 tracking-widest uppercase">Cargando...</p>
+            <p className="text-sm text-stone-500 tracking-widest uppercase">Cargando...</p>
           </div>
 
         ) : inscritas.length === 0 ? (
@@ -218,7 +218,7 @@ export function ProfilePage() {
                 >
                   {t.label}
                   {t.count > 0 && (
-                    <span className={`text-[10px] ${tab === t.key ? 'text-white/60' : 'text-stone-300'}`}>
+                    <span className={`text-[10px] ${tab === t.key ? 'text-white/60' : 'text-stone-500'}`}>
                       {t.count}
                     </span>
                   )}

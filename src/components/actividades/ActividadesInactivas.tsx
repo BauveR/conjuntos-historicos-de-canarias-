@@ -18,7 +18,7 @@ export function ActividadesInactivas({ actividades }: Props) {
     <div className="mt-12 pt-8 border-t border-stone-100">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
-        <p className="text-[10px] tracking-widest uppercase text-stone-300" style={labelStyle}>
+        <p className="text-[10px] tracking-widest uppercase text-stone-500" style={labelStyle}>
           Sin disponibilidad · {n} {n === 1 ? 'actividad' : 'actividades'}
         </p>
         <button
