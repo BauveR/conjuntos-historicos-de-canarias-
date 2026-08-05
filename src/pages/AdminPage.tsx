@@ -88,19 +88,21 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
   )
 }
 
-function Input({ value, onChange, type = 'text', placeholder, className = '', error = false }: {
+function Input({ value, onChange, type = 'text', placeholder, className = '', error = false, selectOnFocus = false }: {
   value: string | number
   onChange: (v: string) => void
   type?: string
   placeholder?: string
   className?: string
   error?: boolean
+  selectOnFocus?: boolean
 }) {
   return (
     <input
       type={type}
       value={value}
       onChange={e => onChange(e.target.value)}
+      onFocus={selectOnFocus ? e => e.target.select() : undefined}
       placeholder={placeholder}
       className={`w-full border rounded-xl px-3 py-2 text-sm text-stone-800 bg-white focus:outline-none transition-colors placeholder:text-stone-500 ${
         error ? 'border-red-300 focus:border-red-400' : 'border-stone-200 focus:border-[#595d8d]'
@@ -502,7 +504,7 @@ function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
               </div>
               <div className="flex flex-col gap-1.5">
                 <FieldLabel>Duración</FieldLabel>
-                <Input value={form.duracion} onChange={set('duracion')} placeholder="2h 30min" />
+                <Input value={form.duracion} onChange={set('duracion')} placeholder="2h 30min" selectOnFocus />
               </div>
             </div>
           ) : (
@@ -514,7 +516,7 @@ function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <FieldLabel>Duración</FieldLabel>
-                  <Input value={form.duracion} onChange={set('duracion')} placeholder="2h 30min" />
+                  <Input value={form.duracion} onChange={set('duracion')} placeholder="2h 30min" selectOnFocus />
                 </div>
               </div>
               <MultiDatePicker
@@ -801,7 +803,7 @@ function EditActividadDrawer({
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <FieldLabel>Duración</FieldLabel>
-                    <Input value={form.duracion} onChange={set('duracion')} placeholder="2h 30min" />
+                    <Input value={form.duracion} onChange={set('duracion')} placeholder="2h 30min" selectOnFocus />
                   </div>
                 </div>
 
