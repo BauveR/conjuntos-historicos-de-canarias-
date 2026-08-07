@@ -414,6 +414,7 @@ function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
   const [saveError, setSaveError] = useState('')
   const [modo, setModo] = useState<'unica' | 'multiple'>('unica')
   const [fechas, setFechas] = useState<string[]>([])
+  const [durKey, setDurKey] = useState(0)
 
   const set = (key: keyof ActividadForm) => (v: string) => {
     setForm(f => ({ ...f, [key]: v }))
@@ -461,6 +462,7 @@ function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
       setForm(defaultActividadForm)
       setFechas([])
       setErrors({})
+      setDurKey(k => k + 1)
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
     } catch {
@@ -533,10 +535,7 @@ function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
                 <FieldLabel>Hora</FieldLabel>
                 <Input value={form.hora} onChange={set('hora')} type="time" />
               </div>
-              <div className="flex flex-col gap-1.5">
-                <FieldLabel>Duración</FieldLabel>
-                <Input value={form.duracion} onChange={set('duracion')} placeholder="2h 30min" selectOnFocus />
-              </div>
+              <DuracionField key={durKey} value={form.duracion} onChange={set('duracion')} />
             </div>
           ) : (
             <div className="flex flex-col gap-3">
@@ -545,10 +544,7 @@ function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
                   <FieldLabel>Hora</FieldLabel>
                   <Input value={form.hora} onChange={set('hora')} type="time" />
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <FieldLabel>Duración</FieldLabel>
-                  <Input value={form.duracion} onChange={set('duracion')} placeholder="2h 30min" selectOnFocus />
-                </div>
+                <DuracionField key={durKey} value={form.duracion} onChange={set('duracion')} />
               </div>
               <MultiDatePicker
                 selected={fechas}
@@ -832,10 +828,7 @@ function EditActividadDrawer({
                     <FieldLabel>Hora</FieldLabel>
                     <Input value={form.hora} onChange={set('hora')} type="time" />
                   </div>
-                  <div className="flex flex-col gap-1.5">
-                    <FieldLabel>Duración</FieldLabel>
-                    <Input value={form.duracion} onChange={set('duracion')} placeholder="2h 30min" selectOnFocus />
-                  </div>
+                  <DuracionField key={actividad?.id ?? 'none'} value={form.duracion} onChange={set('duracion')} />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
