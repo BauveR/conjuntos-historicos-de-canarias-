@@ -152,6 +152,37 @@ function Textarea({ value, onChange, rows = 3, placeholder }: {
   )
 }
 
+const DURACION_PRESETS = ['30min', '1h', '1h 30min', '2h', '2h 30min', '3h', '3h 30min', '4h', 'Medio día', 'Día completo']
+const DURACION_CUSTOM = '__custom__'
+
+function DuracionField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [custom, setCustom] = useState(() => value !== '' && !DURACION_PRESETS.includes(value))
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <FieldLabel>Duración</FieldLabel>
+      {custom ? (
+        <div className="flex gap-2">
+          <Input value={value} onChange={onChange} placeholder="2h 30min" selectOnFocus className="flex-1" />
+          <button
+            type="button"
+            onClick={() => { setCustom(false); onChange('') }}
+            className="shrink-0 text-[10px] tracking-widest uppercase text-stone-400 hover:text-[#595d8d] transition-colors cursor-pointer"
+          >
+            Lista
+          </button>
+        </div>
+      ) : (
+        <Select value={value} onChange={v => (v === DURACION_CUSTOM ? setCustom(true) : onChange(v))}>
+          <option value="">Seleccionar</option>
+          {DURACION_PRESETS.map(p => <option key={p} value={p}>{p}</option>)}
+          <option value={DURACION_CUSTOM}>Personalizado…</option>
+        </Select>
+      )}
+    </div>
+  )
+}
+
 function SaveButton({ loading, success, onClick, label = 'Guardar' }: {
   loading: boolean
   success: boolean
