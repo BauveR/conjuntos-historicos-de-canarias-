@@ -152,7 +152,18 @@ function Textarea({ value, onChange, rows = 3, placeholder }: {
   )
 }
 
-const DURACION_PRESETS = ['30min', '1h', '1h 30min', '2h', '2h 30min', '3h', '3h 30min', '4h', 'Medio día', 'Día completo']
+function formatDuracion(mins: number): string {
+  const h = Math.floor(mins / 60)
+  const m = mins % 60
+  if (h === 0) return `${m}min`
+  if (m === 0) return `${h}h`
+  return `${h}h ${m}min`
+}
+
+const DURACION_PRESETS = [
+  ...Array.from({ length: 16 }, (_, i) => formatDuracion((i + 1) * 15)), // 15min .. 4h, pasos de 15min
+  'Medio día', 'Día completo',
+]
 const DURACION_CUSTOM = '__custom__'
 
 function DuracionField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
