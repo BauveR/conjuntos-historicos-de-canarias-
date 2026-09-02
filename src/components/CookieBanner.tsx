@@ -30,6 +30,9 @@ export function CookieBanner() {
           Este sitio utiliza cookies técnicas estrictamente necesarias para el funcionamiento de la autenticación y la gestión de inscripciones. No se utilizan cookies publicitarias ni de seguimiento.{' '}
           <Link to="/privacidad" className="underline underline-offset-2 text-stone-600 hover:text-stone-900 transition-colors">
             Política de privacidad
+          </Link>{' '}·{' '}
+          <Link to="/aviso-legal" className="underline underline-offset-2 text-stone-600 hover:text-stone-900 transition-colors">
+            Aviso legal
           </Link>
         </p>
         <button

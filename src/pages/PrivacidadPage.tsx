@@ -29,11 +29,12 @@ export function PrivacidadPage() {
 
         <Section title="1. Responsable del tratamiento">
           <p>
-            El responsable del tratamiento de los datos personales recogidos a través de esta plataforma es
-            la entidad gestora de <strong>Conjuntos Históricos de Canarias</strong>.
+            El responsable del tratamiento de los datos personales recogidos a través de esta plataforma es{' '}
+            <strong>LHORSA GESTIÓN DE EVENTOS S.C.</strong>, con CIF J76741685 y domicilio en
+            C/ Ángeles Martín Fuentes, 4, 38410, Los Realejos (Santa Cruz de Tenerife).
             Para cualquier consulta relacionada con la privacidad puede contactar en:{' '}
-            <a href="mailto:info@conjuntoshistoricosdecanarias.com" className="underline underline-offset-2 hover:text-stone-700 transition-colors">
-              info@conjuntoshistoricosdecanarias.com
+            <a href="mailto:rutas@lhorsa.com" className="underline underline-offset-2 hover:text-stone-700 transition-colors">
+              rutas@lhorsa.com
             </a>
           </p>
         </Section>
@@ -102,8 +103,8 @@ export function PrivacidadPage() {
           </ul>
           <p>
             Para ejercer cualquiera de estos derechos, contacta en{' '}
-            <a href="mailto:info@conjuntoshistoricosdecanarias.com" className="underline underline-offset-2 hover:text-stone-700 transition-colors">
-              info@conjuntoshistoricosdecanarias.com
+            <a href="mailto:rutas@lhorsa.com" className="underline underline-offset-2 hover:text-stone-700 transition-colors">
+              rutas@lhorsa.com
             </a>.
             También tienes derecho a presentar una reclamación ante la{' '}
             <a href="https://www.aepd.es" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">

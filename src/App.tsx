@@ -3,6 +3,7 @@ import { Routes, Route, useLocation, useNavigationType } from 'react-router-dom'
 import type { Location } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Navbar } from './components/Navbar'
+import { Footer } from './components/Footer'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { CookieBanner } from './components/CookieBanner'
 import { Home } from './pages/Home'
@@ -20,6 +21,7 @@ const AdminPage      = lazy(() => import('./pages/AdminPage').then(m      => ({ 
 const PasaportePage  = lazy(() => import('./pages/PasaportePage').then(m  => ({ default: m.PasaportePage  })))
 const ContactoPage   = lazy(() => import('./pages/ContactoPage').then(m   => ({ default: m.ContactoPage   })))
 const PrivacidadPage = lazy(() => import('./pages/PrivacidadPage').then(m => ({ default: m.PrivacidadPage })))
+const AvisoLegalPage = lazy(() => import('./pages/AvisoLegalPage').then(m => ({ default: m.AvisoLegalPage })))
 const ActividadModal = lazy(() => import('./components/map/ActividadModal').then(m => ({ default: m.ActividadModal })))
 const AuthModal      = lazy(() => import('./components/auth/AuthModal').then(m     => ({ default: m.AuthModal     })))
 
@@ -56,10 +58,13 @@ export default function App() {
                 <Route path="/pasaporte" element={<PasaportePage />} />
                 <Route path="/contacto" element={<ContactoPage />} />
                 <Route path="/privacidad" element={<PrivacidadPage />} />
+                <Route path="/aviso-legal" element={<AvisoLegalPage />} />
               </Routes>
             </Suspense>
           </motion.div>
         </AnimatePresence>
+
+        <Footer />
 
         {/* Modal overlay — shown when navigated with background state */}
         <AnimatePresence>
