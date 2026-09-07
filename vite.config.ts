@@ -4,6 +4,11 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  // maplibre-gl v6 is ESM-only and loads its web worker via import.meta.url;
+  // pre-bundling it breaks that worker (style never finishes loading).
+  optimizeDeps: {
+    exclude: ['maplibre-gl', '@maplibre/maplibre-gl-leaflet'],
+  },
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],

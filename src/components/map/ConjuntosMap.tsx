@@ -1,10 +1,72 @@
 import { useEffect, useRef, useState } from 'react'
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
+import { MapContainer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { maplibreGL } from '@maplibre/maplibre-gl-leaflet'
+import { prewarm } from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
 import type { Conjunto } from '../../data/conjuntos'
 
+// Keep MapLibre's shared web workers alive across mount/unmount. Without this,
+// React StrictMode's double-mount in dev tears the worker down between the two
+// mounts and the second map's style never finishes processing (blank basemap).
+prewarm()
+
 const CANARIAS_CENTER: [number, number] = [28.2, -15.8]
+
+// Positron vector style — sin API key, sin límite de uso
+const OPENFREEMAP_STYLE = 'https://tiles.openfreemap.org/styles/positron'
+const OPENFREEMAP_ATTRIBUTION =
+  '&copy; <a href="https://openfreemap.org" target="_blank" rel="noreferrer">OpenFreeMap</a> ' +
+  '<a href="https://www.openmaptiles.org/" target="_blank" rel="noreferrer">OpenMapTiles</a> ' +
+  'Data from <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>'
+
+// Renders the OpenFreeMap vector basemap as a Leaflet layer, leaving all the
+// marker / flyTo / filter logic below untouched.
+function OpenFreeMapLayer() {
+  const map = useMap()
+  useEffect(() => {
+    let layer: ReturnType<typeof maplibreGL> | null = null
+    let rafId = 0
+    let stopResize = () => {}
+    let cancelled = false
+
+    // The MapLibre↔Leaflet adapter sizes its GL container once, at add time,
+    // from the Leaflet map size. Inside this lazily-shown, absolutely
+    // positioned container that size is still 0×0 on first paint, so the
+    // basemap renders blank grey. Wait for a real size before mounting, then
+    // keep the GL map in sync with Leaflet resizes.
+    const mount = () => {
+      if (cancelled) return
+      const size = map.getSize()
+      if (size.x === 0 || size.y === 0) {
+        rafId = requestAnimationFrame(mount)
+        return
+      }
+      layer = maplibreGL({ style: OPENFREEMAP_STYLE })
+      layer.addTo(map)
+      map.attributionControl?.addAttribution(OPENFREEMAP_ATTRIBUTION)
+
+      const glMap = layer.getMaplibreMap()
+      const resize = () => glMap.resize()
+      map.on('resize', resize)
+      glMap.once('load', resize)
+      stopResize = () => map.off('resize', resize)
+    }
+    mount()
+
+    return () => {
+      cancelled = true
+      cancelAnimationFrame(rafId)
+      stopResize()
+      if (layer) {
+        map.attributionControl?.removeAttribution(OPENFREEMAP_ATTRIBUTION)
+        if (map.hasLayer(layer)) map.removeLayer(layer)
+      }
+    }
+  }, [map])
+  return null
+}
 
 let savedMapView: { center: [number, number]; zoom: number } | null = null
 
@@ -163,15 +225,13 @@ export function ConjuntosMap({ conjuntos, selectedId, selectedIsla, active, onSe
     <MapContainer
       center={initialCenter}
       zoom={initialZoom}
+      minZoom={1}
+      maxZoom={19}
       style={{ width: '100%', height: '100%' }}
       zoomControl={false}
       scrollWheelZoom={false}
     >
-      <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
-        maxZoom={19}
-      />
+      <OpenFreeMapLayer />
 
       {conjuntos.map(c => (
         <Marker

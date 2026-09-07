@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
-import { ConjuntosMap } from './ConjuntosMap'
+import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import { ConjuntoPanel } from './ConjuntoPanel'
 import { ConjuntoDrawer } from './ConjuntoDrawer'
 import { IslaFilter } from './IslaFilter'
@@ -7,6 +6,11 @@ import { MapHint } from './MapHint'
 import { useDataContext } from '../../contexts/DataContext'
 import { useMapUIContext } from '../../contexts/MapUIContext'
 import { SM_BREAKPOINT } from '../../hooks/useIsDesktop'
+
+// Lazy so maplibre-gl (~300 KB gzip) only downloads once the map scrolls into view.
+const ConjuntosMap = lazy(() =>
+  import('./ConjuntosMap').then(m => ({ default: m.ConjuntosMap }))
+)
 
 export function MapSection() {
   const { conjuntos } = useDataContext()
@@ -67,14 +71,16 @@ export function MapSection() {
           <div className="h-full relative overflow-hidden">
             {mapVisible && (
               <div className="absolute inset-0">
-                <ConjuntosMap
-                  conjuntos={conjuntos}
-                  selectedId={selectedId}
-                  selectedIsla={selectedIsla}
-                  active={mapActive}
-                  onSelect={handleSelect}
-                  onActivate={() => setMapActive(true)}
-                />
+                <Suspense fallback={null}>
+                  <ConjuntosMap
+                    conjuntos={conjuntos}
+                    selectedId={selectedId}
+                    selectedIsla={selectedIsla}
+                    active={mapActive}
+                    onSelect={handleSelect}
+                    onActivate={() => setMapActive(true)}
+                  />
+                </Suspense>
               </div>
             )}
 
