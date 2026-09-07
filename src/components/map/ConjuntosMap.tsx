@@ -3,9 +3,15 @@ import { MapContainer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { maplibreGL } from '@maplibre/maplibre-gl-leaflet'
-import { prewarm } from 'maplibre-gl'
+import { prewarm, setWorkerUrl } from 'maplibre-gl'
+// maplibre-gl v6 resolves its worker relative to its own module URL, which breaks
+// once it's bundled (dev: pre-bundled by esbuild; prod: folded into a chunk).
+// Let Vite build the worker as a self-contained asset and point maplibre at it.
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { Conjunto } from '../../data/conjuntos'
+
+setWorkerUrl(maplibreWorkerUrl)
 
 // Keep MapLibre's shared web workers alive across mount/unmount. Without this,
 // React StrictMode's double-mount in dev tears the worker down between the two
