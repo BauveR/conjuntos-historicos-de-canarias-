@@ -2,7 +2,12 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 
 const SITE_URL = 'https://conjuntoshistoricosdecanarias.com'
 const PROJECT_ID = 'conjuntos-historicos-canarias'
-const FALLBACK_IMAGE = 'https://res.cloudinary.com/dvsldhnaa/image/upload/v1781621990/Betancuria_4_conjuntos_historicos_de_canarias_wkus2l.jpg'
+const FALLBACK_IMAGE = `${SITE_URL}/og-fallback.jpg`
+
+function optimizeImage(url: string, width: number): string {
+  if (!url.includes('res.cloudinary.com') || !url.includes('/upload/')) return url
+  return url.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`)
+}
 
 type FirestoreValue = { stringValue?: string; integerValue?: string }
 type FirestoreDoc = { fields?: Record<string, FirestoreValue> }
@@ -108,5 +113,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
   res.setHeader('Cache-Control', 'public, max-age=600, s-maxage=3600')
-  return res.status(200).send(renderHtml({ title, description, image: imagen, url }))
+  return res.status(200).send(renderHtml({ title, description, image: optimizeImage(imagen, 1200), url }))
 }

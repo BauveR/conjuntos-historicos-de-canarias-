@@ -1,8 +1,8 @@
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 const titleStyle = { fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }
 
-const PASAPORTE_IMG = 'https://res.cloudinary.com/dvsldhnaa/image/upload/v1781609117/Pasaporte_Patrimonial_conjuntos_historicos_de_canarias_-01_qxaccy.png'
-const SELLOS_IMG    = 'https://res.cloudinary.com/dvsldhnaa/image/upload/v1781609396/Untitled_design_2_vthzbh.png'
+const PASAPORTE_IMG = '/pasaporte.webp'
+const SELLOS_IMG    = '/sellos.webp'
 
 export function PasaportePage() {
   return (

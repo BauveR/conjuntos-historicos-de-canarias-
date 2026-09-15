@@ -48,6 +48,7 @@ export function ProfileCardCompact({ actividad, inactiva = false, onLiberar }: P
         <img
           src={optimizeImage(actividad.imagen, 400)}
           alt={actividad.titulo}
+          loading="lazy"
           className={`w-full h-full object-cover transition-transform duration-300 ${inactiva || actividad.cancelada ? 'grayscale' : 'hover:scale-105'}`}
         />
         {(inactiva || actividad.cancelada) && (

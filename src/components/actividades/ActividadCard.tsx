@@ -44,6 +44,7 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
         <img
           src={optimizeImage(actividad.imagen, 600)}
           alt={actividad.titulo}
+          loading="lazy"
           className={`w-full h-full object-cover transition-transform duration-500 ${inactiva ? 'grayscale' : 'group-hover:scale-105'}`}
         />
         {/* Overlay inactiva */}

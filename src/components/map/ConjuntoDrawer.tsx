@@ -156,6 +156,7 @@ export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
                         <img
                           src={optimizeImage(act!.imagen, 400)}
                           alt={act!.titulo}
+                          loading="lazy"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       </div>
@@ -294,6 +295,7 @@ export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
                         <img
                           src={optimizeImage(act!.imagen, 400)}
                           alt={act!.titulo}
+                          loading="lazy"
                           className="w-full h-full object-cover"
                         />
                       </div>
