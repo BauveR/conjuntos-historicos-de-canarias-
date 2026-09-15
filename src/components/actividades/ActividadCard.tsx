@@ -4,6 +4,7 @@ import type { Actividad } from '../../data/actividades'
 import { DifficultyDots } from './DifficultyDots'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
 import { useDataContext } from '../../contexts/DataContext'
+import { optimizeImage } from '../../utils/cloudinary'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
@@ -41,7 +42,7 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
       {/* Imagen */}
       <div className="relative overflow-hidden rounded-2xl aspect-[4/3]">
         <img
-          src={actividad.imagen}
+          src={optimizeImage(actividad.imagen, 600)}
           alt={actividad.titulo}
           className={`w-full h-full object-cover transition-transform duration-500 ${inactiva ? 'grayscale' : 'group-hover:scale-105'}`}
         />

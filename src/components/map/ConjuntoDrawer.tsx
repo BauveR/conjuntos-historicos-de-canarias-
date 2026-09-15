@@ -6,6 +6,7 @@ import type { Conjunto } from '../../data/conjuntos'
 import { TEMATICA_COLORS } from '../../data/tematicas'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
 import { useDataContext } from '../../contexts/DataContext'
+import { optimizeImage } from '../../utils/cloudinary'
 
 type Props = {
   conjunto: Conjunto | null
@@ -153,7 +154,7 @@ export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
                     >
                       <div className="aspect-4/3 rounded-xl overflow-hidden">
                         <img
-                          src={act!.imagen}
+                          src={optimizeImage(act!.imagen, 400)}
                           alt={act!.titulo}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
@@ -212,7 +213,7 @@ export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
             {/* ── DESKTOP: derecha imagen slide ── */}
             <div className="hidden sm:block flex-1 h-full relative overflow-hidden">
               <img
-                src={conjunto.imagen}
+                src={optimizeImage(conjunto.imagen, 1200)}
                 alt={conjunto.nombre}
                 className="w-full h-full object-cover"
               />
@@ -236,7 +237,7 @@ export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
 
               {/* Imagen — scrollea con el contenido */}
               <div className="w-full aspect-video">
-                <img src={conjunto.imagen} alt={conjunto.nombre} className="w-full h-full object-cover" />
+                <img src={optimizeImage(conjunto.imagen, 800)} alt={conjunto.nombre} className="w-full h-full object-cover" />
               </div>
 
               <div className="flex flex-col gap-5 px-6 py-6">
@@ -291,7 +292,7 @@ export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
                     >
                       <div className="aspect-4/3 rounded-xl overflow-hidden">
                         <img
-                          src={act!.imagen}
+                          src={optimizeImage(act!.imagen, 400)}
                           alt={act!.titulo}
                           className="w-full h-full object-cover"
                         />
