@@ -20,6 +20,7 @@ type AuthContextValue = {
   userRole: UserRole | null
   loading: boolean
   inscripcionIds: number[]
+  inscripcionCantidades: Record<number, number>
   inscripcionesLoading: boolean
   signIn: (email: string, password: string) => Promise<UserRole>
   signUp: (name: string, email: string, password: string) => Promise<UserRole>
@@ -63,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [userRole, setUserRole] = useState<UserRole | null>(null)
   const [loading, setLoading] = useState(true)
   const [inscripcionIds, setInscripcionIds] = useState<number[]>([])
+  const [inscripcionCantidades, setInscripcionCantidades] = useState<Record<number, number>>({})
   const [inscripcionesLoading, setInscripcionesLoading] = useState(false)
   const pendingRole = useRef<Promise<UserRole> | null>(null)
 
@@ -84,6 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!user) {
       setInscripcionIds([])
+      setInscripcionCantidades({})
       setInscripcionesLoading(false)
       return
     }
@@ -92,10 +95,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       collection(db, 'users', user.uid, 'inscripciones'),
       snap => {
         setInscripcionIds(snap.docs.map(d => Number(d.id)))
+        setInscripcionCantidades(
+          Object.fromEntries(snap.docs.map(d => [Number(d.id), d.data().cantidad ?? 1])),
+        )
         setInscripcionesLoading(false)
       },
       () => {
         setInscripcionIds([])
+        setInscripcionCantidades({})
         setInscripcionesLoading(false)
       },
     )
@@ -134,7 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, userRole, loading, inscripcionIds, inscripcionesLoading, signIn, signUp, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, userRole, loading, inscripcionIds, inscripcionCantidades, inscripcionesLoading, signIn, signUp, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   )

@@ -157,6 +157,36 @@ describe('inscribirse', () => {
     expect(updateCall[1]).toMatchObject({ plazasDisponibles: -1 })
   })
 
+  it('con cantidad > 1, descuenta esa cantidad del contador', async () => {
+    const tx = makeTx({
+      'actividades/1':              { plazas: 20, plazasDisponibles: 5 },
+      'users/uid-a/inscripciones/1': null,
+    })
+    runTxWith(tx)
+
+    await inscribirse(1, 'uid-a', 'a@test.es', 'Usuario A', '611222333', 3)
+
+    const updateCall = tx.update.mock.calls[0]
+    expect(updateCall[1]).toMatchObject({ plazasDisponibles: -3 })
+
+    const setCalls = tx.set.mock.calls.filter((c: unknown[]) => /inscripciones|inscritos/.test(c[0] as string))
+    expect(setCalls).toHaveLength(2)
+    expect(setCalls.every((c: unknown[]) => (c[1] as { cantidad?: number }).cantidad === 3)).toBe(true)
+  })
+
+  it('lanza SinPlazasError si la cantidad pedida supera las plazas disponibles', async () => {
+    const tx = makeTx({
+      'actividades/1':              { plazas: 20, plazasDisponibles: 2 },
+      'users/uid-a/inscripciones/1': null,
+    })
+    runTxWith(tx)
+
+    await expect(inscribirse(1, 'uid-a', 'a@test.es', 'Usuario A', '611222333', 3))
+      .rejects.toBeInstanceOf(SinPlazasError)
+
+    expect(tx.set).not.toHaveBeenCalled()
+  })
+
   it('escribe en las rutas correctas de Firestore', async () => {
     const tx = makeTx({
       'actividades/1':              { plazas: 10, plazasDisponibles: 3 },
@@ -240,6 +270,20 @@ describe('liberarPlaza', () => {
 
     const updateCall = tx.update.mock.calls[0]
     expect(updateCall[1]).toMatchObject({ plazasDisponibles: 20 })
+  })
+
+  it('devuelve la cantidad de plazas guardada en el inscrito, no siempre 1', async () => {
+    const tx = makeTx({
+      'actividades/1/inscritos/uid-a':    { email: 'a@test.es', cantidad: 3 },
+      'users/uid-a/inscripciones/1':      { inscritoEn: null, cantidad: 3 },
+      'actividades/1':                    { plazas: 20, plazasDisponibles: 10 },
+    })
+    runTxWith(tx)
+
+    await liberarPlaza(1, 'uid-a')
+
+    const updateCall = tx.update.mock.calls[0]
+    expect(updateCall[1]).toMatchObject({ plazasDisponibles: 13 })
   })
 })
 

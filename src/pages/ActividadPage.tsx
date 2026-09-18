@@ -8,7 +8,7 @@ import { DifficultyDots } from '../components/actividades/DifficultyDots'
 import { ShareButton } from '../components/actividades/ShareButton'
 import { useAuth } from '../contexts/AuthContext'
 import { useDataContext } from '../contexts/DataContext'
-import { inscribirse, liberarPlaza, SinPlazasError, YaLiberadaError, EventoCanceladoError, InscripcionNoAbiertaError } from '../lib/db'
+import { inscribirse, liberarPlaza, SinPlazasError, YaLiberadaError, EventoCanceladoError, InscripcionNoAbiertaError, MAX_PLAZAS_POR_RESERVA } from '../lib/db'
 import { isValidTelefono } from '../utils/validators'
 import { optimizeImage } from '../utils/cloudinary'
 import type { Actividad } from '../data/actividades'
@@ -112,6 +112,8 @@ type BookingWidgetProps = {
   telefono: string
   onTelefonoChange: (v: string) => void
   telefonoError: string
+  cantidad: number
+  onCantidadChange: (v: number) => void
   onConfirmarInscripcion: () => void
   onCancelarTelefono: () => void
   compact?: boolean
@@ -125,9 +127,11 @@ export function BookingWidget({
   liberando, onLiberar, onRequestLogin,
   mostrandoTelefono, setMostrandoTelefono,
   telefono, onTelefonoChange, telefonoError,
+  cantidad, onCantidadChange,
   onConfirmarInscripcion, onCancelarTelefono,
   compact = false,
 }: BookingWidgetProps) {
+  const maxCantidad = Math.max(1, Math.min(MAX_PLAZAS_POR_RESERVA, actividad.plazasDisponibles))
 
   if (esCancelada) {
     return (
@@ -355,6 +359,28 @@ export function BookingWidget({
 
       {mostrandoTelefono ? (
         <div className="flex flex-col gap-2">
+          {maxCantidad > 1 && (
+            <>
+              <label className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>
+                Número de plazas
+              </label>
+              <div className="flex gap-2">
+                {Array.from({ length: maxCantidad }, (_, i) => i + 1).map(n => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => onCantidadChange(n)}
+                    className={`flex-1 py-2 rounded-xl border text-sm transition-colors cursor-pointer ${
+                      cantidad === n ? 'bg-stone-900 text-white border-stone-900' : 'border-stone-200 text-stone-500 hover:border-stone-400'
+                    }`}
+                    style={labelStyle}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
           <label className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>
             Teléfono de contacto
           </label>
@@ -436,6 +462,7 @@ export function ActividadPage() {
   const [mostrandoTelefono, setMostrandoTelefono] = useState(false)
   const [telefono, setTelefono] = useState('')
   const [telefonoError, setTelefonoError] = useState('')
+  const [cantidad, setCantidad] = useState(1)
 
   // Precarga el teléfono guardado en el perfil (si existe) para no pedirlo de cero cada vez
   useEffect(() => {
@@ -474,6 +501,7 @@ export function ActividadPage() {
   const handleCancelarTelefono = () => {
     setMostrandoTelefono(false)
     setTelefonoError('')
+    setCantidad(1)
   }
 
   const handleConfirmarInscripcion = async () => {
@@ -486,9 +514,10 @@ export function ActividadPage() {
     setInscripcionError('')
     setTelefonoError('')
     try {
-      await inscribirse(actividad.id, user.uid, user.email ?? '', user.displayName ?? '', telefono)
+      await inscribirse(actividad.id, user.uid, user.email ?? '', user.displayName ?? '', telefono, cantidad)
       setMostrandoTelefono(false)
       setShowSuccessPopup(true)
+      setCantidad(1)
       // Fire-and-forget: enviar email de confirmación
       user.getIdToken().then(idToken => {
         const conjunto = conjuntos.find(c => c.id === actividad.conjuntoId)
@@ -552,6 +581,8 @@ export function ActividadPage() {
     telefono,
     onTelefonoChange: (v: string) => { setTelefono(v); setTelefonoError('') },
     telefonoError,
+    cantidad,
+    onCantidadChange: setCantidad,
     onConfirmarInscripcion: handleConfirmarInscripcion,
     onCancelarTelefono: handleCancelarTelefono,
   }

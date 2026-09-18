@@ -52,11 +52,13 @@ service cloud.firestore {
         // Admin ve la lista completa; el propio uid necesita leer su doc en liberarPlaza
         allow read: if isAdmin() || request.auth.uid == uid;
 
-        // Crear inscripción: el propio uid, y solo si ya abrieron las inscripciones
-        // (aperturaTs es el respaldo real en servidor de fechaAperturaInscripciones;
-        // el check en inscribirse() ya filtra esto antes, esto es la garantía dura)
+        // Crear inscripción: el propio uid, cantidad entre 1 y 3, y solo si ya abrieron
+        // las inscripciones (aperturaTs es el respaldo real en servidor de
+        // fechaAperturaInscripciones; el check en inscribirse() ya filtra esto antes,
+        // esto es la garantía dura)
         allow create: if isAdmin()
           || (request.auth.uid == uid
+              && request.resource.data.cantidad >= 1 && request.resource.data.cantidad <= 3
               && (get(/databases/$(database)/documents/actividades/$(actividadId)).data.aperturaTs == null
                   || request.time >= get(/databases/$(database)/documents/actividades/$(actividadId)).data.aperturaTs));
 

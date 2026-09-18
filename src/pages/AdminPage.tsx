@@ -36,7 +36,7 @@ import { formatMes } from '../components/actividades/FilterSheet'
 import {
   addActividad, updateActividad, cancelActividad, reactivarActividad, eliminarActividad,
   addConjunto, updateConjunto,
-  getInscritos,
+  getInscritos, liberarPlaza, YaLiberadaError,
   type InscritoData,
 } from '../lib/db'
 
@@ -1123,6 +1123,8 @@ function ControlAsistentes({ actividades, conjuntos }: { actividades: Actividad[
   const [query,            setQuery]            = useState('')
   const [mesFiltro,        setMesFiltro]        = useState('')
   const [copiado,          setCopiado]          = useState(false)
+  const [confirmandoUid,   setConfirmandoUid]   = useState<string | null>(null)
+  const [liberandoUid,     setLiberandoUid]     = useState<string | null>(null)
 
   const mesesDisponibles = useMemo(() => {
     const set = new Set(actividades.map(a => a.fecha.slice(0, 7)))
@@ -1171,6 +1173,20 @@ function ControlAsistentes({ actividades, conjuntos }: { actividades: Actividad[
     fetchInscritos(selectedId, selectedCount)
   }, [selectedId, selectedCount])
 
+  const handleLiberarPlaza = async (uid: string) => {
+    if (!selectedId) return
+    setLiberandoUid(uid)
+    try {
+      await liberarPlaza(selectedId, uid)
+      setInscritos(prev => prev.filter(i => i.uid !== uid))
+    } catch (err) {
+      if (!(err instanceof YaLiberadaError)) throw err
+    } finally {
+      setLiberandoUid(null)
+      setConfirmandoUid(null)
+    }
+  }
+
   const handleSelect = (id: number) => {
     setEditingId(null)
     setSelectedId(prev => prev === id ? null : id)
@@ -1182,11 +1198,12 @@ function ControlAsistentes({ actividades, conjuntos }: { actividades: Actividad[
   }
 
   const inscritosRows = (): string[][] => [
-    ['Nombre', 'Email', 'Teléfono', 'Inscrito el'],
+    ['Nombre', 'Email', 'Teléfono', 'Plazas', 'Inscrito el'],
     ...inscritos.map(i => [
       i.displayName || '',
       i.email,
       i.telefono || '',
+      String(i.cantidad),
       i.inscritoEn ? i.inscritoEn.toLocaleDateString('es-ES') : '',
     ]),
   ]
@@ -1272,7 +1289,9 @@ function ControlAsistentes({ actividades, conjuntos }: { actividades: Actividad[
                   <tr className="text-[10px] tracking-widest uppercase text-stone-400 border-b border-stone-100">
                     <th className="font-normal py-2 pr-4">Nombre</th>
                     <th className="font-normal py-2 pr-4">Email</th>
-                    <th className="font-normal py-2">Teléfono</th>
+                    <th className="font-normal py-2 pr-4">Teléfono</th>
+                    <th className="font-normal py-2 pr-4">Plazas</th>
+                    <th className="font-normal py-2"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-50">
@@ -1280,7 +1299,36 @@ function ControlAsistentes({ actividades, conjuntos }: { actividades: Actividad[
                     <tr key={i.uid}>
                       <td className="py-2.5 pr-4 text-sm text-stone-700 whitespace-nowrap">{i.displayName || '—'}</td>
                       <td className="py-2.5 pr-4 text-[11px] text-stone-400 whitespace-nowrap">{i.email}</td>
-                      <td className="py-2.5 text-[11px] text-stone-400 whitespace-nowrap">{i.telefono || '—'}</td>
+                      <td className="py-2.5 pr-4 text-[11px] text-stone-400 whitespace-nowrap">{i.telefono || '—'}</td>
+                      <td className="py-2.5 pr-4 text-[11px] text-stone-400 whitespace-nowrap">{i.cantidad}</td>
+                      <td className="py-2.5 text-[11px] whitespace-nowrap">
+                        {confirmandoUid === i.uid ? (
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleLiberarPlaza(i.uid)}
+                              disabled={liberandoUid === i.uid}
+                              className="tracking-widest uppercase text-red-400 hover:text-red-600 transition-colors disabled:opacity-40 cursor-pointer"
+                            >
+                              {liberandoUid === i.uid ? '...' : 'Sí, liberar'}
+                            </button>
+                            <span className="text-stone-200">·</span>
+                            <button
+                              onClick={() => setConfirmandoUid(null)}
+                              disabled={liberandoUid === i.uid}
+                              className="tracking-widest uppercase text-stone-400 hover:text-stone-600 transition-colors cursor-pointer"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setConfirmandoUid(i.uid)}
+                            className="tracking-widest uppercase text-stone-400 hover:text-red-400 transition-colors cursor-pointer"
+                          >
+                            Liberar plaza
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

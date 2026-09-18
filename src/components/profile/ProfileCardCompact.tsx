@@ -11,9 +11,10 @@ type Props = {
   actividad: Actividad
   inactiva?: boolean
   onLiberar?: () => Promise<void>
+  cantidad?: number
 }
 
-export function ProfileCardCompact({ actividad, inactiva = false, onLiberar }: Props) {
+export function ProfileCardCompact({ actividad, inactiva = false, onLiberar, cantidad = 1 }: Props) {
   const location = useLocation()
   const { conjuntos } = useDataContext()
   const conjunto = conjuntos.find(c => c.id === actividad.conjuntoId)
@@ -83,6 +84,12 @@ export function ProfileCardCompact({ actividad, inactiva = false, onLiberar }: P
         {actividad.cancelada && (
           <p className="mt-0.5 text-[10px] tracking-widest uppercase text-red-400">
             Evento cancelado
+          </p>
+        )}
+
+        {cantidad > 1 && (
+          <p className="mt-0.5 text-[10px] tracking-widest uppercase text-stone-400">
+            {cantidad} plazas reservadas
           </p>
         )}
 

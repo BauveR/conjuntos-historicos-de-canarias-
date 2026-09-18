@@ -15,8 +15,11 @@ export type InscritoData = {
   email: string
   displayName: string
   telefono: string
+  cantidad: number
   inscritoEn: Date | null
 }
+
+export const MAX_PLAZAS_POR_RESERVA = 3
 
 // ── Subscriptions ─────────────────────────────────────────────────────────────
 
@@ -56,6 +59,7 @@ export async function inscribirse(
   email: string,
   displayName: string,
   telefono: string,
+  cantidad = 1,
 ): Promise<void> {
   const actividadRef   = doc(db, 'actividades', String(actividadId))
   const inscripcionRef = doc(db, 'users', uid, 'inscripciones', String(actividadId))
@@ -72,14 +76,14 @@ export async function inscribirse(
 
     const data = actSnap.data()
     if (data?.cancelada) throw new EventoCanceladoError()
-    if ((data?.plazasDisponibles ?? 0) <= 0) throw new SinPlazasError()
+    if ((data?.plazasDisponibles ?? 0) < cantidad) throw new SinPlazasError()
     const apertura = data?.fechaAperturaInscripciones as string | undefined
     if (apertura && apertura > new Date().toISOString().slice(0, 10)) throw new InscripcionNoAbiertaError()
 
-    tx.set(inscripcionRef, { inscritoEn: serverTimestamp() })
-    tx.set(inscritoRef, { inscritoEn: serverTimestamp(), email, displayName, telefono })
+    tx.set(inscripcionRef, { inscritoEn: serverTimestamp(), cantidad })
+    tx.set(inscritoRef, { inscritoEn: serverTimestamp(), email, displayName, telefono, cantidad })
     tx.set(userRef, { telefono }, { merge: true })
-    tx.update(actividadRef, { plazasDisponibles: increment(-1) })
+    tx.update(actividadRef, { plazasDisponibles: increment(-cantidad) })
   })
 }
 
@@ -108,14 +112,15 @@ export async function liberarPlaza(actividadId: number, uid: string): Promise<vo
       return
     }
 
-    // Caso normal: ambos existen — limpiar y devolver la plaza
+    // Caso normal: ambos existen — limpiar y devolver las plazas
     const data = actSnap.data()
     const plazas            = (data?.plazas ?? 0) as number
     const plazasDisponibles = (data?.plazasDisponibles ?? 0) as number
+    const cantidad          = (inscritoSnap.data()?.cantidad ?? 1) as number
 
     tx.delete(inscripcionRef)
     tx.delete(inscritoRef)
-    tx.update(actividadRef, { plazasDisponibles: Math.min(plazasDisponibles + 1, plazas) })
+    tx.update(actividadRef, { plazasDisponibles: Math.min(plazasDisponibles + cantidad, plazas) })
   })
 }
 
@@ -180,6 +185,7 @@ export async function getInscritos(actividadId: number): Promise<InscritoData[]>
       email: data.email ?? '',
       displayName: data.displayName ?? '',
       telefono: data.telefono ?? '',
+      cantidad: data.cantidad ?? 1,
       inscritoEn: data.inscritoEn?.toDate?.() ?? null,
     }
   })

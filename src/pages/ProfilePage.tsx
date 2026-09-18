@@ -25,9 +25,10 @@ type GridCardProps = {
   actividadId: number
   uid: string
   inactiva: boolean
+  cantidad: number
 }
 
-function GridCardWrapper({ actividadId, uid, inactiva }: GridCardProps) {
+function GridCardWrapper({ actividadId, uid, inactiva, cantidad }: GridCardProps) {
   const { actividades } = useDataContext()
   const actividad = actividades.find(a => a.id === actividadId)
   const [confirmando, setConfirmando] = useState(false)
@@ -55,6 +56,11 @@ function GridCardWrapper({ actividadId, uid, inactiva }: GridCardProps) {
       {isCancelada && (
         <p className="text-[10px] tracking-widest uppercase text-red-400 px-1" style={labelStyle}>
           Evento cancelado
+        </p>
+      )}
+      {cantidad > 1 && (
+        <p className="text-[10px] tracking-widest uppercase text-stone-400 px-1" style={labelStyle}>
+          {cantidad} plazas reservadas
         </p>
       )}
       {!inactiva && !isCancelada && (
@@ -91,7 +97,7 @@ function GridCardWrapper({ actividadId, uid, inactiva }: GridCardProps) {
 }
 
 export function ProfilePage() {
-  const { user, signOut, inscripcionIds, inscripcionesLoading } = useAuth()
+  const { user, signOut, inscripcionIds, inscripcionCantidades, inscripcionesLoading } = useAuth()
   const { actividades } = useDataContext()
   const [tab, setTab] = useState<Tab>('todas')
 
@@ -240,6 +246,7 @@ export function ProfilePage() {
                         actividad={a}
                         inactiva={a.fecha < today}
                         onLiberar={a.fecha >= today && !a.cancelada ? makeLiberar(a.id) : undefined}
+                        cantidad={inscripcionCantidades[a.id] ?? 1}
                       />
                     </div>
                   ))}
@@ -253,6 +260,7 @@ export function ProfilePage() {
                       actividadId={a.id}
                       uid={user!.uid}
                       inactiva={a.fecha < today || !!a.cancelada}
+                      cantidad={inscripcionCantidades[a.id] ?? 1}
                     />
                   ))}
                 </div>
