@@ -51,6 +51,8 @@ const baseProps = {
   telefono: '',
   onTelefonoChange: vi.fn(),
   telefonoError: '',
+  cantidad: 1,
+  onCantidadChange: vi.fn(),
   onConfirmarInscripcion: vi.fn(),
   onCancelarTelefono: vi.fn(),
 }
