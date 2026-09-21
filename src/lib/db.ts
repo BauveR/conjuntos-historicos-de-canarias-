@@ -91,7 +91,7 @@ export class YaLiberadaError extends Error {
   constructor() { super('YA_LIBERADA') }
 }
 
-export async function liberarPlaza(actividadId: number, uid: string): Promise<void> {
+export async function liberarPlaza(actividadId: number, uid: string, cantidadALiberar?: number): Promise<void> {
   const actividadRef   = doc(db, 'actividades', String(actividadId))
   const inscripcionRef = doc(db, 'users', uid, 'inscripciones', String(actividadId))
   const inscritoRef    = doc(db, 'actividades', String(actividadId), 'inscritos', uid)
@@ -112,12 +112,21 @@ export async function liberarPlaza(actividadId: number, uid: string): Promise<vo
       return
     }
 
-    // Caso normal: ambos existen — limpiar y devolver las plazas
     const data = actSnap.data()
     const plazas            = (data?.plazas ?? 0) as number
     const plazasDisponibles = (data?.plazasDisponibles ?? 0) as number
     const cantidad          = (inscritoSnap.data()?.cantidad ?? 1) as number
+    const liberar           = Math.min(cantidadALiberar ?? cantidad, cantidad)
 
+    // Liberación parcial: quedan plazas del grupo, el registro sigue vivo
+    if (liberar < cantidad) {
+      tx.update(inscripcionRef, { cantidad: cantidad - liberar })
+      tx.update(inscritoRef, { cantidad: cantidad - liberar })
+      tx.update(actividadRef, { plazasDisponibles: Math.min(plazasDisponibles + liberar, plazas) })
+      return
+    }
+
+    // Liberación total: limpiar y devolver todas las plazas del grupo
     tx.delete(inscripcionRef)
     tx.delete(inscritoRef)
     tx.update(actividadRef, { plazasDisponibles: Math.min(plazasDisponibles + cantidad, plazas) })

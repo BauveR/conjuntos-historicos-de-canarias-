@@ -285,6 +285,55 @@ describe('liberarPlaza', () => {
     const updateCall = tx.update.mock.calls[0]
     expect(updateCall[1]).toMatchObject({ plazasDisponibles: 13 })
   })
+
+  it('liberación parcial: actualiza cantidad en vez de borrar, y solo devuelve esas plazas', async () => {
+    const tx = makeTx({
+      'actividades/1/inscritos/uid-a':    { email: 'a@test.es', cantidad: 3 },
+      'users/uid-a/inscripciones/1':      { inscritoEn: null, cantidad: 3 },
+      'actividades/1':                    { plazas: 20, plazasDisponibles: 10 },
+    })
+    runTxWith(tx)
+
+    await liberarPlaza(1, 'uid-a', 1)
+
+    expect(tx.delete).not.toHaveBeenCalled()
+    expect(tx.update).toHaveBeenCalledTimes(3)
+
+    const updateCalls = Object.fromEntries(tx.update.mock.calls as [string, Record<string, unknown>][])
+    expect(updateCalls['actividades/1/inscritos/uid-a']).toMatchObject({ cantidad: 2 })
+    expect(updateCalls['users/uid-a/inscripciones/1']).toMatchObject({ cantidad: 2 })
+    expect(updateCalls['actividades/1']).toMatchObject({ plazasDisponibles: 11 })
+  })
+
+  it('liberación parcial por el total exacto se comporta como liberación completa (borra)', async () => {
+    const tx = makeTx({
+      'actividades/1/inscritos/uid-a':    { email: 'a@test.es', cantidad: 2 },
+      'users/uid-a/inscripciones/1':      { inscritoEn: null, cantidad: 2 },
+      'actividades/1':                    { plazas: 20, plazasDisponibles: 10 },
+    })
+    runTxWith(tx)
+
+    await liberarPlaza(1, 'uid-a', 2)
+
+    expect(tx.delete).toHaveBeenCalledTimes(2)
+    const updateCall = tx.update.mock.calls[0]
+    expect(updateCall[1]).toMatchObject({ plazasDisponibles: 12 })
+  })
+
+  it('pedir liberar más de lo reservado se capa al total (no se pasa de plazas)', async () => {
+    const tx = makeTx({
+      'actividades/1/inscritos/uid-a':    { email: 'a@test.es', cantidad: 2 },
+      'users/uid-a/inscripciones/1':      { inscritoEn: null, cantidad: 2 },
+      'actividades/1':                    { plazas: 20, plazasDisponibles: 10 },
+    })
+    runTxWith(tx)
+
+    await liberarPlaza(1, 'uid-a', 5)
+
+    expect(tx.delete).toHaveBeenCalledTimes(2)
+    const updateCall = tx.update.mock.calls[0]
+    expect(updateCall[1]).toMatchObject({ plazasDisponibles: 12 })
+  })
 })
 
 // ── eliminarActividad ─────────────────────────────────────────────────────────

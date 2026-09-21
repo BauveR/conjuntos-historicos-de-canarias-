@@ -1125,6 +1125,7 @@ function ControlAsistentes({ actividades, conjuntos }: { actividades: Actividad[
   const [copiado,          setCopiado]          = useState(false)
   const [confirmandoUid,   setConfirmandoUid]   = useState<string | null>(null)
   const [liberandoUid,     setLiberandoUid]     = useState<string | null>(null)
+  const [cantidadALiberar, setCantidadALiberar] = useState(1)
 
   const mesesDisponibles = useMemo(() => {
     const set = new Set(actividades.map(a => a.fecha.slice(0, 7)))
@@ -1173,12 +1174,21 @@ function ControlAsistentes({ actividades, conjuntos }: { actividades: Actividad[
     fetchInscritos(selectedId, selectedCount)
   }, [selectedId, selectedCount])
 
-  const handleLiberarPlaza = async (uid: string) => {
+  const handleAbrirConfirmacion = (uid: string, cantidad: number) => {
+    setConfirmandoUid(uid)
+    setCantidadALiberar(cantidad)
+  }
+
+  const handleLiberarPlaza = async (uid: string, cantidadTotal: number) => {
     if (!selectedId) return
     setLiberandoUid(uid)
     try {
-      await liberarPlaza(selectedId, uid)
-      setInscritos(prev => prev.filter(i => i.uid !== uid))
+      await liberarPlaza(selectedId, uid, cantidadALiberar)
+      if (cantidadALiberar >= cantidadTotal) {
+        setInscritos(prev => prev.filter(i => i.uid !== uid))
+      } else {
+        setInscritos(prev => prev.map(i => i.uid === uid ? { ...i, cantidad: i.cantidad - cantidadALiberar } : i))
+      }
     } catch (err) {
       if (!(err instanceof YaLiberadaError)) throw err
     } finally {
@@ -1304,8 +1314,20 @@ function ControlAsistentes({ actividades, conjuntos }: { actividades: Actividad[
                       <td className="py-2.5 text-[11px] whitespace-nowrap">
                         {confirmandoUid === i.uid ? (
                           <div className="flex items-center gap-2">
+                            {i.cantidad > 1 && (
+                              <select
+                                value={cantidadALiberar}
+                                onChange={e => setCantidadALiberar(Number(e.target.value))}
+                                disabled={liberandoUid === i.uid}
+                                className="border border-stone-200 rounded-lg px-1.5 py-0.5 text-[11px] text-stone-600 disabled:opacity-40 cursor-pointer"
+                              >
+                                {Array.from({ length: i.cantidad }, (_, n) => n + 1).map(n => (
+                                  <option key={n} value={n}>{n === i.cantidad ? `${n} (todas)` : n}</option>
+                                ))}
+                              </select>
+                            )}
                             <button
-                              onClick={() => handleLiberarPlaza(i.uid)}
+                              onClick={() => handleLiberarPlaza(i.uid, i.cantidad)}
                               disabled={liberandoUid === i.uid}
                               className="tracking-widest uppercase text-red-400 hover:text-red-600 transition-colors disabled:opacity-40 cursor-pointer"
                             >
@@ -1322,7 +1344,7 @@ function ControlAsistentes({ actividades, conjuntos }: { actividades: Actividad[
                           </div>
                         ) : (
                           <button
-                            onClick={() => setConfirmandoUid(i.uid)}
+                            onClick={() => handleAbrirConfirmacion(i.uid, i.cantidad)}
                             className="tracking-widest uppercase text-stone-400 hover:text-red-400 transition-colors cursor-pointer"
                           >
                             Liberar plaza
