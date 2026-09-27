@@ -65,7 +65,7 @@ export function PrivacidadPage() {
             <li><strong>Google Firebase</strong> (Google LLC) — autenticación de usuarios y base de datos. Servidores en Europa (europe-west). Política: <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">firebase.google.com/support/privacy</a></li>
             <li><strong>Vercel Inc.</strong> — alojamiento de la plataforma web y funciones de servidor. Política: <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">vercel.com/legal/privacy-policy</a></li>
             <li><strong>Resend</strong> — envío de emails transaccionales de confirmación. Infraestructura en la región EU (Ireland). Política: <a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">resend.com/legal/privacy-policy</a></li>
-            <li><strong>Cloudinary</strong> — gestión de imágenes (uso exclusivo del equipo administrador). Política: <a href="https://cloudinary.com/privacy" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">cloudinary.com/privacy</a></li>
+            <li><strong>ImageKit</strong> — almacenamiento y entrega de imágenes del sitio mediante su CDN. Política: <a href="https://imagekit.io/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">imagekit.io/privacy-policy</a></li>
           </ul>
         </Section>
 

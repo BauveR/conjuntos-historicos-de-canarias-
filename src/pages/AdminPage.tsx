@@ -1,24 +1,23 @@
 import { useState, useEffect, useMemo } from 'react'
+import { ImagekitMediaLibraryWidget } from 'imagekit-media-library-widget'
 
-declare global {
-  interface Window {
-    cloudinary?: {
-      openMediaLibrary: (
-        options: { cloud_name: string; api_key: string; multiple?: boolean },
-        callbacks: { insertHandler: (data: { assets: Array<{ secure_url: string }> }) => void }
-      ) => void
-    }
+// Widget único, creado al primer uso; el login se hace dentro del iframe de ImageKit
+let mediaLibrary: ImagekitMediaLibraryWidget | null = null
+
+function openImagePicker(onSelect: (url: string) => void) {
+  if (!mediaLibrary) {
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    mediaLibrary = new ImagekitMediaLibraryWidget({
+      container,
+      view: 'modal',
+      renderOpenButton: false,
+      mlSettings: { multiple: false, initialView: { folderPath: '/conjuntos historicos /' } },
+    }, () => {})
   }
-}
-
-const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME as string
-const CLOUD_KEY  = import.meta.env.VITE_CLOUDINARY_API_KEY  as string
-
-function openCloudinaryPicker(onSelect: (url: string) => void) {
-  window.cloudinary?.openMediaLibrary(
-    { cloud_name: CLOUD_NAME, api_key: CLOUD_KEY, multiple: false },
-    { insertHandler: (data) => { if (data.assets[0]) onSelect(data.assets[0].secure_url) } }
-  )
+  mediaLibrary.open(undefined, (payload: { eventType: string; data: Array<{ url: string }> }) => {
+    if (payload.eventType === 'INSERT' && payload.data[0]) onSelect(payload.data[0].url)
+  })
 }
 import { createPortal } from 'react-dom'
 import type React from 'react'
@@ -627,7 +626,7 @@ function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
               <Input value={form.imagen} onChange={set('imagen')} placeholder="https://..." error={!!errors.imagen} />
               <button
                 type="button"
-                onClick={() => openCloudinaryPicker(url => set('imagen')(url))}
+                onClick={() => openImagePicker(url => set('imagen')(url))}
                 className="shrink-0 px-3 rounded-xl border border-stone-200 text-[10px] tracking-widest text-stone-400 hover:border-[#595d8d] hover:text-[#595d8d] transition-colors cursor-pointer whitespace-nowrap"
               >
                 Biblioteca
@@ -898,7 +897,7 @@ function EditActividadDrawer({
                     <Input value={form.imagen} onChange={set('imagen')} placeholder="https://..." error={!!errors.imagen} />
                     <button
                       type="button"
-                      onClick={() => openCloudinaryPicker(url => set('imagen')(url))}
+                      onClick={() => openImagePicker(url => set('imagen')(url))}
                       className="shrink-0 px-3 rounded-xl border border-stone-200 text-[10px] tracking-widest text-stone-400 hover:border-[#595d8d] hover:text-[#595d8d] transition-colors cursor-pointer whitespace-nowrap"
                     >
                       Biblioteca
@@ -1600,7 +1599,7 @@ function ConjuntoRow({ conjunto }: { conjunto: Conjunto }) {
               <Input value={form.imagen} onChange={set('imagen')} placeholder="https://..." error={!!errors.imagen} />
               <button
                 type="button"
-                onClick={() => openCloudinaryPicker(url => set('imagen')(url))}
+                onClick={() => openImagePicker(url => set('imagen')(url))}
                 className="shrink-0 px-3 rounded-xl border border-stone-200 text-[10px] tracking-widest text-stone-400 hover:border-[#595d8d] hover:text-[#595d8d] transition-colors cursor-pointer whitespace-nowrap"
               >
                 Biblioteca
@@ -1726,7 +1725,7 @@ function NuevoConjuntoPanel() {
             <Input value={form.imagen} onChange={set('imagen')} placeholder="https://..." error={!!errors.imagen} />
             <button
               type="button"
-              onClick={() => openCloudinaryPicker(url => set('imagen')(url))}
+              onClick={() => openImagePicker(url => set('imagen')(url))}
               className="shrink-0 px-3 rounded-xl border border-stone-200 text-[10px] tracking-widest text-stone-400 hover:border-[#595d8d] hover:text-[#595d8d] transition-colors cursor-pointer whitespace-nowrap"
             >
               Biblioteca
