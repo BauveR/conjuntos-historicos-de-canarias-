@@ -4,9 +4,15 @@ const SITE_URL = 'https://conjuntoshistoricosdecanarias.com'
 const PROJECT_ID = 'conjuntos-historicos-canarias'
 const FALLBACK_IMAGE = `${SITE_URL}/og-fallback.jpg`
 
-function optimizeImage(url: string, width: number): string {
-  if (!url.includes('res.cloudinary.com') || !url.includes('/upload/')) return url
-  return url.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`)
+// Copia mínima de src/utils/image.ts (api/ se empaqueta aparte): tamaño estándar OG 1200×630
+function ogImage(url: string): string {
+  if (url.includes('ik.imagekit.io')) {
+    return `${url}${url.includes('?') ? '&' : '?'}tr=w-1200,h-630,fo-auto`
+  }
+  if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+    return url.replace('/upload/', '/upload/f_auto,q_auto,w_1200/')
+  }
+  return url
 }
 
 type FirestoreValue = { stringValue?: string; integerValue?: string }
@@ -113,5 +119,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
   res.setHeader('Cache-Control', 'public, max-age=600, s-maxage=3600')
-  return res.status(200).send(renderHtml({ title, description, image: optimizeImage(imagen, 1200), url }))
+  return res.status(200).send(renderHtml({ title, description, image: ogImage(imagen), url }))
 }

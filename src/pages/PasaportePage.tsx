@@ -49,6 +49,7 @@ export function PasaportePage() {
           <img
             src={SELLOS_IMG}
             alt="Sellos de los conjuntos históricos"
+            loading="lazy"
             className="w-full h-auto opacity-80"
           />
         </div>

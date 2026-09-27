@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import type { Actividad } from '../../data/actividades'
 import { TEMATICA_COLORS } from '../../data/tematicas'
 import { useDataContext } from '../../contexts/DataContext'
-import { optimizeImage } from '../../utils/cloudinary'
+import { imageUrl } from '../../utils/image'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
@@ -47,7 +47,7 @@ export function ProfileCardCompact({ actividad, inactiva = false, onLiberar, can
         className="relative shrink-0 w-20 h-20 rounded-2xl overflow-hidden"
       >
         <img
-          src={optimizeImage(actividad.imagen, 400)}
+          src={imageUrl(actividad.imagen, 'square')}
           alt={actividad.titulo}
           loading="lazy"
           className={`w-full h-full object-cover transition-transform duration-300 ${inactiva || actividad.cancelada ? 'grayscale' : 'hover:scale-105'}`}

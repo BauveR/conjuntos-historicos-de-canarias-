@@ -10,7 +10,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useDataContext } from '../contexts/DataContext'
 import { inscribirse, liberarPlaza, SinPlazasError, YaLiberadaError, EventoCanceladoError, InscripcionNoAbiertaError, MAX_PLAZAS_POR_RESERVA } from '../lib/db'
 import { isValidTelefono } from '../utils/validators'
-import { optimizeImage } from '../utils/cloudinary'
+import { imageUrl } from '../utils/image'
 import type { Actividad } from '../data/actividades'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
@@ -610,7 +610,7 @@ export function ActividadPage() {
         </div>
 
         <div className="relative overflow-hidden aspect-3/2">
-          <img src={optimizeImage(actividad.imagen, 1600)} alt={actividad.titulo} className="w-full h-full object-cover" />
+          <img src={imageUrl(actividad.imagen, 'modal')} alt={actividad.titulo} fetchPriority="high" className="w-full h-full object-cover" />
         </div>
 
         <div className="px-6 py-5 flex flex-col gap-6">
@@ -693,7 +693,7 @@ export function ActividadPage() {
         )}
 
         <div className="relative overflow-hidden rounded-2xl aspect-16/7 mb-10">
-          <img src={optimizeImage(actividad.imagen, 1600)} alt={actividad.titulo} className="w-full h-full object-cover" />
+          <img src={imageUrl(actividad.imagen, 'hero')} alt={actividad.titulo} fetchPriority="high" className="w-full h-full object-cover" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-12 pb-16">

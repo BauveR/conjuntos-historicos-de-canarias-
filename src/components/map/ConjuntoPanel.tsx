@@ -4,7 +4,7 @@ import type { Conjunto } from '../../data/conjuntos'
 import { TEMATICA_COLORS } from '../../data/tematicas'
 import { HandTap } from '../HandTap'
 import { useDataContext } from '../../contexts/DataContext'
-import { optimizeImage } from '../../utils/cloudinary'
+import { imageUrl } from '../../utils/image'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 const titleStyle = { fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }
@@ -45,7 +45,7 @@ export function ConjuntoPanel({ conjunto, onClose }: Props) {
       {/* Hero image */}
       <div className="relative w-full aspect-16/7 shrink-0 overflow-hidden">
         <img
-          src={optimizeImage(conjunto.imagen, 600)}
+          src={imageUrl(conjunto.imagen, 'panel')}
           alt={conjunto.nombre}
           className="w-full h-full object-cover"
         />
@@ -109,7 +109,7 @@ export function ConjuntoPanel({ conjunto, onClose }: Props) {
             >
               <div className="aspect-4/3 rounded-xl overflow-hidden">
                 <img
-                  src={optimizeImage(act!.imagen, 400)}
+                  src={imageUrl(act!.imagen, 'thumb')}
                   alt={act!.titulo}
                   loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

@@ -32,6 +32,7 @@ import { ISLAS, DIFICULTADES } from '../data/islas'
 import { useDataContext } from '../contexts/DataContext'
 import { isValidTelefono } from '../utils/validators'
 import { downloadCsv, toTsv } from '../utils/csv'
+import { imageUrl } from '../utils/image'
 import { formatMes } from '../components/actividades/FilterSheet'
 import {
   addActividad, updateActividad, cancelActividad, reactivarActividad, eliminarActividad,
@@ -633,7 +634,7 @@ function AltaActividad({ conjuntos }: { conjuntos: Conjunto[] }) {
               </button>
             </div>
             {form.imagen && !errors.imagen && (
-              <img src={form.imagen} alt="" className="h-24 w-full object-cover rounded-xl mt-1"
+              <img src={imageUrl(form.imagen, 'admin')} alt="" loading="lazy" className="h-24 w-full object-cover rounded-xl mt-1"
                 onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
                 onLoad={e => { (e.target as HTMLImageElement).style.display = '' }}
               />
@@ -904,7 +905,7 @@ function EditActividadDrawer({
                     </button>
                   </div>
                   {form.imagen && !errors.imagen && (
-                    <img src={form.imagen} alt="" className="h-24 w-full object-cover rounded-xl mt-1"
+                    <img src={imageUrl(form.imagen, 'admin')} alt="" loading="lazy" className="h-24 w-full object-cover rounded-xl mt-1"
                       onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
                       onLoad={e => { (e.target as HTMLImageElement).style.display = '' }}
                     />
@@ -1606,7 +1607,7 @@ function ConjuntoRow({ conjunto }: { conjunto: Conjunto }) {
               </button>
             </div>
             {form.imagen && !errors.imagen && (
-              <img src={form.imagen} alt="" className="h-24 w-full object-cover rounded-xl mt-1"
+              <img src={imageUrl(form.imagen, 'admin')} alt="" loading="lazy" className="h-24 w-full object-cover rounded-xl mt-1"
                 onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
                 onLoad={e => { (e.target as HTMLImageElement).style.display = '' }}
               />
@@ -1732,7 +1733,7 @@ function NuevoConjuntoPanel() {
             </button>
           </div>
           {form.imagen && !errors.imagen && (
-            <img src={form.imagen} alt="" className="h-24 w-full object-cover rounded-xl mt-1"
+            <img src={imageUrl(form.imagen, 'admin')} alt="" loading="lazy" className="h-24 w-full object-cover rounded-xl mt-1"
               onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
               onLoad={e => { (e.target as HTMLImageElement).style.display = '' }}
             />

@@ -4,9 +4,9 @@ import { Link } from 'react-router-dom'
 import { motion, AnimatePresence, type Transition } from 'framer-motion'
 import type { Conjunto } from '../../data/conjuntos'
 import { TEMATICA_COLORS } from '../../data/tematicas'
-import { useIsDesktop } from '../../hooks/useIsDesktop'
+import { useIsDesktop, SM_BREAKPOINT } from '../../hooks/useIsDesktop'
 import { useDataContext } from '../../contexts/DataContext'
-import { optimizeImage } from '../../utils/cloudinary'
+import { imageUrl, imageSrcSet } from '../../utils/image'
 
 type Props = {
   conjunto: Conjunto | null
@@ -37,6 +37,18 @@ export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
   if (!conjunto) return null
 
   const actividades = todasActividades.filter(a => a.conjuntoId === conjunto.id)
+
+  // Una sola <img> montada según breakpoint (una oculta por CSS se descargaría igual).
+  // Desktop: contenedor ~cuadrado de 90vh → una foto 3:2 necesita ~135vh de ancho para cubrirlo.
+  const heroImg = (
+    <img
+      src={imageUrl(conjunto.imagen, 'panel')}
+      srcSet={imageSrcSet(conjunto.imagen, [640, 1024, 1600])}
+      sizes={`${SM_BREAKPOINT} 135vh, 100vw`}
+      alt={conjunto.nombre}
+      className="w-full h-full object-cover"
+    />
+  )
 
   const cardVariants = isDesktop
     ? { initial: { opacity: 0, scale: 0.96 }, animate: { opacity: 1, scale: 1 }, exit: { opacity: 0, scale: 0.96 } }
@@ -154,7 +166,7 @@ export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
                     >
                       <div className="aspect-4/3 rounded-xl overflow-hidden">
                         <img
-                          src={optimizeImage(act!.imagen, 400)}
+                          src={imageUrl(act!.imagen, 'thumb')}
                           alt={act!.titulo}
                           loading="lazy"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
@@ -213,11 +225,7 @@ export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
 
             {/* ── DESKTOP: derecha imagen slide ── */}
             <div className="hidden sm:block flex-1 h-full relative overflow-hidden">
-              <img
-                src={optimizeImage(conjunto.imagen, 1200)}
-                alt={conjunto.nombre}
-                className="w-full h-full object-cover"
-              />
+              {isDesktop && heroImg}
               {/* Botón cerrar sobre la imagen */}
               <button
                 onClick={onClose}
@@ -238,7 +246,7 @@ export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
 
               {/* Imagen — scrollea con el contenido */}
               <div className="w-full aspect-video">
-                <img src={optimizeImage(conjunto.imagen, 800)} alt={conjunto.nombre} className="w-full h-full object-cover" />
+                {!isDesktop && heroImg}
               </div>
 
               <div className="flex flex-col gap-5 px-6 py-6">
@@ -293,7 +301,7 @@ export function ConjuntoDrawer({ conjunto, open, onClose, onNavigate }: Props) {
                     >
                       <div className="aspect-4/3 rounded-xl overflow-hidden">
                         <img
-                          src={optimizeImage(act!.imagen, 400)}
+                          src={imageUrl(act!.imagen, 'thumb')}
                           alt={act!.titulo}
                           loading="lazy"
                           className="w-full h-full object-cover"
